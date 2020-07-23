@@ -8,3 +8,9 @@ styles.flib_titlebar_drag_handle = {
   height = 24,
   horizontally_stretchable = 'on',
 }
+
+styles.rq_tech_button = {
+  type = 'button_style',
+  parent = 'tool_button',
+  size = 64,
+}

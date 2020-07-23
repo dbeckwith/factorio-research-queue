@@ -22,8 +22,11 @@ local function open_gui(player)
         {template='frame_action_button', sprite='utility/close_white', hovered_sprite='utility/close_black', clicked_sprite='utility/close_black', handlers='close_button'},
       }},
       {type='flow', style='horizontal_flow', style_mods={horizontal_spacing=12}, children={
+        {type='frame', style='inside_shallow_frame_with_padding', style_mods={width=200}, direction='horizontal', children={
+          {type='scroll-pane', style='list_box_scroll_pane', save_as='queue'},
+        }},
         {type='frame', style='inside_shallow_frame_with_padding', style_mods={width=400}, direction='horizontal', children={
-          {type='scroll-pane', style='list_box_scroll_pane', save_as='queue_list'},
+          {type='scroll-pane', style='list_box_scroll_pane', save_as='techs'},
         }},
       }},
     }},
@@ -38,10 +41,19 @@ local function close_gui(player)
 end
 
 local function update_queue(player)
-  gui_data.queue_list.clear()
+  gui_data.queue.clear()
   for idx, tech in pairs(player.force.research_queue) do
-    gui.build(gui_data.queue_list, {
+    gui.build(gui_data.queue, {
       gui.templates.tech_queue_item(idx, tech),
+    })
+  end
+end
+
+local function update_techs(player)
+  gui_data.techs.clear()
+  for _, tech in pairs(game.technology_prototypes) do
+    gui.build(gui_data.techs, {
+      gui.templates.tech_list_item(tech),
     })
   end
 end
@@ -52,7 +64,18 @@ gui.add_templates{
   titlebar_drag_handle = {type='empty-widget', style='flib_titlebar_drag_handle', elem_mods={ignored_by_interaction=true}},
   tech_queue_item = function(idx, tech)
     return {type='label', caption=tech.name}
-  end
+  end,
+  tech_list_item = function(tech)
+    return
+      {type='frame', children={
+        {type='flow', direction='vertical', children={
+          {type='sprite-button', sprite='technology/'..tech.name, style='rq_tech_button'},
+          {type='flow', direction='horizontal', children={
+            {template='frame_action_button', sprite='utility/add', handlers='add_button', name='add_tech_btn.'..tech.name},
+          }},
+        }},
+      }}
+  end,
 }
 
 gui.add_handlers{
@@ -66,6 +89,15 @@ gui.add_handlers{
     on_gui_click = function(event)
       local player = game.players[event.player_index]
       update_queue(player)
+      update_techs(player)
+    end,
+  },
+  add_button = {
+    on_gui_click = function(event)
+      local player = game.players[event.player_index]
+      local _, _, tech_name = string.find(event.element.name, '^add_tech_btn%.(.+)$')
+      local tech = game.technology_prototypes[tech_name]
+      player.print('adding '..tech.name)
     end,
   },
 }

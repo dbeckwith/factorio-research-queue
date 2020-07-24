@@ -1,4 +1,5 @@
 -- https://factoriolib.github.io/flib/modules/gui.html
+-- https://github.com/factoriolib/flib
 -- https://github.com/raiguard/Factorio-RecipeBook/blob/master/src/scripts/gui/main/base.lua
 -- https://github.com/raiguard/Factorio-RecipeBook/blob/master/src/scripts/gui/main/pages/recipe.lua
 -- https://github.com/raiguard/Factorio-RecipeBook/blob/master/src/prototypes/style.lua

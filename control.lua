@@ -15,7 +15,7 @@ local function open_gui(player)
   player.force.research_queue_enabled = true
 
   gui_data = gui.build(player.gui.screen, {
-    {type='frame', style='inner_frame_in_outer_frame', direction='vertical', save_as='window', children={
+    {type='frame', style='rq_main_window', direction='vertical', save_as='window', children={
       {type='flow', save_as='titlebar', children={
         {template='frame_title', caption='Research Queue'},
         {template='titlebar_drag_handle'},
@@ -23,11 +23,9 @@ local function open_gui(player)
         {template='frame_action_button', sprite='utility/close_white', hovered_sprite='utility/close_black', clicked_sprite='utility/close_black', handlers='close_button'},
       }},
       {type='flow', style='horizontal_flow', style_mods={horizontal_spacing=12}, children={
-        {type='frame', style='inside_shallow_frame_with_padding', style_mods={width=200}, direction='horizontal', children={
-          {type='scroll-pane', style='list_box_scroll_pane', save_as='queue'},
-        }},
-        {type='frame', style='inside_shallow_frame_with_padding', style_mods={width=400}, direction='horizontal', children={
-          {type='scroll-pane', style='list_box_scroll_pane', save_as='techs'},
+        {type='scroll-pane', vertical_scroll_policy='auto-and-reserve-space', style='rq_queue_list_box', save_as='queue'},
+        {type='scroll-pane', vertical_scroll_policy='auto-and-reserve-space', style='rq_techs_list_box', children={
+          {type='table', column_count=4, save_as='techs'},
         }},
       }},
     }},
@@ -61,6 +59,7 @@ end
 
 gui.add_templates{
   frame_action_button = {type='sprite-button', style='frame_action_button', mouse_button_filter={'left'}},
+  tool_button = {type='sprite-button', style='tool_button', mouse_button_filter={'left'}},
   frame_title = {type='label', style='frame_title', elem_mods={ignored_by_interaction=true}},
   titlebar_drag_handle = {type='empty-widget', style='flib_titlebar_drag_handle', elem_mods={ignored_by_interaction=true}},
   tech_queue_item = function(idx, tech)
@@ -68,11 +67,13 @@ gui.add_templates{
   end,
   tech_list_item = function(tech)
     return
-      {type='frame', children={
+      {type='frame', style='rq_tech_list_item', children={
         {type='flow', direction='vertical', children={
           {type='sprite-button', sprite='technology/'..tech.name, style='rq_tech_button'},
-          {type='flow', direction='horizontal', children={
-            {template='frame_action_button', sprite='utility/add', handlers='add_button', name='add_tech_btn.'..tech.name},
+          {type='flow', direction='horizontal', style='rq_tech_item_tool_bar', children={
+            {template='tool_button', sprite='rq-enqueue-last', handlers='enqueue_last_button', name='enqueue_last_button.'..tech.name},
+            {template='tool_button', sprite='rq-enqueue-second', handlers='enqueue_second_button', name='enqueue_second_button.'..tech.name},
+            {template='tool_button', sprite='rq-enqueue-first', handlers='enqueue_first_button', name='enqueue_first_button.'..tech.name},
           }},
         }},
       }}
@@ -93,12 +94,28 @@ gui.add_handlers{
       update_techs(player)
     end,
   },
-  add_button = {
+  enqueue_last_button = {
     on_gui_click = function(event)
       local player = game.players[event.player_index]
-      local _, _, tech_name = string.find(event.element.name, '^add_tech_btn%.(.+)$')
+      local _, _, tech_name = string.find(event.element.name, '^enqueue_last_button%.(.+)$')
       local tech = game.technology_prototypes[tech_name]
-      player.print('adding '..tech.name)
+      player.print('enqueue last '..tech.name)
+    end,
+  },
+  enqueue_second_button = {
+    on_gui_click = function(event)
+      local player = game.players[event.player_index]
+      local _, _, tech_name = string.find(event.element.name, '^enqueue_second_button%.(.+)$')
+      local tech = game.technology_prototypes[tech_name]
+      player.print('enqueue second '..tech.name)
+    end,
+  },
+  enqueue_first_button = {
+    on_gui_click = function(event)
+      local player = game.players[event.player_index]
+      local _, _, tech_name = string.find(event.element.name, '^enqueue_first_button%.(.+)$')
+      local tech = game.technology_prototypes[tech_name]
+      player.print('enqueue first '..tech.name)
     end,
   },
 }

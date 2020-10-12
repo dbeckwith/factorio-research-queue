@@ -6,7 +6,7 @@ local function create_guis(player)
   local gui_data = guilib.build(player.gui.screen, {
     {type='frame', style='rq_main_window', direction='vertical', save_as='window', children={
       {type='flow', save_as='titlebar', children={
-        {template='frame_title', caption='Research Queue'},
+        {template='frame_title', caption={'sonaxaton-research-queue.window-title'}},
         {template='titlebar_drag_handle'},
         {template='frame_action_button', sprite='rq-enqueue-first', handlers='research_button'},
         {template='frame_action_button', sprite='utility/refresh', handlers='refresh_button'},

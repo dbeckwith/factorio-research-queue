@@ -263,7 +263,7 @@ guilib.add_handlers{
       local force = player.force
       local tech = force.technologies[tech_name]
       log('shift earlier '..tech.name)
-      queue.shift_earlier(player, tech)
+      queue[event.shift and 'shift_earliest' or 'shift_earlier'](player, tech)
       update_queue(player)
     end,
   },
@@ -275,7 +275,7 @@ guilib.add_handlers{
       local force = player.force
       local tech = force.technologies[tech_name]
       log('shift later '..tech.name)
-      queue.shift_later(player, tech)
+      queue[event.shift and 'shift_latest' or 'shift_later'](player, tech)
       update_queue(player)
     end,
   },

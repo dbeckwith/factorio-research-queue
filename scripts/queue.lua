@@ -235,6 +235,10 @@ return {
     local queue = global.players[player.index].queue
     return shift_earlier(player, queue, tech)
   end,
+  shift_earliest = function(player, tech)
+    local queue = global.players[player.index].queue
+    return shift_earliest(player, queue, tech)
+  end,
   can_shift_earlier = function(player, tech)
     local queue = global.players[player.index].queue
     return try_shift_earlier(player, queue, tech) ~= nil
@@ -242,6 +246,10 @@ return {
   shift_later = function(player, tech)
     local queue = global.players[player.index].queue
     return shift_later(player, queue, tech)
+  end,
+  shift_latest = function(player, tech)
+    local queue = global.players[player.index].queue
+    return shift_latest(player, queue, tech)
   end,
   can_shift_later = function(player, tech)
     local queue = global.players[player.index].queue

@@ -127,10 +127,14 @@ guilib.add_templates{
   tool_button = {type='sprite-button', style='tool_button', mouse_button_filter={'left'}},
   frame_title = {type='label', style='frame_title', elem_mods={ignored_by_interaction=true}},
   titlebar_drag_handle = {type='empty-widget', style='flib_titlebar_drag_handle', elem_mods={ignored_by_interaction=true}},
+  tech_button = function(tech, style)
+    local is_levelled = not not string.match(tech.name, '-%d+$')
+    return {type='sprite-button', sprite='technology/'..tech.name, style=style, handlers='tech_button', name='tech_button.'..tech.name, tooltip={'sonaxaton-research-queue.tech-button-tooltip', tech.localised_name}, number=is_levelled and tech.level or nil}
+  end,
   tech_queue_item = function(tech)
     return
       {type='frame', style='rq_tech_queue_item', children={
-        {type='sprite-button', sprite='technology/'..tech.name, style='rq_tech_queue_item_tech_button', handlers='tech_button', name='tech_button.'..tech.name, tooltip={'sonaxaton-research-queue.tech-button-tooltip', tech.localised_name}},
+        guilib.templates.tech_button(tech, 'rq_tech_queue_item_tech_button'),
         {type='empty-widget', style='flib_horizontal_pusher'},
         {type='flow', direction='vertical', style='rq_tech_queue_item_buttons', children={
           {type='button', style='rq_tech_queue_item_shift_up_button', handlers='shift_up_button', name='shift_up_button.'..tech.name, tooltip={'sonaxaton-research-queue.shift-up-button-tooltip', tech.localised_name}},
@@ -144,7 +148,7 @@ guilib.add_templates{
   tech_list_item = function(tech)
     return
       {type='frame', direction='vertical', style='rq_tech_list_item', children={
-        {type='sprite-button', sprite='technology/'..tech.name, style='rq_tech_list_item_tech_button', handlers='tech_button', name='tech_button.'..tech.name, tooltip={'sonaxaton-research-queue.tech-button-tooltip', tech.localised_name}},
+        guilib.templates.tech_button(tech, 'rq_tech_list_item_tech_button'),
         {type='flow', direction='horizontal', style='rq_tech_list_item_tool_bar', children={
           {template='tool_button', sprite='rq-enqueue-last', handlers='enqueue_last_button', name='enqueue_last_button.'..tech.name, tooltip={'sonaxaton-research-queue.enqueue-last-button-tooltip', tech.localised_name}},
           {template='tool_button', sprite='rq-enqueue-second', handlers='enqueue_second_button', name='enqueue_second_button.'..tech.name, tooltip={'sonaxaton-research-queue.enqueue-second-button-tooltip', tech.localised_name}},

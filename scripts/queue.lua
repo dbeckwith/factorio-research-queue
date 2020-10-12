@@ -171,6 +171,14 @@ return {
     local queue = global.players[player.index].queue
     return enqueue_head(player, queue, tech)
   end,
+  shift_earlier = function(player, tech)
+    local queue = global.players[player.index].queue
+    return shift_earlier(player, queue, tech)
+  end,
+  shift_later = function(player, tech)
+    local queue = global.players[player.index].queue
+    return shift_later(player, queue, tech)
+  end,
   dequeue = function(player, tech)
     local queue = global.players[player.index].queue
     return dequeue(player, queue, tech)

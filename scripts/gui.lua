@@ -62,6 +62,8 @@ local function update_queue(player)
   end
 end
 
+-- TODO: disable shift buttons if they won't do anything
+
 guilib.add_templates{
   frame_action_button = {type='sprite-button', style='frame_action_button', mouse_button_filter={'left'}},
   tool_button = {type='sprite-button', style='tool_button', mouse_button_filter={'left'}},
@@ -73,6 +75,11 @@ guilib.add_templates{
         {type='flow', direction='horizontal', style='rq_tech_queue_item_content', children={
           {type='label', caption=tech.name},
           {type='empty-widget', style='flib_horizontal_pusher'},
+          {type='flow', direction='vertical', style='rq_tech_queue_item_shift_buttons', children={
+            {type='button', style='rq_tech_queue_item_shift_up_button', handlers='shift_up_button', name='shift_up_button.'..tech.name, tooltip={'sonaxaton-research-queue.shift-up-button-tooltip', tech.localised_name}},
+            {type='empty-widget', style='flib_vertical_pusher'},
+            {type='button', style='rq_tech_queue_item_shift_down_button', handlers='shift_down_button', name='shift_down_button.'..tech.name, tooltip={'sonaxaton-research-queue.shift-down-button-tooltip', tech.localised_name}},
+          }},
           {template='tool_button', sprite='utility/close_black', handlers='dequeue_button', name='dequeue_button.'..tech.name, tooltip={'sonaxaton-research-queue.dequeue-button-tooltip', tech.localised_name}},
         }}
       }}
@@ -149,6 +156,38 @@ guilib.add_handlers{
       local tech = force.technologies[tech_name]
       log('enqueue first '..tech.name)
       queue.enqueue_head(player, tech)
+      log('queue:')
+      for tech in queue.iter(player) do
+        log('\t'..tech.name)
+      end
+      update_queue(player)
+    end,
+  },
+  shift_up_button = {
+    on_gui_click = function(event)
+      log('shift_up_button')
+      local player = game.players[event.player_index]
+      local _, _, tech_name = string.find(event.element.name, '^shift_up_button%.(.+)$')
+      local force = player.force
+      local tech = force.technologies[tech_name]
+      log('shift earlier '..tech.name)
+      queue.shift_earlier(player, tech)
+      log('queue:')
+      for tech in queue.iter(player) do
+        log('\t'..tech.name)
+      end
+      update_queue(player)
+    end,
+  },
+  shift_down_button = {
+    on_gui_click = function(event)
+      log('shift_down_button')
+      local player = game.players[event.player_index]
+      local _, _, tech_name = string.find(event.element.name, '^shift_down_button%.(.+)$')
+      local force = player.force
+      local tech = force.technologies[tech_name]
+      log('shift later '..tech.name)
+      queue.shift_later(player, tech)
       log('queue:')
       for tech in queue.iter(player) do
         log('\t'..tech.name)

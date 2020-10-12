@@ -48,5 +48,61 @@ styles.rq_tech_queue_item = {
 styles.rq_tech_queue_item_content = {
   type = 'horizontal_flow_style',
   horizontally_stretchable = 'on',
-  horizontal_align = 'left',
+}
+
+styles.rq_tech_queue_item_shift_buttons = {
+  type = 'vertical_flow_style',
+  vertically_stretchable = 'on',
+}
+
+styles.rq_tech_queue_item_shift_up_button = {
+  type = 'button_style',
+  size = {8, 8},
+  padding = 0,
+  default_graphical_set = {
+    filename = '__core__/graphics/arrows/table-header-sort-arrow-up-active.png',
+    size = {16, 16},
+    scale = 0.5
+  },
+  hovered_graphical_set = {
+    filename = '__core__/graphics/arrows/table-header-sort-arrow-up-hover.png',
+    size = {16, 16},
+    scale = 0.5
+  },
+  clicked_graphical_set = {
+    filename = '__core__/graphics/arrows/table-header-sort-arrow-up-active.png',
+    size = {16, 16},
+    scale = 0.5
+  },
+  disabled_graphical_set = {
+    filename = '__core__/graphics/arrows/table-header-sort-arrow-up-white.png',
+    size = {16, 16},
+    scale = 0.5
+  }
+}
+
+styles.rq_tech_queue_item_shift_down_button = {
+  type = 'button_style',
+  size = {8, 8},
+  padding = 0,
+  default_graphical_set = {
+    filename = '__core__/graphics/arrows/table-header-sort-arrow-down-active.png',
+    size = {16, 16},
+    scale = 0.5
+  },
+  hovered_graphical_set = {
+    filename = '__core__/graphics/arrows/table-header-sort-arrow-down-hover.png',
+    size = {16, 16},
+    scale = 0.5
+  },
+  clicked_graphical_set = {
+    filename = '__core__/graphics/arrows/table-header-sort-arrow-down-active.png',
+    size = {16, 16},
+    scale = 0.5
+  },
+  disabled_graphical_set = {
+    filename = '__core__/graphics/arrows/table-header-sort-arrow-down-white.png',
+    size = {16, 16},
+    scale = 0.5
+  }
 }

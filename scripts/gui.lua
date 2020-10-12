@@ -65,7 +65,7 @@ end
 
 local function create_guis(player)
   local gui_data = guilib.build(player.gui.screen, {
-    {type='frame', style='rq_main_window', direction='vertical', save_as='window', children={
+    {type='frame', style='rq_main_window', direction='vertical', elem_mods={visible=false}, handlers='window', save_as='window', children={
       {type='flow', save_as='titlebar', children={
         {template='frame_title', caption={'sonaxaton-research-queue.window-title'}},
         {template='titlebar_drag_handle'},
@@ -76,6 +76,7 @@ local function create_guis(player)
       {type='flow', style='horizontal_flow', style_mods={horizontal_spacing=12}, children={
         {type='scroll-pane', vertical_scroll_policy='always', style='rq_tech_queue_list_box', save_as='queue'},
         {type='flow', direction='vertical', style='vertical_flow', style_mods={vertical_spacing=8, horizontal_align='right'}, children={
+          -- TODO: hide search textfield in a button like tech GUI
           {type='textfield', save_as='search', handlers='search'},
           {type='scroll-pane', vertical_scroll_policy='always', style='rq_tech_list_list_box', children={
             {type='table', style='rq_tech_list_table', column_count=4, save_as='techs'},
@@ -111,6 +112,10 @@ local function open(player)
   local gui_data = player_data.gui
 
   gui_data.window.visible = true
+  player.opened = gui_data.window
+
+  gui_data.search.focus()
+  gui_data.search.select_all()
 end
 
 local function close(player)
@@ -159,6 +164,12 @@ guilib.add_templates{
 }
 
 guilib.add_handlers{
+  window = {
+    on_gui_closed = function(event)
+      local player = game.players[event.player_index]
+      close(player)
+    end,
+  },
   close_button = {
     on_gui_click = function(event)
       local player = game.players[event.player_index]

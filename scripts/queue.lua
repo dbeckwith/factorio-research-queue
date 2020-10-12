@@ -155,6 +155,14 @@ local function shift_earliest(player, queue, tech)
   while shift_earlier(player, queue, tech) do end
 end
 
+local function shift_before_earliest(player, queue, tech)
+  while shift_earlier(player, queue, tech) do end
+  local tech_pos = queue_pos(player, queue, tech)
+  if tech_pos == 1 then
+    shift_later(player, queue, tech)
+  end
+end
+
 local function enqueue_tail(player, queue, tech)
   enqueue(player, queue, tech)
   shift_latest(player, queue, tech)
@@ -163,6 +171,11 @@ end
 local function enqueue_head(player, queue, tech)
   enqueue(player, queue, tech)
   shift_earliest(player, queue, tech)
+end
+
+local function enqueue_before_head(player, queue, tech)
+  enqueue(player, queue, tech)
+  shift_before_earliest(player, queue, tech)
 end
 
 local function iter(player, queue)
@@ -197,6 +210,10 @@ return {
   enqueue_head = function(player, tech)
     local queue = global.players[player.index].queue
     return enqueue_head(player, queue, tech)
+  end,
+  enqueue_before_head = function(player, tech)
+    local queue = global.players[player.index].queue
+    return enqueue_before_head(player, queue, tech)
   end,
   shift_earlier = function(player, tech)
     local queue = global.players[player.index].queue

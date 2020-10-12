@@ -22,14 +22,20 @@ local function enqueue(queue, tech)
   end
 end
 
+local function for_each(queue, action)
+  for _, tech in pairs(queue) do
+    action(tech)
+  end
+end
+
 return {
   new = new,
   enqueue = function(player, tech)
     local queue = global.players[player.index].queue
     enqueue(queue, tech)
-    log('queue:')
-    for _, t in ipairs(queue) do
-      log(t.name)
-    end
+  end,
+  for_each = function(player, action)
+    local queue = global.players[player.index].queue
+    for_each(queue, action)
   end,
 }

@@ -51,12 +51,23 @@ local function close(player)
   player_data.gui.window.visible = false
 end
 
+local function update_queue(player)
+  local player_data = global.players[player.index]
+  local gui_data = player_data.gui
+  gui_data.queue.clear()
+  queue.for_each(player, function(tech)
+    guilib.build(gui_data.queue, {
+      guilib.templates.tech_queue_item(tech),
+    })
+  end)
+end
+
 guilib.add_templates{
   frame_action_button = {type='sprite-button', style='frame_action_button', mouse_button_filter={'left'}},
   tool_button = {type='sprite-button', style='tool_button', mouse_button_filter={'left'}},
   frame_title = {type='label', style='frame_title', elem_mods={ignored_by_interaction=true}},
   titlebar_drag_handle = {type='empty-widget', style='flib_titlebar_drag_handle', elem_mods={ignored_by_interaction=true}},
-  tech_queue_item = function(idx, tech)
+  tech_queue_item = function(tech)
     return {type='label', caption=tech.name}
   end,
   tech_list_item = function(tech)
@@ -102,6 +113,11 @@ guilib.add_handlers{
       local tech = force.technologies[tech_name]
       player.print('enqueue last '..tech.name)
       queue.enqueue(player, tech)
+      log('queue:')
+      queue.for_each(player, function(tech)
+        log('\t'..tech.name)
+      end)
+      update_queue(player)
     end,
   },
   enqueue_second_button = {

@@ -1,6 +1,7 @@
 local guilib = require('__flib__.gui')
 
 local queue = require('.queue')
+local util = require('.util')
 
 local function update_queue(player)
   local player_data = global.players[player.index]
@@ -23,18 +24,43 @@ end
 local function update_techs(player)
   local player_data = global.players[player.index]
   local gui_data = player_data.gui
+  local filter_data = player_data.filter
   local force = player.force
 
   gui_data.techs.clear()
   for _, tech in pairs(force.technologies) do
-    if tech.enabled and not tech.researched then
+    local visible = (function()
+      if not tech.enabled then
+        return false
+      end
+      if tech.researched then
+        return false
+      end
+
+      local search_terms = filter_data.search_terms
+      -- TODO: search in localised names
+      -- TODO: search in effects
+      if not util.fuzzy_search(tech.name, search_terms) then
+        return false
+      end
+
+      return true
+    end)()
+    if visible then
       guilib.build(gui_data.techs, {
         guilib.templates.tech_list_item(tech),
       })
     end
   end
+end
 
-  update_queue(player)
+local function update_search(player)
+  local player_data = global.players[player.index]
+  local gui_data = player_data.gui
+  local filter_data = player_data.filter
+
+  local search_text = gui_data.search.text
+  filter_data.search_terms = util.prepare_search_terms(search_text)
 end
 
 local function create_guis(player)
@@ -49,8 +75,11 @@ local function create_guis(player)
       }},
       {type='flow', style='horizontal_flow', style_mods={horizontal_spacing=12}, children={
         {type='scroll-pane', vertical_scroll_policy='always', style='rq_tech_queue_list_box', save_as='queue'},
-        {type='scroll-pane', vertical_scroll_policy='always', style='rq_tech_list_list_box', children={
-          {type='table', column_count=4, save_as='techs'},
+        {type='flow', direction='vertical', style='vertical_flow', style_mods={vertical_spacing=8, horizontal_align='right'}, children={
+          {type='textfield', save_as='search', handlers='search'},
+          {type='scroll-pane', vertical_scroll_policy='always', style='rq_tech_list_list_box', children={
+            {type='table', column_count=4, save_as='techs'},
+          }},
         }},
       }},
     }},
@@ -59,9 +88,14 @@ local function create_guis(player)
   gui_data.window.force_auto_center()
   gui_data.titlebar.drag_target = gui_data.window
 
-  global.players[player.index].gui = gui_data
+  local player_data = global.players[player.index]
+  player_data.gui = gui_data
+  player_data.filter = {
+    search_terms = {},
+  }
 
   update_techs(player)
+  update_queue(player)
 end
 
 local function destroy_guis(player)
@@ -142,6 +176,14 @@ guilib.add_handlers{
       if player.force.current_research ~= nil then
         player.force.research_progress = 1
       end
+    end,
+  },
+  search = {
+    on_gui_text_changed = function(event)
+      log('search')
+      local player = game.players[event.player_index]
+      update_search(player)
+      update_techs(player)
     end,
   },
   tech_button = {
@@ -229,6 +271,7 @@ return {
   create_guis = create_guis,
   destroy_guis = destroy_guis,
   update_techs = update_techs,
+  update_queue = update_queue,
   open = open,
   close = close,
 }

@@ -71,5 +71,6 @@ eventlib.register(defines.events.on_research_finished, function(event)
   local force = event.research.force
   for _, player in pairs(force.players) do
     gui.update_techs(player)
+    gui.update_queue(player)
   end
 end)

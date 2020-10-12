@@ -33,16 +33,7 @@ function util.iter_filter(iter, f)
 end
 
 function util.contains_substring(s, sub)
-  if #sub == 0 then return true end
-  local n = #s - #sub
-  if n < 0 then return false end
-  if n == 0 then return s == sub end
-  for i = 1,(n+1) do
-    if string.sub(s, i, i-1+#sub) == sub then
-      return true
-    end
-  end
-  return false
+  return string.find(s, sub, 1, true)
 end
 
 function util.join_strings(strs)

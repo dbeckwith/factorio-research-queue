@@ -1,5 +1,7 @@
 local guilib = require('__flib__.gui')
 
+local queue = require('.queue')
+
 local function create_guis(player)
   local gui_data = guilib.build(player.gui.screen, {
     {type='frame', style='rq_main_window', direction='vertical', save_as='window', children={
@@ -95,6 +97,11 @@ guilib.add_handlers{
     on_gui_click = function(event)
       log('enqueue_last_button')
       local player = game.players[event.player_index]
+      local _, _, tech_name = string.find(event.element.name, '^enqueue_last_button%.(.+)$')
+      local force = player.force
+      local tech = force.technologies[tech_name]
+      player.print('enqueue last '..tech.name)
+      queue.enqueue(player, tech)
     end,
   },
   enqueue_second_button = {

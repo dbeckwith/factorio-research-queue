@@ -9,6 +9,7 @@ local eventlib = require('__flib__.event')
 local guilib = require('__flib__.gui')
 
 local gui = require('scripts.gui')
+local queue = require('scripts.queue')
 
 eventlib.on_init(function()
   guilib.init()
@@ -42,6 +43,7 @@ eventlib.on_player_created(function(event)
   global.players[event.player_index] = {}
   local player = game.get_player(event.player_index)
   gui.create_guis(player)
+  queue.new(player)
 end)
 
 eventlib.on_player_removed(function(event)

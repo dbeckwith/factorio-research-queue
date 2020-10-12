@@ -134,7 +134,22 @@ guilib.add_templates{
   titlebar_drag_handle = {type='empty-widget', style='flib_titlebar_drag_handle', elem_mods={ignored_by_interaction=true}},
   tech_button = function(tech, style)
     local is_levelled = not not string.match(tech.name, '-%d+$')
-    return {type='sprite-button', sprite='technology/'..tech.name, style=style, handlers='tech_button', name='tech_button.'..tech.name, tooltip={'sonaxaton-research-queue.tech-button-tooltip', tech.localised_name}, number=is_levelled and tech.level or nil}
+    local cost =
+      '(' ..
+      '[img=quantity-time]' ..
+      (tech.research_unit_energy / 60) ..
+      's'
+    for _, ingredient in ipairs(tech.research_unit_ingredients) do
+      cost = cost .. string.format(' [img=%s/%s]%d',
+        ingredient.type,
+        ingredient.name,
+        ingredient.amount)
+    end
+    cost = cost ..
+      ') × ' ..
+      tostring(tech.research_unit_count)
+    local tooltip = {'', tech.localised_name, '\n', cost}
+    return {type='sprite-button', sprite='technology/'..tech.name, style=style, handlers='tech_button', name='tech_button.'..tech.name, tooltip=tooltip, number=is_levelled and tech.level or nil}
   end,
   tech_queue_item = function(tech)
     return

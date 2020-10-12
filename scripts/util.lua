@@ -37,11 +37,7 @@ function util.contains_substring(s, sub)
 end
 
 function util.join_strings(strs)
-  local joined = ''
-  for _, s in ipairs(strs) do
-    joined = joined .. s
-  end
-  return joined
+  return table.concat(strs)
 end
 
 function util.prepare_search_terms(s)

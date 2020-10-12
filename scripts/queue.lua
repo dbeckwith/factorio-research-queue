@@ -17,23 +17,31 @@ local function rotate(player, queue, i, j)
   queue[j] = tmp
 end
 
+local function is_researchable(player, queue, tech)
+  return tech.enabled and not tech.researched
+end
+
 local function is_dependency(player, queue, dependency, tech)
-  return tech.prerequisites[dependency.name] ~= nil
+  return is_researchable(player, queue, dependency) and tech.prerequisites[dependency.name] ~= nil
 end
 
 local function is_dependent(player, queue, dependent, tech)
-  return is_dependency(player, queue, tech, dependent)
+  return is_researchable(player, queue, dependent) and is_dependency(player, queue, tech, dependent)
 end
 
 local function tech_dependencies(player, queue, tech)
-  return util.iter_values(tech.prerequisites)
+  return util.iter_filter(
+    util.iter_values(tech.prerequisites),
+    function(dependency)
+      return is_researchable(player, queue, dependency)
+    end)
 end
 
 local function tech_dependents(player, queue, tech)
   return util.iter_filter(
     util.iter_values(player.force.technologies),
-    function(other_tech)
-      return other_tech.prerequisites[tech.name] ~= nil
+    function(depdendent)
+      return is_dependent(player, queue, depdendent, tech)
     end)
 end
 
@@ -161,6 +169,25 @@ local function iter(player, queue)
   return util.iter_list(queue)
 end
 
+local function update(player, queue)
+  local to_dequeue = {}
+  for _, tech in ipairs(queue) do
+    if not is_researchable(player, queue, tech) then
+      table.insert(to_dequeue, tech)
+    end
+  end
+  for _, tech in ipairs(to_dequeue) do
+    dequeue(player, queue, tech)
+  end
+
+  local force = player.force
+  if next(queue) then
+    force.research_queue = {queue[1]}
+  else
+    force.research_queue = {}
+  end
+end
+
 return {
   new = new,
   enqueue_tail = function(player, tech)
@@ -187,4 +214,8 @@ return {
     local queue = global.players[player.index].queue
     return iter(player, queue)
   end,
+  update = function(player)
+    local queue = global.players[player.index].queue
+    return update(player, queue)
+  end
 }

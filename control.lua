@@ -42,8 +42,8 @@ guilib.register_handlers()
 eventlib.on_player_created(function(event)
   global.players[event.player_index] = {}
   local player = game.get_player(event.player_index)
-  gui.create_guis(player)
   queue.new(player)
+  gui.create_guis(player)
 end)
 
 eventlib.on_player_removed(function(event)
@@ -64,5 +64,12 @@ eventlib.register('sonaxaton-research-queue', function(event)
   local player = game.players[event.player_index]
   if player ~= nil then
     gui.open(player)
+  end
+end)
+
+eventlib.register(defines.events.on_research_finished, function(event)
+  local force = event.research.force
+  for _, player in pairs(force.players) do
+    gui.update_techs(player)
   end
 end)

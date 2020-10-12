@@ -2,6 +2,41 @@ local guilib = require('__flib__.gui')
 
 local queue = require('.queue')
 
+local function update_queue(player)
+  local player_data = global.players[player.index]
+  local gui_data = player_data.gui
+
+  queue.update(player)
+  log('queue:')
+  for tech in queue.iter(player) do
+    log('\t'..tech.name)
+  end
+
+  gui_data.queue.clear()
+  for tech in queue.iter(player) do
+    guilib.build(gui_data.queue, {
+      guilib.templates.tech_queue_item(tech),
+    })
+  end
+end
+
+local function update_techs(player)
+  local player_data = global.players[player.index]
+  local gui_data = player_data.gui
+  local force = player.force
+
+  gui_data.techs.clear()
+  for _, tech in pairs(force.technologies) do
+    if tech.enabled and not tech.researched then
+      guilib.build(gui_data.techs, {
+        guilib.templates.tech_list_item(tech),
+      })
+    end
+  end
+
+  update_queue(player)
+end
+
 local function create_guis(player)
   local gui_data = guilib.build(player.gui.screen, {
     {type='frame', style='rq_main_window', direction='vertical', save_as='window', children={
@@ -24,42 +59,31 @@ local function create_guis(player)
   gui_data.window.force_auto_center()
   gui_data.titlebar.drag_target = gui_data.window
 
-  local force = player.force
-  gui_data.techs.clear()
-  for _, tech in pairs(force.technologies) do
-    guilib.build(gui_data.techs, {
-      guilib.templates.tech_list_item(tech),
-    })
-  end
-
   global.players[player.index].gui = gui_data
+
+  update_techs(player)
 end
 
 local function destroy_guis(player)
   local player_data = global.players[player.index]
-  player_data.gui.window.destroy()
-  player_data.gui = nil
+  local gui_data = player_data.gui
+
+  gui_data.window.destroy()
+  gui_data = nil
 end
 
 local function open(player)
   local player_data = global.players[player.index]
-  player_data.gui.window.visible = true
+  local gui_data = player_data.gui
+
+  gui_data.window.visible = true
 end
 
 local function close(player)
   local player_data = global.players[player.index]
-  player_data.gui.window.visible = false
-end
-
-local function update_queue(player)
-  local player_data = global.players[player.index]
   local gui_data = player_data.gui
-  gui_data.queue.clear()
-  for tech in queue.iter(player) do
-    guilib.build(gui_data.queue, {
-      guilib.templates.tech_queue_item(tech),
-    })
-  end
+
+  gui_data.window.visible = false
 end
 
 -- TODO: disable shift buttons if they won't do anything
@@ -115,6 +139,9 @@ guilib.add_handlers{
     on_gui_click = function(event)
       log('research_button')
       local player = game.players[event.player_index]
+      if player.force.current_research ~= nil then
+        player.force.research_progress = 1
+      end
     end,
   },
   tech_button = {
@@ -133,10 +160,6 @@ guilib.add_handlers{
       local tech = force.technologies[tech_name]
       log('enqueue last '..tech.name)
       queue.enqueue_tail(player, tech)
-      log('queue:')
-      for tech in queue.iter(player) do
-        log('\t'..tech.name)
-      end
       update_queue(player)
     end,
   },
@@ -155,10 +178,6 @@ guilib.add_handlers{
       local tech = force.technologies[tech_name]
       log('enqueue first '..tech.name)
       queue.enqueue_head(player, tech)
-      log('queue:')
-      for tech in queue.iter(player) do
-        log('\t'..tech.name)
-      end
       update_queue(player)
     end,
   },
@@ -171,10 +190,6 @@ guilib.add_handlers{
       local tech = force.technologies[tech_name]
       log('shift earlier '..tech.name)
       queue.shift_earlier(player, tech)
-      log('queue:')
-      for tech in queue.iter(player) do
-        log('\t'..tech.name)
-      end
       update_queue(player)
     end,
   },
@@ -187,10 +202,6 @@ guilib.add_handlers{
       local tech = force.technologies[tech_name]
       log('shift later '..tech.name)
       queue.shift_later(player, tech)
-      log('queue:')
-      for tech in queue.iter(player) do
-        log('\t'..tech.name)
-      end
       update_queue(player)
     end,
   },
@@ -203,10 +214,6 @@ guilib.add_handlers{
       local tech = force.technologies[tech_name]
       log('dequeue '..tech.name)
       queue.dequeue(player, tech)
-      log('queue:')
-      for tech in queue.iter(player) do
-        log('\t'..tech.name)
-      end
       update_queue(player)
     end,
   },
@@ -215,6 +222,7 @@ guilib.add_handlers{
 return {
   create_guis = create_guis,
   destroy_guis = destroy_guis,
+  update_techs = update_techs,
   open = open,
   close = close,
 }

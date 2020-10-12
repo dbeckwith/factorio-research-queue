@@ -25,6 +25,7 @@ styles.rq_tech_list_list_box = {
 
 styles.rq_tech_list_item = {
   type = 'frame_style',
+  parent = 'subpanel_frame',
   padding = 4,
 }
 
@@ -34,7 +35,7 @@ styles.rq_tech_list_item_tool_bar = {
   horizontal_align = 'center',
 }
 
-styles.rq_tech_list_item_button = {
+styles.rq_tech_list_item_tech_button = {
   type = 'button_style',
   parent = 'tool_button',
   size = 96,
@@ -42,17 +43,34 @@ styles.rq_tech_list_item_button = {
 
 styles.rq_tech_queue_item = {
   type = 'frame_style',
-  padding = 4,
+  parent = 'subpanel_frame',
+  top_padding = 2,
+  bottom_padding = 2,
+  left_padding = 2,
+  right_padding = 2,
+  horizontal_flow_style = {
+    type = 'horizontal_flow_style',
+    vertically_stretchable = 'off',
+    vertical_align = 'center',
+  },
 }
 
-styles.rq_tech_queue_item_content = {
-  type = 'horizontal_flow_style',
-  horizontally_stretchable = 'on',
+styles.rq_tech_queue_item_tech_button = {
+  type = 'button_style',
+  parent = 'tool_button',
+  size = 48,
+  padding = 0,
 }
 
-styles.rq_tech_queue_item_shift_buttons = {
+styles.rq_tech_queue_item_buttons = {
   type = 'vertical_flow_style',
-  vertically_stretchable = 'on',
+  horizontal_align = 'center',
+  vertical_spacing = 0,
+}
+
+styles.rq_tech_queue_item_close_button = {
+  type = 'button_style',
+  parent = 'mini_button',
 }
 
 styles.rq_tech_queue_item_shift_up_button = {

@@ -193,6 +193,9 @@ guilib.add_handlers{
     on_gui_click = function(event)
       log('refresh_button')
       local player = game.players[event.player_index]
+      update_search(player)
+      update_techs(player)
+      update_queue(player)
     end,
   },
   research_button = {

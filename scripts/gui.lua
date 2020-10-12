@@ -81,7 +81,7 @@ guilib.add_templates{
     return
       {type='frame', style='rq_tech_list_item', children={
         {type='flow', direction='vertical', children={
-          {type='sprite-button', sprite='technology/'..tech.name, style='rq_tech_list_item_button'},
+          {type='sprite-button', sprite='technology/'..tech.name, style='rq_tech_list_item_button', handlers='tech_button', name='tech_button.'..tech.name, tooltip={'sonaxaton-research-queue.tech-button-tooltip', tech.localised_name}},
           {type='flow', direction='horizontal', style='rq_tech_list_item_tool_bar', children={
             {template='tool_button', sprite='rq-enqueue-last', handlers='enqueue_last_button', name='enqueue_last_button.'..tech.name, tooltip={'sonaxaton-research-queue.enqueue-last-button-tooltip', tech.localised_name}},
             {template='tool_button', sprite='rq-enqueue-second', handlers='enqueue_second_button', name='enqueue_second_button.'..tech.name, tooltip={'sonaxaton-research-queue.enqueue-second-button-tooltip', tech.localised_name}},
@@ -109,6 +109,13 @@ guilib.add_handlers{
     on_gui_click = function(event)
       log('research_button')
       local player = game.players[event.player_index]
+    end,
+  },
+  tech_button = {
+    on_gui_click = function(event)
+      local player = game.players[event.player_index]
+      local _, _, tech_name = string.find(event.element.name, '^tech_button%.(.+)$')
+      player.open_technology_gui(tech_name)
     end,
   },
   enqueue_last_button = {

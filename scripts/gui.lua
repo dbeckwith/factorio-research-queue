@@ -13,8 +13,8 @@ local function create_guis(player)
         {template='frame_action_button', sprite='utility/close_white', hovered_sprite='utility/close_black', clicked_sprite='utility/close_black', handlers='close_button'},
       }},
       {type='flow', style='horizontal_flow', style_mods={horizontal_spacing=12}, children={
-        {type='scroll-pane', vertical_scroll_policy='auto-and-reserve-space', style='rq_queue_list_box', save_as='queue'},
-        {type='scroll-pane', vertical_scroll_policy='auto-and-reserve-space', style='rq_techs_list_box', children={
+        {type='scroll-pane', vertical_scroll_policy='auto-and-reserve-space', style='rq_tech_queue_list_box', save_as='queue'},
+        {type='scroll-pane', vertical_scroll_policy='auto-and-reserve-space', style='rq_tech_list_list_box', children={
           {type='table', column_count=4, save_as='techs'},
         }},
       }},
@@ -68,14 +68,21 @@ guilib.add_templates{
   frame_title = {type='label', style='frame_title', elem_mods={ignored_by_interaction=true}},
   titlebar_drag_handle = {type='empty-widget', style='flib_titlebar_drag_handle', elem_mods={ignored_by_interaction=true}},
   tech_queue_item = function(tech)
-    return {type='label', caption=tech.name}
+    return
+      {type='frame', style='rq_tech_queue_item', children={
+        {type='flow', direction='horizontal', style='rq_tech_queue_item_content', children={
+          {type='label', caption=tech.name},
+          {type='empty-widget', style='flib_horizontal_pusher'},
+          {template='tool_button', sprite='utility/close_white', handlers='dequeue_button', name='dequeue_button.'..tech.name},
+        }}
+      }}
   end,
   tech_list_item = function(tech)
     return
       {type='frame', style='rq_tech_list_item', children={
         {type='flow', direction='vertical', children={
-          {type='sprite-button', sprite='technology/'..tech.name, style='rq_tech_button'},
-          {type='flow', direction='horizontal', style='rq_tech_item_tool_bar', children={
+          {type='sprite-button', sprite='technology/'..tech.name, style='rq_tech_list_item_button'},
+          {type='flow', direction='horizontal', style='rq_tech_list_item_tool_bar', children={
             {template='tool_button', sprite='rq-enqueue-last', handlers='enqueue_last_button', name='enqueue_last_button.'..tech.name},
             {template='tool_button', sprite='rq-enqueue-second', handlers='enqueue_second_button', name='enqueue_second_button.'..tech.name},
             {template='tool_button', sprite='rq-enqueue-first', handlers='enqueue_first_button', name='enqueue_first_button.'..tech.name},
@@ -111,7 +118,7 @@ guilib.add_handlers{
       local _, _, tech_name = string.find(event.element.name, '^enqueue_last_button%.(.+)$')
       local force = player.force
       local tech = force.technologies[tech_name]
-      player.print('enqueue last '..tech.name)
+      log('enqueue last '..tech.name)
       queue.enqueue(player, tech)
       log('queue:')
       for tech in queue.iter(player) do
@@ -130,6 +137,22 @@ guilib.add_handlers{
     on_gui_click = function(event)
       log('enqueue_first_button')
       local player = game.players[event.player_index]
+    end,
+  },
+  dequeue_button = {
+    on_gui_click = function(event)
+      log('dequeue_button')
+      local player = game.players[event.player_index]
+      local _, _, tech_name = string.find(event.element.name, '^dequeue_button%.(.+)$')
+      local force = player.force
+      local tech = force.technologies[tech_name]
+      log('dequeue '..tech.name)
+      queue.dequeue(player, tech)
+      log('queue:')
+      for tech in queue.iter(player) do
+        log('\t'..tech.name)
+      end
+      update_queue(player)
     end,
   },
 }

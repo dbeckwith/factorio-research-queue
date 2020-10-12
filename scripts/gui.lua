@@ -137,6 +137,16 @@ guilib.add_handlers{
     on_gui_click = function(event)
       log('enqueue_first_button')
       local player = game.players[event.player_index]
+      local _, _, tech_name = string.find(event.element.name, '^enqueue_first_button%.(.+)$')
+      local force = player.force
+      local tech = force.technologies[tech_name]
+      log('enqueue first '..tech.name)
+      queue.enqueue_head(player, tech)
+      log('queue:')
+      for tech in queue.iter(player) do
+        log('\t'..tech.name)
+      end
+      update_queue(player)
     end,
   },
   dequeue_button = {

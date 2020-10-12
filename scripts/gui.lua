@@ -126,7 +126,7 @@ guilib.add_handlers{
       local force = player.force
       local tech = force.technologies[tech_name]
       log('enqueue last '..tech.name)
-      queue.enqueue(player, tech)
+      queue.enqueue_tail(player, tech)
       log('queue:')
       for tech in queue.iter(player) do
         log('\t'..tech.name)

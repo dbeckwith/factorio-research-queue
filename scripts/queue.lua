@@ -17,6 +17,14 @@ local function rotate(player, queue, i, j)
   queue[j] = tmp
 end
 
+local function is_dependency(player, queue, dependency, tech)
+  return tech.prerequisites[dependency.name] ~= nil
+end
+
+local function is_dependent(player, queue, dependent, tech)
+  return is_dependency(player, queue, tech, dependent)
+end
+
 local function tech_dependencies(player, queue, tech)
   return util.iter_values(tech.prerequisites)
 end
@@ -83,11 +91,36 @@ end
 
 local function is_depdendency_of_any(player, queue, tech, from_pos, to_pos)
   for i = from_pos,to_pos do
-    if queue[i].prerequisites[tech.name] ~= nil then
+    if is_dependency(player, queue, tech, queue[i]) then
       return true
     end
   end
   return false
+end
+
+local function is_depdendent_of_any(player, queue, tech, from_pos, to_pos)
+  for i = from_pos,to_pos do
+    if is_dependent(player, queue, tech, queue[i]) then
+      return true
+    end
+  end
+  return false
+end
+
+local function shift_later(player, queue, tech)
+  local tech_pos = queue_pos(player, queue, tech)
+  local pivot_pos = tech_pos + 1
+  if pivot_pos > #queue then
+    return false
+  end
+  while is_depdendent_of_any(player, queue, queue[pivot_pos], tech_pos, pivot_pos) do
+    pivot_pos = pivot_pos + 1
+    if pivot_pos > #queue then
+      return false
+    end
+  end
+  rotate(player, queue, pivot_pos, tech_pos)
+  return true
 end
 
 local function shift_earlier(player, queue, tech)
@@ -106,8 +139,17 @@ local function shift_earlier(player, queue, tech)
   return true
 end
 
+local function shift_latest(player, queue, tech)
+  while shift_later(player, queue, tech) do end
+end
+
 local function shift_earliest(player, queue, tech)
   while shift_earlier(player, queue, tech) do end
+end
+
+local function enqueue_tail(player, queue, tech)
+  enqueue(player, queue, tech)
+  shift_latest(player, queue, tech)
 end
 
 local function enqueue_head(player, queue, tech)
@@ -121,9 +163,9 @@ end
 
 return {
   new = new,
-  enqueue = function(player, tech)
+  enqueue_tail = function(player, tech)
     local queue = global.players[player.index].queue
-    return enqueue(player, queue, tech)
+    return enqueue_tail(player, queue, tech)
   end,
   enqueue_head = function(player, tech)
     local queue = global.players[player.index].queue

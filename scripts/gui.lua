@@ -73,7 +73,7 @@ guilib.add_templates{
         {type='flow', direction='horizontal', style='rq_tech_queue_item_content', children={
           {type='label', caption=tech.name},
           {type='empty-widget', style='flib_horizontal_pusher'},
-          {template='tool_button', sprite='utility/close_white', handlers='dequeue_button', name='dequeue_button.'..tech.name},
+          {template='tool_button', sprite='utility/close_black', handlers='dequeue_button', name='dequeue_button.'..tech.name, tooltip={'sonaxaton-research-queue.dequeue-button-tooltip', tech.localised_name}},
         }}
       }}
   end,
@@ -83,9 +83,9 @@ guilib.add_templates{
         {type='flow', direction='vertical', children={
           {type='sprite-button', sprite='technology/'..tech.name, style='rq_tech_list_item_button'},
           {type='flow', direction='horizontal', style='rq_tech_list_item_tool_bar', children={
-            {template='tool_button', sprite='rq-enqueue-last', handlers='enqueue_last_button', name='enqueue_last_button.'..tech.name},
-            {template='tool_button', sprite='rq-enqueue-second', handlers='enqueue_second_button', name='enqueue_second_button.'..tech.name},
-            {template='tool_button', sprite='rq-enqueue-first', handlers='enqueue_first_button', name='enqueue_first_button.'..tech.name},
+            {template='tool_button', sprite='rq-enqueue-last', handlers='enqueue_last_button', name='enqueue_last_button.'..tech.name, tooltip={'sonaxaton-research-queue.enqueue-last-button-tooltip', tech.localised_name}},
+            {template='tool_button', sprite='rq-enqueue-second', handlers='enqueue_second_button', name='enqueue_second_button.'..tech.name, tooltip={'sonaxaton-research-queue.enqueue-second-button-tooltip', tech.localised_name}},
+            {template='tool_button', sprite='rq-enqueue-first', handlers='enqueue_first_button', name='enqueue_first_button.'..tech.name, tooltip={'sonaxaton-research-queue.enqueue-first-button-tooltip', tech.localised_name}},
           }},
         }},
       }}

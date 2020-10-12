@@ -16,10 +16,6 @@ eventlib.on_init(function()
   guilib.build_lookup_tables()
 
   global.players = {}
-  for i, player in pairs(game.players) do
-    global.players[i] = {}
-    gui.create_guis(player)
-  end
 end)
 
 eventlib.on_load(function()
@@ -39,9 +35,10 @@ end)
 
 guilib.register_handlers()
 
+-- TODO: test that this gets fired when adding the mod to an existing save
 eventlib.on_player_created(function(event)
   global.players[event.player_index] = {}
-  local player = game.get_player(event.player_index)
+  local player = game.players[event.player_index]
   queue.new(player)
   gui.create_guis(player)
 end)

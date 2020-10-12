@@ -55,11 +55,11 @@ local function update_queue(player)
   local player_data = global.players[player.index]
   local gui_data = player_data.gui
   gui_data.queue.clear()
-  queue.for_each(player, function(tech)
+  for tech in queue.iter(player) do
     guilib.build(gui_data.queue, {
       guilib.templates.tech_queue_item(tech),
     })
-  end)
+  end
 end
 
 guilib.add_templates{
@@ -114,9 +114,9 @@ guilib.add_handlers{
       player.print('enqueue last '..tech.name)
       queue.enqueue(player, tech)
       log('queue:')
-      queue.for_each(player, function(tech)
+      for tech in queue.iter(player) do
         log('\t'..tech.name)
-      end)
+      end
       update_queue(player)
     end,
   },

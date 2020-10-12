@@ -22,9 +22,14 @@ local function enqueue(queue, tech)
   end
 end
 
-local function for_each(queue, action)
-  for _, tech in pairs(queue) do
-    action(tech)
+local function iter(queue)
+  local i = 0
+  local n = #queue
+  return function()
+    i = i + 1
+    if i <= n then
+      return queue[i]
+    end
   end
 end
 
@@ -32,10 +37,10 @@ return {
   new = new,
   enqueue = function(player, tech)
     local queue = global.players[player.index].queue
-    enqueue(queue, tech)
+    return enqueue(queue, tech)
   end,
-  for_each = function(player, action)
+  iter = function(player)
     local queue = global.players[player.index].queue
-    for_each(queue, action)
+    return iter(queue)
   end,
 }

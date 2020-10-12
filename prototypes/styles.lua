@@ -23,6 +23,12 @@ styles.rq_tech_list_list_box = {
   width = 480,
 }
 
+
+styles.rq_tech_list_table = {
+  type = 'table_style',
+  horizontally_stretchable = 'off',
+}
+
 styles.rq_tech_list_item = {
   type = 'frame_style',
   parent = 'subpanel_frame',

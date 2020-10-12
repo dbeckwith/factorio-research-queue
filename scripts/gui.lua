@@ -78,7 +78,7 @@ local function create_guis(player)
         {type='flow', direction='vertical', style='vertical_flow', style_mods={vertical_spacing=8, horizontal_align='right'}, children={
           {type='textfield', save_as='search', handlers='search'},
           {type='scroll-pane', vertical_scroll_policy='always', style='rq_tech_list_list_box', children={
-            {type='table', column_count=4, save_as='techs'},
+            {type='table', style='rq_tech_list_table', column_count=4, save_as='techs'},
           }},
         }},
       }},
@@ -143,14 +143,12 @@ guilib.add_templates{
   end,
   tech_list_item = function(tech)
     return
-      {type='frame', style='rq_tech_list_item', children={
-        {type='flow', direction='vertical', children={
-          {type='sprite-button', sprite='technology/'..tech.name, style='rq_tech_list_item_tech_button', handlers='tech_button', name='tech_button.'..tech.name, tooltip={'sonaxaton-research-queue.tech-button-tooltip', tech.localised_name}},
-          {type='flow', direction='horizontal', style='rq_tech_list_item_tool_bar', children={
-            {template='tool_button', sprite='rq-enqueue-last', handlers='enqueue_last_button', name='enqueue_last_button.'..tech.name, tooltip={'sonaxaton-research-queue.enqueue-last-button-tooltip', tech.localised_name}},
-            {template='tool_button', sprite='rq-enqueue-second', handlers='enqueue_second_button', name='enqueue_second_button.'..tech.name, tooltip={'sonaxaton-research-queue.enqueue-second-button-tooltip', tech.localised_name}},
-            {template='tool_button', sprite='rq-enqueue-first', handlers='enqueue_first_button', name='enqueue_first_button.'..tech.name, tooltip={'sonaxaton-research-queue.enqueue-first-button-tooltip', tech.localised_name}},
-          }},
+      {type='frame', direction='vertical', style='rq_tech_list_item', children={
+        {type='sprite-button', sprite='technology/'..tech.name, style='rq_tech_list_item_tech_button', handlers='tech_button', name='tech_button.'..tech.name, tooltip={'sonaxaton-research-queue.tech-button-tooltip', tech.localised_name}},
+        {type='flow', direction='horizontal', style='rq_tech_list_item_tool_bar', children={
+          {template='tool_button', sprite='rq-enqueue-last', handlers='enqueue_last_button', name='enqueue_last_button.'..tech.name, tooltip={'sonaxaton-research-queue.enqueue-last-button-tooltip', tech.localised_name}},
+          {template='tool_button', sprite='rq-enqueue-second', handlers='enqueue_second_button', name='enqueue_second_button.'..tech.name, tooltip={'sonaxaton-research-queue.enqueue-second-button-tooltip', tech.localised_name}},
+          {template='tool_button', sprite='rq-enqueue-first', handlers='enqueue_first_button', name='enqueue_first_button.'..tech.name, tooltip={'sonaxaton-research-queue.enqueue-first-button-tooltip', tech.localised_name}},
         }},
       }}
   end,

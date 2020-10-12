@@ -115,36 +115,52 @@ local function is_depdendent_of_any(player, queue, tech, from_pos, to_pos)
   return false
 end
 
-local function shift_later(player, queue, tech)
+local function try_shift_later(player, queue, tech)
   local tech_pos = queue_pos(player, queue, tech)
   local pivot_pos = tech_pos + 1
   if pivot_pos > #queue then
-    return false
+    return nil
   end
   while is_depdendent_of_any(player, queue, queue[pivot_pos], tech_pos, pivot_pos) do
     pivot_pos = pivot_pos + 1
     if pivot_pos > #queue then
-      return false
+      return nil
     end
   end
-  rotate(player, queue, pivot_pos, tech_pos)
-  return true
+  return pivot_pos, tech_pos
 end
 
-local function shift_earlier(player, queue, tech)
+local function shift_later(player, queue, tech)
+  local pivot_pos, tech_pos = try_shift_later(player, queue, tech)
+  if pivot_pos ~= nil then
+    rotate(player, queue, pivot_pos, tech_pos)
+    return true
+  end
+  return false
+end
+
+local function try_shift_earlier(player, queue, tech)
   local tech_pos = queue_pos(player, queue, tech)
   local pivot_pos = tech_pos - 1
   if pivot_pos < 1 then
-    return false
+    return nil
   end
   while is_depdendency_of_any(player, queue, queue[pivot_pos], pivot_pos, tech_pos) do
     pivot_pos = pivot_pos - 1
     if pivot_pos < 1 then
-      return false
+      return nil
     end
   end
-  rotate(player, queue, pivot_pos, tech_pos)
-  return true
+  return pivot_pos, tech_pos
+end
+
+local function shift_earlier(player, queue, tech)
+  local pivot_pos, tech_pos = try_shift_earlier(player, queue, tech)
+  if pivot_pos ~= nil then
+    rotate(player, queue, pivot_pos, tech_pos)
+    return true
+  end
+  return false
 end
 
 local function shift_latest(player, queue, tech)
@@ -219,9 +235,17 @@ return {
     local queue = global.players[player.index].queue
     return shift_earlier(player, queue, tech)
   end,
+  can_shift_earlier = function(player, tech)
+    local queue = global.players[player.index].queue
+    return try_shift_earlier(player, queue, tech) ~= nil
+  end,
   shift_later = function(player, tech)
     local queue = global.players[player.index].queue
     return shift_later(player, queue, tech)
+  end,
+  can_shift_later = function(player, tech)
+    local queue = global.players[player.index].queue
+    return try_shift_later(player, queue, tech) ~= nil
   end,
   dequeue = function(player, tech)
     local queue = global.players[player.index].queue

@@ -250,6 +250,7 @@ local function open(player)
 
   gui_data.window.visible = true
   player.opened = gui_data.window
+  player.set_shortcut_toggled('sonaxaton-research-queue', true)
 
   gui_data.search.focus()
   gui_data.search.select_all()
@@ -267,6 +268,7 @@ local function close(player)
   if player.opened == gui_data.window then
     player.opened = nil
   end
+  player.set_shortcut_toggled('sonaxaton-research-queue', false)
 end
 
 local function on_research_finished(player, tech)

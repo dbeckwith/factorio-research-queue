@@ -5,6 +5,7 @@ data:extend{
     order = 'r[research-queue]',
     associated_control_input = 'sonaxaton-research-queue',
     action = 'lua',
+    toggleable = true,
     icon = {
       filename = '__base__/graphics/icons/signal/signal_R.png',
       size = 64,

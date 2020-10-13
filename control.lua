@@ -65,7 +65,11 @@ eventlib.register(defines.events.on_lua_shortcut, function(event)
   if event.prototype_name == 'sonaxaton-research-queue' then
     local player = game.players[event.player_index]
     if player ~= nil then
-      gui.open(player)
+      if player.is_shortcut_toggled('sonaxaton-research-queue') then
+        gui.close(player)
+      else
+        gui.open(player)
+      end
     end
   end
 end)
@@ -73,7 +77,11 @@ end)
 eventlib.register('sonaxaton-research-queue', function(event)
   local player = game.players[event.player_index]
   if player ~= nil then
-    gui.open(player)
+    if player.is_shortcut_toggled('sonaxaton-research-queue') then
+      gui.close(player)
+    else
+      gui.open(player)
+    end
   end
 end)
 

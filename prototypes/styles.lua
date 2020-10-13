@@ -23,6 +23,29 @@ styles.rq_tech_list_list_box = {
   width = 480,
 }
 
+styles.rq_tech_ingredient_filter_buttons_scroll_box = {
+  type = 'scroll_pane_style',
+  horizontally_stretchable = 'on',
+  vertical_flow_style = {
+    type = 'vertical_flow_style',
+    vertical_align = 'center',
+  },
+}
+
+styles.rq_tech_list_filter_container = {
+  type = 'horizontal_flow_style',
+  vertical_align = 'center',
+}
+
+styles.rq_tech_ingredient_filter_button_enabled = {
+  type = 'button_style',
+  parent = 'green_slot',
+}
+
+styles.rq_tech_ingredient_filter_button_disabled = {
+  type = 'button_style',
+  parent = 'slot',
+}
 
 styles.rq_tech_list_table = {
   type = 'table_style',

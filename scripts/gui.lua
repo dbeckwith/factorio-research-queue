@@ -27,6 +27,14 @@ local function update_techs(player)
   local filter_data = player_data.filter
   local force = player.force
 
+  gui_data.tech_ingredient_filter_buttons.clear()
+  for _, tech_ingredient in ipairs(global.tech_ingredients) do
+    local enabled = filter_data.ingredients[tech_ingredient.name]
+    guilib.build(gui_data.tech_ingredient_filter_buttons, {
+      {type='sprite-button', sprite=string.format('%s/%s', 'item', tech_ingredient.name), style=enabled and 'rq_tech_ingredient_filter_button_enabled' or 'rq_tech_ingredient_filter_button_disabled', tooltip={enabled and 'sonaxaton-research-queue.tech-ingredient-filter-button-enabled' or 'sonaxaton-research-queue.tech-ingredient-filter-button-disabled', tech_ingredient.localised_name}, name='tech_ingredient_filter_button.'..tech_ingredient.name, handlers='tech_ingredient_filter_button'},
+    })
+  end
+
   gui_data.techs.clear()
   for _, tech in pairs(force.technologies) do
     local visible = (function()
@@ -42,6 +50,13 @@ local function update_techs(player)
       -- TODO: search in effects
       if not util.fuzzy_search(tech.name, search_terms) then
         return false
+      end
+
+      local ingredients_filter = filter_data.ingredients
+      for _, ingredient in pairs(tech.research_unit_ingredients) do
+        if not ingredients_filter[ingredient.name] then
+          return false
+        end
       end
 
       return true
@@ -63,6 +78,29 @@ local function update_search(player)
   filter_data.search_terms = util.prepare_search_terms(search_text)
 end
 
+local function toggle_filter(player, item)
+  local player_data = global.players[player.index]
+  local gui_data = player_data.gui
+  local filter_data = player_data.filter
+
+  local enabled = filter_data.ingredients[item.name]
+  enabled = not enabled
+  filter_data.ingredients[item.name] = enabled
+end
+
+local function auto_select_tech_ingredients(player)
+  local player_data = global.players[player.index]
+  local filter_data = player_data.filter
+
+  for _, tech_ingredient in ipairs(global.tech_ingredients) do
+    local available = #game.get_filtered_recipe_prototypes{
+      {mode='and', filter='enabled'},
+      {mode='and', filter='has-product-item', elem_filters={{filter='name', name=tech_ingredient.name}}},
+    } > 0
+    filter_data.ingredients[tech_ingredient.name] = available
+  end
+end
+
 local function create_guis(player)
   local gui_data = guilib.build(player.gui.screen, {
     {type='frame', style='rq_main_window', direction='vertical', elem_mods={visible=false}, handlers='window', save_as='window', children={
@@ -75,9 +113,14 @@ local function create_guis(player)
       }},
       {type='flow', style='horizontal_flow', style_mods={horizontal_spacing=12}, children={
         {type='scroll-pane', vertical_scroll_policy='always', style='rq_tech_queue_list_box', save_as='queue'},
-        {type='flow', direction='vertical', style='vertical_flow', style_mods={vertical_spacing=8, horizontal_align='right'}, children={
+        {type='flow', direction='vertical', style='vertical_flow', style_mods={vertical_spacing=8}, children={
           -- TODO: hide search textfield in a button like tech GUI
-          {type='textfield', save_as='search', handlers='search'},
+          {type='flow', direction='horizontal', style='rq_tech_list_filter_container', children={
+            {type='scroll-pane', style='rq_tech_ingredient_filter_buttons_scroll_box', children={
+              {type='flow', direction='horizontal', save_as='tech_ingredient_filter_buttons'},
+            }},
+            {type='textfield', save_as='search', handlers='search'},
+          }},
           {type='scroll-pane', vertical_scroll_policy='always', style='rq_tech_list_list_box', children={
             {type='table', style='rq_tech_list_table', column_count=4, save_as='techs'},
           }},
@@ -89,12 +132,16 @@ local function create_guis(player)
   gui_data.window.force_auto_center()
   gui_data.titlebar.drag_target = gui_data.window
 
-  local player_data = global.players[player.index]
-  player_data.gui = gui_data
-  player_data.filter = {
+  local filter_data = {
     search_terms = {},
+    ingredients = {},
   }
 
+  local player_data = global.players[player.index]
+  player_data.gui = gui_data
+  player_data.filter = filter_data
+
+  auto_select_tech_ingredients(player)
   update_techs(player)
   update_queue(player)
 end
@@ -116,6 +163,10 @@ local function open(player)
 
   gui_data.search.focus()
   gui_data.search.select_all()
+
+  update_search(player)
+  update_techs(player)
+  update_queue(player)
 end
 
 local function close(player)
@@ -123,6 +174,36 @@ local function close(player)
   local gui_data = player_data.gui
 
   gui_data.window.visible = false
+  if player.opened == gui_data.window then
+    player.opened = nil
+  end
+end
+
+local function on_research_finished(player, tech)
+  local player_data = global.players[player.index]
+  local filter_data = player_data.filter
+
+  for _, tech_ingredient in ipairs(global.tech_ingredients) do
+    local newly_available = (function()
+      for _, effect in pairs(tech.effects) do
+        if effect.type == 'unlock-recipe' then
+          local recipe = game.recipe_prototypes[effect.recipe]
+          for _, product in pairs(recipe.products) do
+            if product.type == 'item' and product.name == tech_ingredient.name then
+              return true
+            end
+          end
+        end
+      end
+      return false
+    end)()
+    if newly_available then
+      filter_data.ingredients[tech_ingredient.name] = true
+    end
+  end
+
+  update_techs(player)
+  update_queue(player)
 end
 
 guilib.add_templates{
@@ -205,6 +286,16 @@ guilib.add_handlers{
       if player.force.current_research ~= nil then
         player.force.research_progress = 1
       end
+    end,
+  },
+  tech_ingredient_filter_button = {
+    on_gui_click = function(event)
+      log('tech_ingredient_filter_button')
+      local player = game.players[event.player_index]
+      local _, _, item_name = string.find(event.element.name, '^tech_ingredient_filter_button%.(.+)$')
+      local item = game.item_prototypes[item_name]
+      toggle_filter(player, item)
+      update_techs(player)
     end,
   },
   search = {
@@ -299,8 +390,7 @@ guilib.add_handlers{
 return {
   create_guis = create_guis,
   destroy_guis = destroy_guis,
-  update_techs = update_techs,
-  update_queue = update_queue,
+  on_research_finished = on_research_finished,
   open = open,
   close = close,
 }

@@ -316,6 +316,7 @@ local function open(player)
   local player_data = global.players[player.index]
   local gui_data = player_data.gui
 
+  player_data.tech_gui_open = nil
   gui_data.window.visible = true
   player.opened = gui_data.window
   player.set_shortcut_toggled('sonaxaton-research-queue', true)
@@ -541,7 +542,9 @@ guilib.add_handlers{
   window = {
     on_gui_closed = function(event)
       local player = game.players[event.player_index]
-      close(player)
+      if not global.players[player.index].tech_gui_open then
+        close(player)
+      end
     end,
   },
   close_button = {
@@ -593,7 +596,7 @@ guilib.add_handlers{
       local force = player.force
       local tech = force.technologies[tech_name]
       if event.button == defines.mouse_button_type.left then
-        -- TODO: keep research queue open after closing tech gui
+        global.players[player.index].tech_gui_open = true
         player.open_technology_gui(tech.name)
       elseif event.button == defines.mouse_button_type.right then
         queue.dequeue(player, tech)

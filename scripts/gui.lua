@@ -1,4 +1,6 @@
+local eventlib = require('__flib__.event')
 local guilib = require('__flib__.gui')
+local translationlib = require('__flib__.translation')
 
 local queue = require('.queue')
 local util = require('.util')
@@ -24,29 +26,45 @@ local function update_queue(player)
 end
 
 local function get_localised_string_key(player, localised_string)
-  return serpent.line(localised_string)
+  return translationlib.serialise_localised_string(localised_string)
+end
+
+local function start_translations(player)
+  if translationlib.translating_players_count() > 0 then
+    eventlib.on_tick(function(event)
+      if translationlib.translating_players_count() > 0 then
+        translationlib.iterate_batch(event)
+      else
+        eventlib.on_tick(nil)
+      end
+    end)
+  end
 end
 
 local function get_translated_strings(player, localised_strings)
   local player_data = global.players[player.index]
   local translation_data = player_data.translations
   local translated_strings = {}
+  local requests = {}
   for _, localised_string in ipairs(localised_strings) do
     local key = get_localised_string_key(player, localised_string)
-    if translation_data[key] ~= nil then
-      local translation_request = translation_data[key]
+    local translation_request = translation_data[key]
+    if translation_request ~= nil then
       if translation_request.result ~= nil then
         table.insert(translated_strings, translation_request.result)
       end
     else
-      if player.request_translation(localised_string) then
-        translation_data[key] = {
-          key = key,
-        }
-      else
-        log('Warning: translation request rejected for player '..player.name..' and string '..key)
-      end
+      translation_data[key] = {}
+      table.insert(requests, {
+        dictionary = 'search',
+        internal = key,
+        localised = localised_string,
+      })
     end
+  end
+  if #requests > 0 then
+    translationlib.add_requests(player.index, requests)
+    start_translations(player)
   end
   return translated_strings
 end
@@ -397,16 +415,31 @@ local function on_research_finished(player, tech)
   update_techs(player)
 end
 
-local function on_string_translated(player, localised_string, result)
-  local player_data = global.players[player.index]
-  local translation_data = player_data.translations
-  local key = get_localised_string_key(player, localised_string)
-  if translation_data[key] ~= nil then
-    -- FIXME: end up doing way too many updates on the same tick, need to batch somehow
-    -- or use flib's thing
-    log('got translation for '..key..' at '..tostring(game.tick))
-    translation_data[key].result = result
-    update_techs(player)
+local function on_string_translated(player, event)
+  if event.translated then
+    local player_data = global.players[player.index]
+    local translation_data = player_data.translations
+
+    local sort_data, finished = translationlib.process_result(event)
+
+    if sort_data then
+      local player_data = global.players[player.index]
+      local translation_data = player_data.translations
+
+      if sort_data.search ~= nil then
+        for _, key in ipairs(sort_data.search) do
+          local result = event.result
+          if translation_data[key] == nil then
+            translation_data[key] = {}
+          end
+          translation_data[key].result = result
+        end
+      end
+
+      if finished then
+        update_techs(player)
+      end
+    end
   end
 end
 

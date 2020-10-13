@@ -44,6 +44,12 @@ styles.rq_main_window = {
   height = 500,
 }
 
+styles.rq_settings_window = {
+  type = 'frame_style',
+  parent = 'inner_frame_in_outer_frame',
+  height = 500,
+}
+
 styles.rq_list_box = {
   type = 'scroll_pane_style',
   vertically_stretchable = 'on',
@@ -83,17 +89,14 @@ styles.rq_tech_list_list_box = {
   },
 }
 
-styles.rq_tech_ingredient_filter_buttons_scroll_box = {
+styles.rq_tech_ingredient_filter_table_scroll_box = {
   type = 'scroll_pane_style',
-  horizontally_stretchable = 'on',
-  vertical_flow_style = {
-    type = 'vertical_flow_style',
-    vertical_align = 'center',
-  },
 }
 
-styles.rq_tech_list_filter_container = {
+styles.rq_tech_list_search_container = {
   type = 'horizontal_flow_style',
+  horizontal_align = 'right',
+  horizontally_stretchable = 'on',
   vertical_align = 'center',
 }
 
@@ -288,4 +291,9 @@ styles.rq_tech_queue_item_shift_down_button = {
     size = {16, 16},
     scale = 0.5
   }
+}
+
+styles.rq_settings_section = {
+  type = 'frame_style',
+  parent = 'bordered_frame',
 }

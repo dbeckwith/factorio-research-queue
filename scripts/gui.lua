@@ -78,22 +78,13 @@ local function update_techs(player)
 
   do
     local enabled = filter_data.researched
-    gui_data.filter_researched_button_container.clear()
-    guilib.build(gui_data.filter_researched_button_container, {
-      {
-        type = 'sprite-button',
-        style = 'rq_filter_researched_button_'..(enabled and 'enabled' or 'disabled'),
-        handlers = 'filter_researched_button',
-        sprite = 'rq-enqueue-first-white',
-        tooltip = {'sonaxaton-research-queue.researched-filter-button-'..(enabled and 'enabled' or 'disabled')}
-      },
-    })
+    gui_data.researched_techs_checkbox.state = enabled
   end
 
-  gui_data.tech_ingredient_filter_buttons.clear()
+  gui_data.tech_ingredient_filter_table.clear()
   for _, tech_ingredient in ipairs(tech_ingredients) do
     local enabled = filter_data.ingredients[tech_ingredient.name]
-    guilib.build(gui_data.tech_ingredient_filter_buttons, {
+    guilib.build(gui_data.tech_ingredient_filter_table, {
       {
         name = 'tech_ingredient_filter_button.'..tech_ingredient.name,
         type = 'sprite-button',
@@ -231,103 +222,155 @@ local function create_guis(player)
     {
       save_as = 'window',
       type = 'frame',
-      style = 'rq_main_window',
+      style = 'outer_frame',
       handlers = 'window',
-      direction = 'vertical',
       elem_mods = {
         visible = false,
       },
       children = {
         {
-          save_as = 'titlebar',
-          type = 'flow',
+          type = 'frame',
+          style = 'rq_main_window',
+          direction = 'vertical',
           children = {
             {
-              template = 'frame_title',
-              caption = {'sonaxaton-research-queue.window-title'},
+              save_as = 'main_titlebar',
+              type = 'flow',
+              children = {
+                {
+                  template = 'frame_title',
+                  caption = {'sonaxaton-research-queue.window-title'},
+                },
+                {
+                  template = 'titlebar_drag_handle',
+                },
+                {
+                  template = 'frame_action_button',
+                  handlers = 'research_button',
+                  sprite = 'rq-enqueue-first-white',
+                },
+                {
+                  template = 'frame_action_button',
+                  handlers = 'refresh_button',
+                  sprite = 'rq-refresh',
+                },
+                {
+                  template = 'frame_action_button',
+                  handlers = 'close_button',
+                  sprite = 'utility/close_white',
+                  hovered_sprite = 'utility/close_black',
+                  clicked_sprite = 'utility/close_black',
+                },
+              },
             },
             {
-              template = 'titlebar_drag_handle',
-            },
-            {
-              template = 'frame_action_button',
-              handlers = 'research_button',
-              sprite = 'rq-enqueue-first-white',
-            },
-            {
-              template = 'frame_action_button',
-              handlers = 'refresh_button',
-              sprite = 'rq-refresh',
-            },
-            {
-              template = 'frame_action_button',
-              handlers = 'close_button',
-              sprite = 'utility/close_white',
-              hovered_sprite = 'utility/close_black',
-              clicked_sprite = 'utility/close_black',
+              type = 'flow',
+              style = 'horizontal_flow',
+              style_mods = {
+                horizontal_spacing = 12,
+              },
+              children = {
+                {
+                  save_as = 'queue',
+                  type = 'scroll-pane',
+                  style = 'rq_tech_queue_list_box',
+                  vertical_scroll_policy = 'always',
+                },
+                {
+                  type = 'flow',
+                  style = 'vertical_flow',
+                  style_mods = {
+                    vertical_spacing = 8,
+                  },
+                  direction = 'vertical',
+                  children={
+                    -- TODO: hide search textfield in a button like tech GUI
+                    -- maybe also put in title bar
+                    {
+                      type = 'flow',
+                      style = 'rq_tech_list_search_container',
+                      direction = 'horizontal',
+                      children = {
+                        {
+                          save_as = 'search',
+                          type = 'textfield',
+                          handlers = 'search',
+                          clear_and_focus_on_right_click = true,
+                        },
+                      },
+                    },
+                    {
+                      type = 'scroll-pane',
+                      style = 'rq_tech_list_list_box',
+                      vertical_scroll_policy = 'always',
+                      children = {
+                        {
+                          save_as = 'techs',
+                          type = 'table',
+                          style = 'rq_tech_list_table',
+                          column_count = 5,
+                        },
+                      },
+                    },
+                  },
+                },
+              },
             },
           },
         },
         {
-          type = 'flow',
-          style = 'horizontal_flow',
-          style_mods = {
-            horizontal_spacing = 12,
-          },
+          type = 'frame',
+          style = 'rq_settings_window',
+          direction = 'vertical',
           children = {
             {
-              save_as = 'queue',
-              type = 'scroll-pane',
-              style = 'rq_tech_queue_list_box',
-              vertical_scroll_policy = 'always',
+              save_as = 'settings_titlebar',
+              type = 'flow',
+              children = {
+                {
+                  template = 'frame_title',
+                  caption = {'sonaxaton-research-queue.settings-title'},
+                },
+                {
+                  template = 'titlebar_drag_handle',
+                },
+              },
             },
             {
               type = 'flow',
               style = 'vertical_flow',
               style_mods = {
-                vertical_spacing = 8,
+                vertical_spacing = 12,
               },
               direction = 'vertical',
-              children={
-                -- TODO: hide search textfield in a button like tech GUI
+              children = {
                 {
-                  type = 'flow',
-                  style = 'rq_tech_list_filter_container',
-                  direction = 'horizontal',
+                  save_as = 'researched_techs_checkbox',
+                  type = 'checkbox',
+                  handlers = 'filter_researched_checkbox',
+                  caption = {'sonaxaton-research-queue.researched-techs-checkbox'},
+                  state = true,
+                },
+                {
+                  type = 'frame',
+                  style = 'rq_settings_section',
+                  direction = 'vertical',
                   children = {
                     {
-                      save_as = 'filter_researched_button_container',
-                      type = 'flow',
+                      type = 'label',
+                      style = 'caption_label',
+                      caption = {'sonaxaton-research-queue.tech-ingredient-filter-table'},
                     },
                     {
                       type = 'scroll-pane',
-                      style = 'rq_tech_ingredient_filter_buttons_scroll_box',
+                      style = 'rq_tech_ingredient_filter_table_scroll_box',
                       children = {
                         {
-                          save_as = 'tech_ingredient_filter_buttons',
-                          type = 'flow',
-                          direction = 'horizontal',
+                          save_as = 'tech_ingredient_filter_table',
+                          type = 'table',
+                          column_count = 4,
                         },
                       },
-                    },
-                    {
-                      save_as = 'search',
-                      type = 'textfield',
-                      handlers = 'search',
-                      clear_and_focus_on_right_click = true,
-                    },
-                  },
-                },
-                {
-                  type = 'scroll-pane',
-                  style = 'rq_tech_list_list_box',
-                  vertical_scroll_policy = 'always',
-                  children = {
-                    {
-                      save_as = 'techs',
-                      type = 'table',
-                      style = 'rq_tech_list_table',
-                      column_count = 5,
                     },
                   },
                 },
@@ -340,7 +383,8 @@ local function create_guis(player)
   })
 
   gui_data.window.force_auto_center()
-  gui_data.titlebar.drag_target = gui_data.window
+  gui_data.main_titlebar.drag_target = gui_data.window
+  gui_data.settings_titlebar.drag_target = gui_data.window
 
   local tech_ingredients = {}
   for _, item in pairs(game.get_filtered_item_prototypes{{filter='tool'}}) do
@@ -667,9 +711,9 @@ guilib.add_handlers{
       end
     end,
   },
-  filter_researched_button = {
+  filter_researched_checkbox = {
     on_gui_click = function(event)
-      log('filter_researched_button')
+      log('filter_researched_checkbox')
       local player = game.players[event.player_index]
       toggle_researched_filter(player)
       update_techs(player)

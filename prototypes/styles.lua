@@ -224,7 +224,7 @@ styles.rq_tech_queue_head_item_tech_button = util.merge{
     size = tech_queue_tech_button_size,
     padding = 0,
   },
-  tech_graphical_set(153),
+  tech_graphical_set(187),
 }
 
 styles.rq_tech_queue_item_buttons = {

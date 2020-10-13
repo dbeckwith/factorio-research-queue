@@ -78,6 +78,13 @@ styles.rq_tech_list_item_tech_queued_button = {
   size = 96,
 }
 
+styles.rq_tech_list_item_tech_researched_button = {
+  type = 'button_style',
+  -- parent = 'slot_sized_button_green',
+  parent = 'green_slot',
+  size = 96,
+}
+
 styles.rq_tech_queue_item = {
   type = 'frame_style',
   parent = 'subpanel_frame',

@@ -220,6 +220,10 @@ end
 
 return {
   new = new,
+  is_researchable = function(player, tech)
+    local queue = global.players[player.index].queue
+    return is_researchable(player, queue, tech)
+  end,
   in_queue = function(player, tech)
     local queue = global.players[player.index].queue
     return in_queue(player, queue, tech)

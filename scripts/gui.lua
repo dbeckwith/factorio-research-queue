@@ -80,10 +80,6 @@ local function update_techs(player)
         return false
       end
 
-      if tech.researched then
-        return false
-      end
-
       local ingredients_filter = filter_data.ingredients
       for _, ingredient in pairs(tech.research_unit_ingredients) do
         if not ingredients_filter[ingredient.name] then
@@ -305,8 +301,8 @@ local function create_guis(player)
   player_data.translations = {}
 
   auto_select_tech_ingredients(player)
-  update_techs(player)
   update_queue(player)
+  update_techs(player)
 end
 
 local function destroy_guis(player)
@@ -332,8 +328,8 @@ local function open(player)
   gui_data.search.select_all()
 
   update_search(player)
-  update_techs(player)
   update_queue(player)
+  update_techs(player)
 end
 
 local function close(player)
@@ -370,8 +366,8 @@ local function on_research_finished(player, tech)
     end
   end
 
-  update_techs(player)
   update_queue(player)
+  update_techs(player)
 end
 
 local function on_string_translated(player, localised_string, result)
@@ -495,7 +491,8 @@ guilib.add_templates{
       }
   end,
   tech_list_item = function(player, tech)
-    -- TODO: indicate if tech is already in queue
+    -- TODO: option to hide researched techs
+    local researchable = queue.is_researchable(player, tech)
     return
       {
         type = 'frame',
@@ -505,7 +502,8 @@ guilib.add_templates{
           guilib.templates.tech_button(
             tech,
             'rq_tech_list_item_tech' ..
-              (queue.in_queue(player, tech) and '_queued' or '') ..
+              ((queue.in_queue(player, tech) and '_queued') or
+                (tech.researched and '_researched') or '') ..
               '_button'),
           {
             type = 'flow',
@@ -518,6 +516,7 @@ guilib.add_templates{
                 handlers = 'enqueue_last_button',
                 sprite = 'rq-enqueue-last',
                 tooltip = {'sonaxaton-research-queue.enqueue-last-button-tooltip', tech.localised_name},
+                enabled = researchable,
               },
               {
                 name = 'enqueue_second_button.'..tech.name,
@@ -525,6 +524,7 @@ guilib.add_templates{
                 handlers = 'enqueue_second_button',
                 sprite = 'rq-enqueue-second',
                 tooltip = {'sonaxaton-research-queue.enqueue-second-button-tooltip', tech.localised_name},
+                enabled = researchable,
               },
               {
                 name = 'enqueue_first_button.'..tech.name,
@@ -532,6 +532,7 @@ guilib.add_templates{
                 handlers = 'enqueue_first_button',
                 sprite = 'rq-enqueue-first',
                 tooltip = {'sonaxaton-research-queue.enqueue-first-button-tooltip', tech.localised_name},
+                enabled = researchable,
               },
             },
           },
@@ -558,8 +559,8 @@ guilib.add_handlers{
       log('refresh_button')
       local player = game.players[event.player_index]
       update_search(player)
-      update_techs(player)
       update_queue(player)
+      update_techs(player)
     end,
   },
   research_button = {

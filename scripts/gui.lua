@@ -21,9 +21,32 @@ local function update_queue(player)
   end
 end
 
+local function get_localised_string_key(player, localised_string)
+  return serpent.line(localised_string)
+end
+
 local function get_translated_strings(player, localised_strings)
-  -- TODO: make translation requests, update search when they come in
-  return {}
+  local player_data = global.players[player.index]
+  local translation_data = player_data.translations
+  local translated_strings = {}
+  for _, localised_string in ipairs(localised_strings) do
+    local key = get_localised_string_key(player, localised_string)
+    if translation_data[key] ~= nil then
+      local translation_request = translation_data[key]
+      if translation_request.result ~= nil then
+        table.insert(translated_strings, translation_request.result)
+      end
+    else
+      if player.request_translation(localised_string) then
+        translation_data[key] = {
+          key = key,
+        }
+      else
+        log('Warning: translation request rejected for player '..player.name..' and string '..key)
+      end
+    end
+  end
+  return translated_strings
 end
 
 local function update_techs(player)
@@ -59,6 +82,13 @@ local function update_techs(player)
 
       if tech.researched then
         return false
+      end
+
+      local ingredients_filter = filter_data.ingredients
+      for _, ingredient in pairs(tech.research_unit_ingredients) do
+        if not ingredients_filter[ingredient.name] then
+          return false
+        end
       end
 
       local search_terms = filter_data.search_terms
@@ -109,13 +139,6 @@ local function update_techs(player)
       end)()
       if not search_matches then
         return false
-      end
-
-      local ingredients_filter = filter_data.ingredients
-      for _, ingredient in pairs(tech.research_unit_ingredients) do
-        if not ingredients_filter[ingredient.name] then
-          return false
-        end
       end
 
       return true
@@ -279,6 +302,7 @@ local function create_guis(player)
   local player_data = global.players[player.index]
   player_data.gui = gui_data
   player_data.filter = filter_data
+  player_data.translations = {}
 
   auto_select_tech_ingredients(player)
   update_techs(player)
@@ -345,6 +369,19 @@ local function on_research_finished(player, tech)
 
   update_techs(player)
   update_queue(player)
+end
+
+local function on_string_translated(player, localised_string, result)
+  local player_data = global.players[player.index]
+  local translation_data = player_data.translations
+  local key = get_localised_string_key(player, localised_string)
+  if translation_data[key] ~= nil then
+    -- FIXME: end up doing way too many updates on the same tick, need to batch somehow
+    -- or use flib's thing
+    log('got translation for '..key..' at '..tostring(game.tick))
+    translation_data[key].result = result
+    update_techs(player)
+  end
 end
 
 guilib.add_templates{
@@ -627,6 +664,7 @@ return {
   create_guis = create_guis,
   destroy_guis = destroy_guis,
   on_research_finished = on_research_finished,
+  on_string_translated = on_string_translated,
   open = open,
   close = close,
 }

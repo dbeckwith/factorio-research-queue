@@ -46,7 +46,7 @@ function util.prepare_search_terms(s)
   end
   local terms = {}
   for w in string.gmatch(s, '([%w]+)') do
-    table.insert(terms, w)
+    table.insert(terms, string.lower(w))
   end
   return terms
 end

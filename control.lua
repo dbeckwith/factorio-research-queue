@@ -91,3 +91,12 @@ eventlib.register(defines.events.on_research_finished, function(event)
     gui.on_research_finished(player, event.research)
   end
 end)
+
+eventlib.register(defines.events.on_string_translated, function(event)
+  if event.translated then
+    local player = game.players[event.player_index]
+    if player ~= nil then
+      gui.on_string_translated(player, event.localised_string, event.result)
+    end
+  end
+end)

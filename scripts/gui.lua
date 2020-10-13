@@ -63,11 +63,14 @@ local function update_techs(player)
       {
         name = 'tech_ingredient_filter_button.'..tech_ingredient.name,
         type = 'sprite-button',
-        style = 'rq_tech_ingredient_filter_button_'..(enabled and 'enabled' or 'disabled'),
+        style =
+          'rq_tech_ingredient_filter_button_' ..
+            (enabled and 'enabled' or 'disabled'),
         handlers = 'tech_ingredient_filter_button',
         sprite = string.format('%s/%s', 'item', tech_ingredient.name),
         tooltip = {
-          'sonaxaton-research-queue.tech-ingredient-filter-button-'..(enabled and 'enabled' or 'disabled'),
+          'sonaxaton-research-queue.tech-ingredient-filter-button-' ..
+            (enabled and 'enabled' or 'disabled'),
           tech_ingredient.localised_name,
         },
       },

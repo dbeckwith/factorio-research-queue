@@ -53,10 +53,11 @@ local function update_techs(player)
   local player_data = global.players[player.index]
   local gui_data = player_data.gui
   local filter_data = player_data.filter
+  local tech_ingredients = player_data.tech_ingredients
   local force = player.force
 
   gui_data.tech_ingredient_filter_buttons.clear()
-  for _, tech_ingredient in ipairs(global.tech_ingredients) do
+  for _, tech_ingredient in ipairs(tech_ingredients) do
     local enabled = filter_data.ingredients[tech_ingredient.name]
     guilib.build(gui_data.tech_ingredient_filter_buttons, {
       {
@@ -169,8 +170,9 @@ end
 local function auto_select_tech_ingredients(player)
   local player_data = global.players[player.index]
   local filter_data = player_data.filter
+  local tech_ingredients = player_data.tech_ingredients
 
-  for _, tech_ingredient in ipairs(global.tech_ingredients) do
+  for _, tech_ingredient in ipairs(tech_ingredients) do
     filter_data.ingredients[tech_ingredient.name] = util.is_item_available(player, tech_ingredient.name)
   end
 end
@@ -286,6 +288,26 @@ local function create_guis(player)
   gui_data.window.force_auto_center()
   gui_data.titlebar.drag_target = gui_data.window
 
+  local tech_ingredients = {}
+  for _, item in pairs(game.get_filtered_item_prototypes{{filter='tool'}}) do
+    local is_tech_ingredient = (function()
+      for _, tech in pairs(player.force.technologies) do
+        if tech.enabled then
+          for _, ingredient in pairs(tech.research_unit_ingredients) do
+            if ingredient.type == 'item' and ingredient.name == item.name then
+              return true
+            end
+          end
+        end
+      end
+      return false
+    end)()
+    if is_tech_ingredient then
+      table.insert(tech_ingredients, item)
+    end
+  end
+  table.sort(tech_ingredients, function(a, b) return a.order < b.order end)
+
   local filter_data = {
     search_terms = {},
     ingredients = {},
@@ -294,6 +316,7 @@ local function create_guis(player)
   local player_data = global.players[player.index]
   player_data.gui = gui_data
   player_data.filter = filter_data
+  player_data.tech_ingredients = tech_ingredients
   player_data.translations = {}
 
   auto_select_tech_ingredients(player)
@@ -343,8 +366,9 @@ end
 local function on_research_finished(player, tech)
   local player_data = global.players[player.index]
   local filter_data = player_data.filter
+  local tech_ingredients = player_data.tech_ingredients
 
-  for _, tech_ingredient in ipairs(global.tech_ingredients) do
+  for _, tech_ingredient in ipairs(tech_ingredients) do
     local newly_available = (function()
       for _, effect in pairs(tech.effects) do
         if effect.type == 'unlock-recipe' then

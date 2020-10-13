@@ -71,13 +71,22 @@ eventlib.on_lua_shortcut(function(event)
   end
 end)
 
-eventlib.register('sonaxaton-research-queue', function(event)
+eventlib.register('rq-toggle-main-window', function(event)
   local player = game.players[event.player_index]
   if player ~= nil then
     if player.is_shortcut_toggled('sonaxaton-research-queue') then
       gui.close(player)
     else
       gui.open(player)
+    end
+  end
+end)
+
+eventlib.register('rq-focus-search', function(event)
+  local player = game.players[event.player_index]
+  if player ~= nil then
+    if player.is_shortcut_toggled('sonaxaton-research-queue') then
+      gui.focus_search(player)
     end
   end
 end)

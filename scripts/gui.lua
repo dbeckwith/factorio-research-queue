@@ -198,6 +198,20 @@ local function update_search(player)
   filter_data.search_terms = util.prepare_search_terms(search_text)
 end
 
+local function focus_search(player)
+  local player_data = global.players[player.index]
+  local gui_data = player_data.gui
+  if not gui_data.search.visible then
+    gui_data.search_toggle_button.style = 'flib_selected_frame_action_button'
+    gui_data.search.visible = true
+    gui_data.search.focus()
+    gui_data.search.select_all()
+  else
+    gui_data.search.focus()
+    gui_data.search.select_all()
+  end
+end
+
 local function toggle_search(player)
   local player_data = global.players[player.index]
   local gui_data = player_data.gui
@@ -759,7 +773,6 @@ guilib.add_handlers{
   },
   search_toggle_button = {
     on_gui_click = function(event)
-      -- TODO: also trigger on CTRL+F
       log('search_toggle_button')
       local player = game.players[event.player_index]
       toggle_search(player)
@@ -865,5 +878,6 @@ return {
   on_research_finished = on_research_finished,
   on_string_translated = on_string_translated,
   open = open,
+  focus_search = focus_search,
   close = close,
 }

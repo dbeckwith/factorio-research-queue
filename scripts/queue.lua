@@ -172,6 +172,7 @@ local function shift_earliest(player, queue, tech)
 end
 
 local function shift_before_earliest(player, queue, tech)
+  -- FIXME: this doesn't work quite as expected
   while shift_earlier(player, queue, tech) do end
   local tech_pos = queue_pos(player, queue, tech)
   if tech_pos == 1 then

@@ -440,6 +440,8 @@ guilib.add_templates{
     }
   end,
   tech_queue_item = function(player, tech)
+    -- TODO: show ETC
+    -- TODO: show ingredients?
     return
       {
         type = 'frame',
@@ -493,6 +495,7 @@ guilib.add_templates{
       }
   end,
   tech_list_item = function(tech)
+    -- TODO: indicate if tech is already in queue
     return
       {
         type = 'frame',

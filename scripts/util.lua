@@ -68,4 +68,70 @@ function util.fuzzy_search(s, terms)
   return true
 end
 
+function is_rocket_silo_available(player)
+  -- find all rocket silo entities
+  for _, entity in pairs(game.get_filtered_entity_prototypes{
+    {filter='type', type='rocket-silo'},
+  }) do
+    -- get all items that create the rocket silo
+    for _, item in pairs(entity.items_to_place_this) do
+      -- check if the item is a product of an enabled recipe
+      for _, recipe in pairs(player.force.recipes) do
+        if recipe.enabled then
+          for _, product in pairs(recipe.products) do
+            if product.type == 'item' and product.name == item.name then
+              return true
+            end
+          end
+        end
+      end
+    end
+  end
+  return false
+end
+
+function util.is_item_available(player, item_name)
+  -- is it a product of any enabled recipe?
+  for _, recipe in pairs(player.force.recipes) do
+    if recipe.enabled then
+      for _, product in pairs(recipe.products) do
+        if product.type == 'item' and product.name == item_name then
+          return true
+        end
+      end
+    end
+  end
+
+  -- is it a mineable product of any resource?
+  for _, entity in pairs(game.get_filtered_entity_prototypes{
+    {mod='and', filter='type', type='resource'},
+    {mod='and', filter='autoplace'},
+    {mod='and', filter='minable'},
+  }) do
+    if entity.mineable_properties.products ~= nil then
+      for _, product in pairs(entity.mineable_properties.products) do
+        if product.type == 'item' and product.name == item_name then
+          return true
+        end
+      end
+    end
+  end
+
+  if is_rocket_silo_available(player) then
+    -- is it a rocket launch product of any item?
+    for _, item in pairs(game.item_prototypes) do
+      for _, product in pairs(item.rocket_launch_products) do
+        if product.type == 'item' and product.name == item_name then
+          -- is that item available?
+          if util.is_item_available(player, item.name) then
+            return true
+          end
+        end
+      end
+    end
+  end
+
+  return false
+end
+
 return util

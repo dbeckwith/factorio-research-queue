@@ -171,11 +171,7 @@ local function auto_select_tech_ingredients(player)
   local filter_data = player_data.filter
 
   for _, tech_ingredient in ipairs(global.tech_ingredients) do
-    local available = #game.get_filtered_recipe_prototypes{
-      {mode='and', filter='enabled'},
-      {mode='and', filter='has-product-item', elem_filters={{filter='name', name=tech_ingredient.name}}},
-    } > 0
-    filter_data.ingredients[tech_ingredient.name] = available
+    filter_data.ingredients[tech_ingredient.name] = util.is_item_available(player, tech_ingredient.name)
   end
 end
 

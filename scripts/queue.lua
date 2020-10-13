@@ -220,6 +220,10 @@ end
 
 return {
   new = new,
+  in_queue = function(player, tech)
+    local queue = global.players[player.index].queue
+    return in_queue(player, queue, tech)
+  end,
   enqueue_tail = function(player, tech)
     local queue = global.players[player.index].queue
     return enqueue_tail(player, queue, tech)

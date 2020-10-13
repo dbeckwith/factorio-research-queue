@@ -66,7 +66,15 @@ styles.rq_tech_list_item_tool_bar = {
 
 styles.rq_tech_list_item_tech_button = {
   type = 'button_style',
-  parent = 'tool_button',
+  -- parent = 'slot_sized_button',
+  parent = 'slot',
+  size = 96,
+}
+
+styles.rq_tech_list_item_tech_queued_button = {
+  type = 'button_style',
+  -- parent = 'slot_sized_button_blue',
+  parent = 'yellow_slot',
   size = 96,
 }
 
@@ -86,7 +94,8 @@ styles.rq_tech_queue_item = {
 
 styles.rq_tech_queue_item_tech_button = {
   type = 'button_style',
-  parent = 'tool_button',
+  -- parent = 'tool_button',
+  parent = 'transparent_slot',
   size = 48,
   padding = 0,
 }

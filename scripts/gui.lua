@@ -145,7 +145,7 @@ local function update_techs(player)
     end)()
     if visible then
       guilib.build(gui_data.techs, {
-        guilib.templates.tech_list_item(tech),
+        guilib.templates.tech_list_item(player, tech),
       })
     end
   end
@@ -494,7 +494,7 @@ guilib.add_templates{
         },
       }
   end,
-  tech_list_item = function(tech)
+  tech_list_item = function(player, tech)
     -- TODO: indicate if tech is already in queue
     return
       {
@@ -502,7 +502,11 @@ guilib.add_templates{
         style = 'rq_tech_list_item',
         direction = 'vertical',
         children = {
-          guilib.templates.tech_button(tech, 'rq_tech_list_item_tech_button'),
+          guilib.templates.tech_button(
+            tech,
+            'rq_tech_list_item_tech' ..
+              (queue.in_queue(player, tech) and '_queued' or '') ..
+              '_button'),
           {
             type = 'flow',
             style = 'rq_tech_list_item_tool_bar',
@@ -590,6 +594,8 @@ guilib.add_handlers{
       local player = game.players[event.player_index]
       local _, _, tech_name = string.find(event.element.name, '^tech_button%.(.+)$')
       player.open_technology_gui(tech_name)
+      -- TODO: keep research queue open after closing tech gui
+      -- TODO: dequeue on right-click
     end,
   },
   enqueue_last_button = {
@@ -602,6 +608,7 @@ guilib.add_handlers{
       log('enqueue last '..tech.name)
       queue.enqueue_tail(player, tech)
       update_queue(player)
+      update_techs(player)
     end,
   },
   enqueue_second_button = {
@@ -614,6 +621,7 @@ guilib.add_handlers{
       log('enqueue second '..tech.name)
       queue.enqueue_before_head(player, tech)
       update_queue(player)
+      update_techs(player)
     end,
   },
   enqueue_first_button = {
@@ -626,6 +634,7 @@ guilib.add_handlers{
       log('enqueue first '..tech.name)
       queue.enqueue_head(player, tech)
       update_queue(player)
+      update_techs(player)
     end,
   },
   shift_up_button = {
@@ -662,6 +671,7 @@ guilib.add_handlers{
       log('dequeue '..tech.name)
       queue.dequeue(player, tech)
       update_queue(player)
+      update_techs(player)
     end,
   },
 }

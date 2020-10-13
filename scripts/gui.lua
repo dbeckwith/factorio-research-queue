@@ -14,10 +14,12 @@ local function update_queue(player)
   end
 
   gui_data.queue.clear()
+  local is_head = true
   for tech in queue.iter(player) do
     guilib.build(gui_data.queue, {
-      guilib.templates.tech_queue_item(player, tech),
+      guilib.templates.tech_queue_item(player, tech, is_head),
     })
+    is_head = false
   end
 end
 
@@ -276,7 +278,7 @@ local function create_guis(player)
                       save_as = 'techs',
                       type = 'table',
                       style = 'rq_tech_list_table',
-                      column_count = 4,
+                      column_count = 5,
                     },
                   },
                 },
@@ -433,7 +435,6 @@ guilib.add_templates{
     },
   },
   tech_button = function(tech, style)
-    local is_levelled = not not string.match(tech.name, '-%d+$')
     local cost =
       '(' ..
       '[img=quantity-time]' ..
@@ -448,26 +449,26 @@ guilib.add_templates{
     cost = cost ..
       ') × ' ..
       tostring(tech.research_unit_count)
-    local tooltip = {'', tech.localised_name, '\n', cost}
     return {
       name = 'tech_button.'..tech.name,
       type = 'sprite-button',
       style = style,
       handlers = 'tech_button',
       sprite = 'technology/'..tech.name,
-      tooltip = tooltip,
-      number = is_levelled and tech.level or nil,
+      tooltip = {'', tech.localised_name, '\n', cost},
+      number = string.match(tech.name, '-%d+$') and tech.level or nil,
     }
   end,
-  tech_queue_item = function(player, tech)
+  tech_queue_item = function(player, tech, is_head)
     -- TODO: show ETC
-    -- TODO: show ingredients?
     return
       {
         type = 'frame',
         style = 'rq_tech_queue_item',
         children = {
-          guilib.templates.tech_button(tech, 'rq_tech_queue_item_tech_button'),
+          guilib.templates.tech_button(
+            tech,
+            'rq_tech_queue'..(is_head and '_head' or '')..'_item_tech_button'),
           {
             type = 'empty-widget',
             style = 'flib_horizontal_pusher',
@@ -517,26 +518,28 @@ guilib.add_templates{
   tech_list_item = function(player, tech)
     -- TODO: option to hide researched techs
     local researchable = queue.is_researchable(player, tech)
+    local queued = queue.in_queue(player, tech)
+    local researched = tech.researched
+    local style_prefix =
+      'rq_tech_list_item' ..
+        ((queued and '_queued') or
+          (researched and '_researched') or '')
     return
       {
-        type = 'frame',
+        type = 'flow',
         style = 'rq_tech_list_item',
         direction = 'vertical',
         children = {
-          guilib.templates.tech_button(
-            tech,
-            'rq_tech_list_item_tech' ..
-              ((queue.in_queue(player, tech) and '_queued') or
-                (tech.researched and '_researched') or '') ..
-              '_button'),
+          guilib.templates.tech_button(tech, style_prefix..'_tech_button'),
           {
-            type = 'flow',
-            style = 'rq_tech_list_item_tool_bar',
+            type = 'frame',
+            style = style_prefix..'_tool_bar',
             direction = 'horizontal',
             children = {
               {
                 name = 'enqueue_last_button.'..tech.name,
                 template = 'tool_button',
+                style = 'rq_tech_list_item_tool_button',
                 handlers = 'enqueue_last_button',
                 sprite = 'rq-enqueue-last',
                 tooltip = {'sonaxaton-research-queue.enqueue-last-button-tooltip', tech.localised_name},
@@ -545,6 +548,7 @@ guilib.add_templates{
               {
                 name = 'enqueue_second_button.'..tech.name,
                 template = 'tool_button',
+                style = 'rq_tech_list_item_tool_button',
                 handlers = 'enqueue_second_button',
                 sprite = 'rq-enqueue-second',
                 tooltip = {'sonaxaton-research-queue.enqueue-second-button-tooltip', tech.localised_name},
@@ -553,6 +557,7 @@ guilib.add_templates{
               {
                 name = 'enqueue_first_button.'..tech.name,
                 template = 'tool_button',
+                style = 'rq_tech_list_item_tool_button',
                 handlers = 'enqueue_first_button',
                 sprite = 'rq-enqueue-first',
                 tooltip = {'sonaxaton-research-queue.enqueue-first-button-tooltip', tech.localised_name},

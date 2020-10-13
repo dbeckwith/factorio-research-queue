@@ -1,4 +1,39 @@
+local util = require('util')
+
 local styles = data.raw['gui-style'].default
+
+function tech_graphical_set(y)
+  return {
+    default_graphical_set = {
+      base = {position = {296, y}, corner_size = 8},
+      shadow = default_shadow
+    },
+    hovered_graphical_set = {
+      base = {position = {312, y}, corner_size = 8},
+      shadow = default_shadow
+    },
+    selected_hovered_graphical_set = {
+      base = {position = {312, y}, corner_size = 8},
+      shadow = default_shadow
+    },
+    clicked_graphical_set = {
+      base = {position = {312, y}, corner_size = 8},
+      shadow = default_shadow
+    },
+    selected_graphical_set = {
+      base = {position = {312, y}, corner_size = 8},
+      shadow = default_shadow
+    },
+    selected_clicked_graphical_set = {
+      base = {position = {312, y}, corner_size = 8},
+      shadow = default_shadow
+    },
+    disabled_graphical_set = {
+      base = {position = {296, y}, corner_size = 8},
+      shadow = default_shadow
+    },
+  }
+end
 
 styles.rq_main_window = {
   type = 'frame_style',
@@ -14,13 +49,13 @@ styles.rq_list_box = {
 styles.rq_tech_queue_list_box = {
   type = 'scroll_pane_style',
   parent = 'rq_list_box',
-  width = 200,
+  width = 104,
 }
 
 styles.rq_tech_list_list_box = {
   type = 'scroll_pane_style',
   parent = 'rq_list_box',
-  width = 480,
+  width = 516,
 }
 
 styles.rq_tech_ingredient_filter_buttons_scroll_box = {
@@ -53,36 +88,79 @@ styles.rq_tech_list_table = {
 }
 
 styles.rq_tech_list_item = {
-  type = 'frame_style',
-  parent = 'subpanel_frame',
-  padding = 4,
+  type = 'vertical_flow_style',
+  vertical_spacing = 0,
 }
 
 styles.rq_tech_list_item_tool_bar = {
-  type = 'horizontal_flow_style',
-  horizontally_stretchable = 'on',
-  horizontal_align = 'center',
+  type = 'frame_style',
+  padding = 0,
+  top_padding = 4,
+  bottom_padding = 4,
+  horizontal_flow_style = {
+    type = 'horizontal_flow_style',
+    horizontally_stretchable = 'on',
+    horizontal_align = 'center',
+  },
+  graphical_set = {
+    base = {
+      position = {347, 204},
+      corner_size = 8,
+    },
+  },
 }
 
-styles.rq_tech_list_item_tech_button = {
-  type = 'button_style',
-  -- parent = 'slot_sized_button',
-  parent = 'slot',
-  size = 96,
+styles.rq_tech_list_item_queued_tool_bar = {
+  type = 'frame_style',
+  parent = 'rq_tech_list_item_tool_bar',
+  graphical_set = {
+    base = {
+      position = {347, 136},
+      corner_size = 8,
+    },
+  },
 }
 
-styles.rq_tech_list_item_tech_queued_button = {
-  type = 'button_style',
-  -- parent = 'slot_sized_button_blue',
-  parent = 'yellow_slot',
-  size = 96,
+styles.rq_tech_list_item_researched_tool_bar = {
+  type = 'frame_style',
+  parent = 'rq_tech_list_item_tool_bar',
+  graphical_set = {
+    base = {
+      position = {347, 187},
+      corner_size = 8,
+    },
+  },
 }
 
-styles.rq_tech_list_item_tech_researched_button = {
+styles.rq_tech_list_item_tech_button = util.merge{
+  {
+    type = 'button_style',
+    size = 96,
+  },
+  tech_graphical_set(204),
+}
+
+styles.rq_tech_list_item_queued_tech_button = util.merge{
+  {
+    type = 'button_style',
+    size = 96,
+  },
+  tech_graphical_set(136),
+}
+
+styles.rq_tech_list_item_researched_tech_button = util.merge{
+  {
+    type = 'button_style',
+    size = 96,
+  },
+  tech_graphical_set(187),
+}
+
+styles.rq_tech_list_item_tool_button = {
   type = 'button_style',
-  -- parent = 'slot_sized_button_green',
-  parent = 'green_slot',
-  size = 96,
+  parent = 'tool_button',
+  size = 24,
+  padding = 0,
 }
 
 styles.rq_tech_queue_item = {
@@ -99,12 +177,23 @@ styles.rq_tech_queue_item = {
   },
 }
 
-styles.rq_tech_queue_item_tech_button = {
-  type = 'button_style',
-  -- parent = 'tool_button',
-  parent = 'transparent_slot',
-  size = 48,
-  padding = 0,
+styles.rq_tech_queue_item_tech_button = util.merge{
+  {
+    type = 'button_style',
+    -- TODO: resize tech buttons so icons end up being nice sizes
+    size = 48,
+    padding = 0,
+  },
+  tech_graphical_set(136),
+}
+
+styles.rq_tech_queue_head_item_tech_button = util.merge{
+  {
+    type = 'button_style',
+    size = 48,
+    padding = 0,
+  },
+  tech_graphical_set(153),
 }
 
 styles.rq_tech_queue_item_buttons = {

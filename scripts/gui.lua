@@ -189,6 +189,23 @@ local function update_search(player)
   filter_data.search_terms = util.prepare_search_terms(search_text)
 end
 
+local function toggle_search(player)
+  local player_data = global.players[player.index]
+  local gui_data = player_data.gui
+  if not gui_data.search.visible then
+    gui_data.search_toggle_button.style = 'flib_selected_frame_action_button'
+    gui_data.search.visible = true
+    gui_data.search.focus()
+    gui_data.search.select_all()
+  else
+    gui_data.search_toggle_button.style = 'frame_action_button'
+    gui_data.search.visible = false
+    gui_data.search.text = ''
+    update_search(player)
+    update_techs(player)
+  end
+end
+
 local function toggle_researched_filter(player)
   local player_data = global.players[player.index]
   local filter_data = player_data.filter
@@ -245,14 +262,31 @@ local function create_guis(player)
                   template = 'titlebar_drag_handle',
                 },
                 {
+                  save_as = 'search',
+                  type = 'textfield',
+                  handlers = 'search',
+                  clear_and_focus_on_right_click = true,
+                  elem_mods = { visible = false },
+                  tooltip = {'sonaxaton-research-queue.search-tooltip'},
+                },
+                {
+                  save_as = 'search_toggle_button',
+                  template = 'frame_action_button',
+                  handlers = 'search_toggle_button',
+                  sprite = 'utility/search_white',
+                  tooltip = {'sonaxaton-research-queue.search-tooltip'},
+                },
+                {
                   template = 'frame_action_button',
                   handlers = 'research_button',
                   sprite = 'rq-enqueue-first-white',
+                  tooltip = '[[color=red]Cheat[/color]] Research current technology',
                 },
                 {
                   template = 'frame_action_button',
                   handlers = 'refresh_button',
                   sprite = 'rq-refresh',
+                  tooltip = '[[color=purple]Debug[/color]] Refresh data',
                 },
                 {
                   template = 'frame_action_button',
@@ -277,40 +311,15 @@ local function create_guis(player)
                   vertical_scroll_policy = 'always',
                 },
                 {
-                  type = 'flow',
-                  style = 'vertical_flow',
-                  style_mods = {
-                    vertical_spacing = 8,
-                  },
-                  direction = 'vertical',
-                  children={
-                    -- TODO: hide search textfield in a button like tech GUI
-                    -- maybe also put in title bar
+                  type = 'scroll-pane',
+                  style = 'rq_tech_list_list_box',
+                  vertical_scroll_policy = 'always',
+                  children = {
                     {
-                      type = 'flow',
-                      style = 'rq_tech_list_search_container',
-                      direction = 'horizontal',
-                      children = {
-                        {
-                          save_as = 'search',
-                          type = 'textfield',
-                          handlers = 'search',
-                          clear_and_focus_on_right_click = true,
-                        },
-                      },
-                    },
-                    {
-                      type = 'scroll-pane',
-                      style = 'rq_tech_list_list_box',
-                      vertical_scroll_policy = 'always',
-                      children = {
-                        {
-                          save_as = 'techs',
-                          type = 'table',
-                          style = 'rq_tech_list_table',
-                          column_count = 5,
-                        },
-                      },
+                      save_as = 'techs',
+                      type = 'table',
+                      style = 'rq_tech_list_table',
+                      column_count = 5,
                     },
                   },
                 },
@@ -443,8 +452,10 @@ local function open(player)
   player.opened = gui_data.window
   player.set_shortcut_toggled('sonaxaton-research-queue', true)
 
-  gui_data.search.focus()
-  gui_data.search.select_all()
+  if gui_data.search.visible then
+    gui_data.search.focus()
+    gui_data.search.select_all()
+  end
 
   update_search(player)
   update_queue(player)
@@ -735,6 +746,13 @@ guilib.add_handlers{
       local player = game.players[event.player_index]
       update_search(player)
       update_techs(player)
+    end,
+  },
+  search_toggle_button = {
+    on_gui_click = function(event)
+      log('search_toggle_button')
+      local player = game.players[event.player_index]
+      toggle_search(player)
     end,
   },
   tech_button = {

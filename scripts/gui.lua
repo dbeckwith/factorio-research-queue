@@ -593,9 +593,16 @@ guilib.add_handlers{
     on_gui_click = function(event)
       local player = game.players[event.player_index]
       local _, _, tech_name = string.find(event.element.name, '^tech_button%.(.+)$')
-      player.open_technology_gui(tech_name)
-      -- TODO: keep research queue open after closing tech gui
-      -- TODO: dequeue on right-click
+      local force = player.force
+      local tech = force.technologies[tech_name]
+      if event.button == defines.mouse_button_type.left then
+        -- TODO: keep research queue open after closing tech gui
+        player.open_technology_gui(tech.name)
+      elseif event.button == defines.mouse_button_type.right then
+        queue.dequeue(player, tech)
+        update_queue(player)
+        update_techs(player)
+      end
     end,
   },
   enqueue_last_button = {

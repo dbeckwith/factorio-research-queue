@@ -102,7 +102,7 @@ local function update_techs(player)
     })
   end
 
-  gui_data.techs.clear()
+  local techs = {}
   for _, tech in pairs(force.technologies) do
     local visible = (function()
       if not tech.enabled then
@@ -112,6 +112,9 @@ local function update_techs(player)
       if tech.researched and not filter_data.researched then
         return false
       end
+
+      -- TODO: option to hide upgrades
+      -- https://github.com/Saeuissimus/factorio-research-queue/blob/7676510288b9f8a3e4bf18a426644acf28801294/functions/draw_grid.lua#L153
 
       local ingredients_filter = filter_data.ingredients
       for _, ingredient in pairs(tech.research_unit_ingredients) do
@@ -173,10 +176,16 @@ local function update_techs(player)
       return true
     end)()
     if visible then
-      guilib.build(gui_data.techs, {
-        guilib.templates.tech_list_item(player, tech),
-      })
+      table.insert(techs, tech)
     end
+  end
+  -- TODO: make sort order like tech gui
+  table.sort(techs, function(a, b) return a.order < b.order end)
+  gui_data.techs.clear()
+  for _, tech in ipairs(techs) do
+    guilib.build(gui_data.techs, {
+      guilib.templates.tech_list_item(player, tech),
+    })
   end
 end
 
@@ -750,6 +759,7 @@ guilib.add_handlers{
   },
   search_toggle_button = {
     on_gui_click = function(event)
+      -- TODO: also trigger on CTRL+F
       log('search_toggle_button')
       local player = game.players[event.player_index]
       toggle_search(player)

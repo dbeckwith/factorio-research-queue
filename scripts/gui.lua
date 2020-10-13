@@ -314,7 +314,10 @@ local function destroy_guis(player)
   local gui_data = player_data.gui
 
   gui_data.window.destroy()
-  gui_data = nil
+
+  player_data.gui = nil
+  player_data.filter = nil
+  player_data.translations = nil
 end
 
 local function open(player)

@@ -72,6 +72,20 @@ styles.rq_tech_list_filter_container = {
   vertical_align = 'center',
 }
 
+styles.rq_filter_researched_button_enabled = {
+  type = 'button_style',
+  parent = 'green_slot',
+  size = 28,
+  padding = 2,
+}
+
+styles.rq_filter_researched_button_disabled = {
+  type = 'button_style',
+  parent = 'slot',
+  size = 28,
+  padding = 2,
+}
+
 styles.rq_tech_ingredient_filter_button_enabled = {
   type = 'button_style',
   parent = 'green_slot',
@@ -103,10 +117,7 @@ styles.rq_tech_list_item_tool_bar = {
     horizontal_align = 'center',
   },
   graphical_set = {
-    base = {
-      position = {347, 204},
-      corner_size = 8,
-    },
+    base = {position = {347, 204}, corner_size = 8},
   },
 }
 
@@ -114,10 +125,7 @@ styles.rq_tech_list_item_queued_tool_bar = {
   type = 'frame_style',
   parent = 'rq_tech_list_item_tool_bar',
   graphical_set = {
-    base = {
-      position = {347, 136},
-      corner_size = 8,
-    },
+    base = {position = {347, 136}, corner_size = 8},
   },
 }
 
@@ -125,10 +133,7 @@ styles.rq_tech_list_item_researched_tool_bar = {
   type = 'frame_style',
   parent = 'rq_tech_list_item_tool_bar',
   graphical_set = {
-    base = {
-      position = {347, 187},
-      corner_size = 8,
-    },
+    base = {position = {347, 187}, corner_size = 8},
   },
 }
 

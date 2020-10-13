@@ -76,6 +76,20 @@ local function update_techs(player)
   local tech_ingredients = player_data.tech_ingredients
   local force = player.force
 
+  do
+    local enabled = filter_data.researched
+    gui_data.filter_researched_button_container.clear()
+    guilib.build(gui_data.filter_researched_button_container, {
+      {
+        type = 'sprite-button',
+        style = 'rq_filter_researched_button_'..(enabled and 'enabled' or 'disabled'),
+        handlers = 'filter_researched_button',
+        sprite = 'rq-enqueue-first-white',
+        tooltip = {'sonaxaton-research-queue.researched-filter-button-'..(enabled and 'enabled' or 'disabled')}
+      },
+    })
+  end
+
   gui_data.tech_ingredient_filter_buttons.clear()
   for _, tech_ingredient in ipairs(tech_ingredients) do
     local enabled = filter_data.ingredients[tech_ingredient.name]
@@ -101,6 +115,10 @@ local function update_techs(player)
   for _, tech in pairs(force.technologies) do
     local visible = (function()
       if not tech.enabled then
+        return false
+      end
+
+      if tech.researched and not filter_data.researched then
         return false
       end
 
@@ -180,9 +198,17 @@ local function update_search(player)
   filter_data.search_terms = util.prepare_search_terms(search_text)
 end
 
-local function toggle_filter(player, item)
+local function toggle_researched_filter(player)
   local player_data = global.players[player.index]
-  local gui_data = player_data.gui
+  local filter_data = player_data.filter
+
+  local enabled = filter_data.researched
+  enabled = not enabled
+  filter_data.researched = enabled
+end
+
+local function toggle_ingredient_filter(player, item)
+  local player_data = global.players[player.index]
   local filter_data = player_data.filter
 
   local enabled = filter_data.ingredients[item.name]
@@ -270,6 +296,10 @@ local function create_guis(player)
                   direction = 'horizontal',
                   children = {
                     {
+                      save_as = 'filter_researched_button_container',
+                      type = 'flow',
+                    },
+                    {
                       type = 'scroll-pane',
                       style = 'rq_tech_ingredient_filter_buttons_scroll_box',
                       children = {
@@ -333,8 +363,9 @@ local function create_guis(player)
   table.sort(tech_ingredients, function(a, b) return a.order < b.order end)
 
   local filter_data = {
-    search_terms = {},
+    researched = false,
     ingredients = {},
+    search_terms = {},
   }
 
   local player_data = global.players[player.index]
@@ -550,7 +581,6 @@ guilib.add_templates{
       }
   end,
   tech_list_item = function(player, tech)
-    -- TODO: option to hide researched techs
     local researchable = queue.is_researchable(player, tech)
     local queued = queue.in_queue(player, tech)
     local researched = tech.researched
@@ -637,13 +667,21 @@ guilib.add_handlers{
       end
     end,
   },
+  filter_researched_button = {
+    on_gui_click = function(event)
+      log('filter_researched_button')
+      local player = game.players[event.player_index]
+      toggle_researched_filter(player)
+      update_techs(player)
+    end
+  },
   tech_ingredient_filter_button = {
     on_gui_click = function(event)
       log('tech_ingredient_filter_button')
       local player = game.players[event.player_index]
       local _, _, item_name = string.find(event.element.name, '^tech_ingredient_filter_button%.(.+)$')
       local item = game.item_prototypes[item_name]
-      toggle_filter(player, item)
+      toggle_ingredient_filter(player, item)
       update_techs(player)
     end,
   },

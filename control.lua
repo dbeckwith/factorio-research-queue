@@ -1,5 +1,6 @@
 local eventlib = require('__flib__.event')
 local guilib = require('__flib__.gui')
+local migrationlib = require('__flib__.migration')
 
 local gui = require('scripts.gui')
 local queue = require('scripts.queue')
@@ -27,6 +28,12 @@ eventlib.on_init(function()
     end
   end
   table.sort(global.tech_ingredients, function(a, b) return a.order < b.order end)
+
+  for _, player in pairs(game.players) do
+    global.players[player.index] = {}
+    queue.new(player)
+    gui.create_guis(player)
+  end
 end)
 
 eventlib.on_load(function()
@@ -36,11 +43,12 @@ end)
 eventlib.on_configuration_changed(function(event)
   -- TODO: rebuild research ingredients list
 
-  if migration.on_config_changed(event, {}) then
+  if migrationlib.on_config_changed(event, {}) then
     guilib.check_filter_validity()
 
-    for i, player in pairs(game.players) do
+    for _, player in pairs(game.players) do
       gui.destroy_guis(player)
+      global.players[player.index] = {}
       gui.create_guis(player)
     end
   end
@@ -50,8 +58,8 @@ guilib.register_handlers()
 
 -- TODO: test that this gets fired when adding the mod to an existing save
 eventlib.on_player_created(function(event)
-  global.players[event.player_index] = {}
   local player = game.players[event.player_index]
+  global.players[player.index] = {}
   queue.new(player)
   gui.create_guis(player)
 end)

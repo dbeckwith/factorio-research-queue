@@ -44,18 +44,41 @@ styles.rq_main_window = {
 styles.rq_list_box = {
   type = 'scroll_pane_style',
   vertically_stretchable = 'on',
+  extra_padding_when_activated = 0,
+  graphical_set = {
+    base = {position = {34, 0}, corner_size = 8},
+    shadow = default_inner_shadow,
+  },
 }
 
 styles.rq_tech_queue_list_box = {
   type = 'scroll_pane_style',
   parent = 'rq_list_box',
   width = 104,
+  background_graphical_set = {
+    position = {282, 17},
+    corner_size = 8,
+    overall_tiling_horizontal_size = 84,
+    overall_tiling_horizontal_spacing = 4,
+    overall_tiling_vertical_size = 60,
+    overall_tiling_vertical_spacing = 4,
+  },
 }
 
 styles.rq_tech_list_list_box = {
   type = 'scroll_pane_style',
   parent = 'rq_list_box',
-  width = 516,
+  width = 4+5*96+4+12,
+  background_graphical_set = {
+    position = {282, 17},
+    corner_size = 8,
+    overall_tiling_horizontal_size = 96-8,
+    overall_tiling_horizontal_padding = 8/2,
+    overall_tiling_horizontal_spacing = 8,
+    overall_tiling_vertical_size = 136-8,
+    overall_tiling_vertical_padding = 8/2,
+    overall_tiling_vertical_spacing = 8,
+  },
 }
 
 styles.rq_tech_ingredient_filter_buttons_scroll_box = {
@@ -99,6 +122,8 @@ styles.rq_tech_ingredient_filter_button_disabled = {
 styles.rq_tech_list_table = {
   type = 'table_style',
   horizontally_stretchable = 'off',
+  horizontal_spacing = 0,
+  vertical_spacing = 0,
 }
 
 styles.rq_tech_list_item = {

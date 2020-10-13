@@ -266,6 +266,7 @@ local function create_guis(player)
                       save_as = 'search',
                       type = 'textfield',
                       handlers = 'search',
+                      clear_and_focus_on_right_click = true,
                     },
                   },
                 },

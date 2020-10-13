@@ -2,7 +2,10 @@ local util = require('util')
 
 local styles = data.raw['gui-style'].default
 
-function tech_graphical_set(y)
+local tech_list_tech_button_size = 64+8*2+8
+local tech_queue_tech_button_size = 64*3/4+8
+
+local function tech_graphical_set(y)
   return {
     default_graphical_set = {
       base = {position = {296, y}, corner_size = 8},
@@ -54,13 +57,12 @@ styles.rq_list_box = {
 styles.rq_tech_queue_list_box = {
   type = 'scroll_pane_style',
   parent = 'rq_list_box',
-  width = 104,
+  width = 4+8+tech_queue_tech_button_size+4+16+8+4+12,
   background_graphical_set = {
     position = {282, 17},
     corner_size = 8,
-    overall_tiling_horizontal_size = 84,
-    overall_tiling_horizontal_spacing = 4,
-    overall_tiling_vertical_size = 60,
+    overall_tiling_horizontal_size = 8+tech_queue_tech_button_size+4+16+8,
+    overall_tiling_vertical_size = 4+tech_queue_tech_button_size+4,
     overall_tiling_vertical_spacing = 4,
   },
 }
@@ -68,14 +70,14 @@ styles.rq_tech_queue_list_box = {
 styles.rq_tech_list_list_box = {
   type = 'scroll_pane_style',
   parent = 'rq_list_box',
-  width = 4+5*96+4+12,
+  width = 4+5*tech_list_tech_button_size+4+12,
   background_graphical_set = {
     position = {282, 17},
     corner_size = 8,
-    overall_tiling_horizontal_size = 96-8,
+    overall_tiling_horizontal_size = tech_list_tech_button_size-8,
     overall_tiling_horizontal_padding = 8/2,
     overall_tiling_horizontal_spacing = 8,
-    overall_tiling_vertical_size = 136-8,
+    overall_tiling_vertical_size = tech_list_tech_button_size+40-8,
     overall_tiling_vertical_padding = 8/2,
     overall_tiling_vertical_spacing = 8,
   },
@@ -165,7 +167,7 @@ styles.rq_tech_list_item_researched_tool_bar = {
 styles.rq_tech_list_item_tech_button = util.merge{
   {
     type = 'button_style',
-    size = 96,
+    size = tech_list_tech_button_size,
   },
   tech_graphical_set(204),
 }
@@ -173,7 +175,7 @@ styles.rq_tech_list_item_tech_button = util.merge{
 styles.rq_tech_list_item_queued_tech_button = util.merge{
   {
     type = 'button_style',
-    size = 96,
+    size = tech_list_tech_button_size,
   },
   tech_graphical_set(136),
 }
@@ -181,7 +183,7 @@ styles.rq_tech_list_item_queued_tech_button = util.merge{
 styles.rq_tech_list_item_researched_tech_button = util.merge{
   {
     type = 'button_style',
-    size = 96,
+    size = tech_list_tech_button_size,
   },
   tech_graphical_set(187),
 }
@@ -210,8 +212,7 @@ styles.rq_tech_queue_item = {
 styles.rq_tech_queue_item_tech_button = util.merge{
   {
     type = 'button_style',
-    -- TODO: resize tech buttons so icons end up being nice sizes
-    size = 48,
+    size = tech_queue_tech_button_size,
     padding = 0,
   },
   tech_graphical_set(136),
@@ -220,7 +221,7 @@ styles.rq_tech_queue_item_tech_button = util.merge{
 styles.rq_tech_queue_head_item_tech_button = util.merge{
   {
     type = 'button_style',
-    size = 48,
+    size = tech_queue_tech_button_size,
     padding = 0,
   },
   tech_graphical_set(153),

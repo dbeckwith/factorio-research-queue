@@ -31,7 +31,17 @@ local function update_techs(player)
   for _, tech_ingredient in ipairs(global.tech_ingredients) do
     local enabled = filter_data.ingredients[tech_ingredient.name]
     guilib.build(gui_data.tech_ingredient_filter_buttons, {
-      {type='sprite-button', sprite=string.format('%s/%s', 'item', tech_ingredient.name), style=enabled and 'rq_tech_ingredient_filter_button_enabled' or 'rq_tech_ingredient_filter_button_disabled', tooltip={enabled and 'sonaxaton-research-queue.tech-ingredient-filter-button-enabled' or 'sonaxaton-research-queue.tech-ingredient-filter-button-disabled', tech_ingredient.localised_name}, name='tech_ingredient_filter_button.'..tech_ingredient.name, handlers='tech_ingredient_filter_button'},
+      {
+        name = 'tech_ingredient_filter_button.'..tech_ingredient.name,
+        type = 'sprite-button',
+        style = 'rq_tech_ingredient_filter_button_'..(enabled and 'enabled' or 'disabled'),
+        handlers = 'tech_ingredient_filter_button',
+        sprite = string.format('%s/%s', 'item', tech_ingredient.name),
+        tooltip = {
+          'sonaxaton-research-queue.tech-ingredient-filter-button-'..(enabled and 'enabled' or 'disabled'),
+          tech_ingredient.localised_name,
+        },
+      },
     })
   end
 
@@ -103,30 +113,110 @@ end
 
 local function create_guis(player)
   local gui_data = guilib.build(player.gui.screen, {
-    {type='frame', style='rq_main_window', direction='vertical', elem_mods={visible=false}, handlers='window', save_as='window', children={
-      {type='flow', save_as='titlebar', children={
-        {template='frame_title', caption={'sonaxaton-research-queue.window-title'}},
-        {template='titlebar_drag_handle'},
-        {template='frame_action_button', sprite='rq-enqueue-first', handlers='research_button'},
-        {template='frame_action_button', sprite='utility/refresh', handlers='refresh_button'},
-        {template='frame_action_button', sprite='utility/close_white', hovered_sprite='utility/close_black', clicked_sprite='utility/close_black', handlers='close_button'},
-      }},
-      {type='flow', style='horizontal_flow', style_mods={horizontal_spacing=12}, children={
-        {type='scroll-pane', vertical_scroll_policy='always', style='rq_tech_queue_list_box', save_as='queue'},
-        {type='flow', direction='vertical', style='vertical_flow', style_mods={vertical_spacing=8}, children={
-          -- TODO: hide search textfield in a button like tech GUI
-          {type='flow', direction='horizontal', style='rq_tech_list_filter_container', children={
-            {type='scroll-pane', style='rq_tech_ingredient_filter_buttons_scroll_box', children={
-              {type='flow', direction='horizontal', save_as='tech_ingredient_filter_buttons'},
-            }},
-            {type='textfield', save_as='search', handlers='search'},
-          }},
-          {type='scroll-pane', vertical_scroll_policy='always', style='rq_tech_list_list_box', children={
-            {type='table', style='rq_tech_list_table', column_count=4, save_as='techs'},
-          }},
-        }},
-      }},
-    }},
+    {
+      save_as = 'window',
+      type = 'frame',
+      style = 'rq_main_window',
+      handlers = 'window',
+      direction = 'vertical',
+      elem_mods = {
+        visible = false,
+      },
+      children = {
+        {
+          save_as = 'titlebar',
+          type = 'flow',
+          children = {
+            {
+              template = 'frame_title',
+              caption = {'sonaxaton-research-queue.window-title'},
+            },
+            {
+              template = 'titlebar_drag_handle',
+            },
+            {
+              template = 'frame_action_button',
+              handlers = 'research_button',
+              sprite = 'rq-enqueue-first',
+            },
+            {
+              template = 'frame_action_button',
+              handlers = 'refresh_button',
+              sprite = 'utility/refresh',
+            },
+            {
+              template = 'frame_action_button',
+              handlers = 'close_button',
+              sprite = 'utility/close_white',
+              hovered_sprite = 'utility/close_black',
+              clicked_sprite = 'utility/close_black',
+            },
+          },
+        },
+        {
+          type = 'flow',
+          style = 'horizontal_flow',
+          style_mods = {
+            horizontal_spacing = 12,
+          },
+          children = {
+            {
+              save_as = 'queue',
+              type = 'scroll-pane',
+              style = 'rq_tech_queue_list_box',
+              vertical_scroll_policy = 'always',
+            },
+            {
+              type = 'flow',
+              style = 'vertical_flow',
+              style_mods = {
+                vertical_spacing = 8,
+              },
+              direction = 'vertical',
+              children={
+                -- TODO: hide search textfield in a button like tech GUI
+                {
+                  type = 'flow',
+                  style = 'rq_tech_list_filter_container',
+                  direction = 'horizontal',
+                  children = {
+                    {
+                      type = 'scroll-pane',
+                      style = 'rq_tech_ingredient_filter_buttons_scroll_box',
+                      children = {
+                        {
+                          save_as = 'tech_ingredient_filter_buttons',
+                          type = 'flow',
+                          direction = 'horizontal',
+                        },
+                      },
+                    },
+                    {
+                      save_as = 'search',
+                      type = 'textfield',
+                      handlers = 'search',
+                    },
+                  },
+                },
+                {
+                  type = 'scroll-pane',
+                  style = 'rq_tech_list_list_box',
+                  vertical_scroll_policy = 'always',
+                  children = {
+                    {
+                      save_as = 'techs',
+                      type = 'table',
+                      style = 'rq_tech_list_table',
+                      column_count = 4,
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    },
   })
 
   gui_data.window.force_auto_center()
@@ -207,10 +297,30 @@ local function on_research_finished(player, tech)
 end
 
 guilib.add_templates{
-  frame_action_button = {type='sprite-button', style='frame_action_button', mouse_button_filter={'left'}},
-  tool_button = {type='sprite-button', style='tool_button', mouse_button_filter={'left'}},
-  frame_title = {type='label', style='frame_title', elem_mods={ignored_by_interaction=true}},
-  titlebar_drag_handle = {type='empty-widget', style='flib_titlebar_drag_handle', elem_mods={ignored_by_interaction=true}},
+  frame_action_button = {
+    type = 'sprite-button',
+    style = 'frame_action_button',
+    mouse_button_filter = {'left'},
+  },
+  tool_button = {
+    type = 'sprite-button',
+    style = 'tool_button',
+    mouse_button_filter = {'left'},
+  },
+  frame_title = {
+    type = 'label',
+    style = 'frame_title',
+    elem_mods = {
+      ignored_by_interaction = true,
+    },
+  },
+  titlebar_drag_handle = {
+    type = 'empty-widget',
+    style = 'flib_titlebar_drag_handle',
+    elem_mods = {
+      ignored_by_interaction = true,
+    },
+  },
   tech_button = function(tech, style)
     local is_levelled = not not string.match(tech.name, '-%d+$')
     local cost =
@@ -228,32 +338,107 @@ guilib.add_templates{
       ') × ' ..
       tostring(tech.research_unit_count)
     local tooltip = {'', tech.localised_name, '\n', cost}
-    return {type='sprite-button', sprite='technology/'..tech.name, style=style, handlers='tech_button', name='tech_button.'..tech.name, tooltip=tooltip, number=is_levelled and tech.level or nil}
+    return {
+      name = 'tech_button.'..tech.name,
+      type = 'sprite-button',
+      style = style,
+      handlers = 'tech_button',
+      sprite = 'technology/'..tech.name,
+      tooltip = tooltip,
+      number = is_levelled and tech.level or nil,
+    }
   end,
   tech_queue_item = function(player, tech)
     return
-      {type='frame', style='rq_tech_queue_item', children={
-        guilib.templates.tech_button(tech, 'rq_tech_queue_item_tech_button'),
-        {type='empty-widget', style='flib_horizontal_pusher'},
-        {type='flow', direction='vertical', style='rq_tech_queue_item_buttons', children={
-          {type='button', style='rq_tech_queue_item_shift_up_button', handlers='shift_up_button', name='shift_up_button.'..tech.name, tooltip={'sonaxaton-research-queue.shift-up-button-tooltip', tech.localised_name}, visible=queue.can_shift_earlier(player, tech)},
-          {type='empty-widget', style='flib_vertical_pusher'},
-          {template='tool_button', sprite='utility/close_black', style='rq_tech_queue_item_close_button', handlers='dequeue_button', name='dequeue_button.'..tech.name, tooltip={'sonaxaton-research-queue.dequeue-button-tooltip', tech.localised_name}},
-          {type='empty-widget', style='flib_vertical_pusher'},
-          {type='button', style='rq_tech_queue_item_shift_down_button', handlers='shift_down_button', name='shift_down_button.'..tech.name, tooltip={'sonaxaton-research-queue.shift-down-button-tooltip', tech.localised_name}, visible=queue.can_shift_later(player, tech)},
-        }},
-      }}
+      {
+        type = 'frame',
+        style = 'rq_tech_queue_item',
+        children = {
+          guilib.templates.tech_button(tech, 'rq_tech_queue_item_tech_button'),
+          {
+            type = 'empty-widget',
+            style = 'flib_horizontal_pusher',
+          },
+          {
+            type = 'flow',
+            direction = 'vertical',
+            style = 'rq_tech_queue_item_buttons',
+            children = {
+              {
+                name = 'shift_up_button.'..tech.name,
+                type = 'button',
+                style = 'rq_tech_queue_item_shift_up_button',
+                handlers = 'shift_up_button',
+                tooltip = {'sonaxaton-research-queue.shift-up-button-tooltip', tech.localised_name},
+                visible = queue.can_shift_earlier(player, tech),
+              },
+              {
+                type = 'empty-widget',
+                style = 'flib_vertical_pusher',
+              },
+              {
+                name = 'dequeue_button.'..tech.name,
+                template = 'tool_button',
+                style = 'rq_tech_queue_item_close_button',
+                handlers = 'dequeue_button',
+                sprite = 'utility/close_black',
+                tooltip = {'sonaxaton-research-queue.dequeue-button-tooltip', tech.localised_name},
+              },
+              {
+                type = 'empty-widget',
+                style = 'flib_vertical_pusher',
+              },
+              {
+                name = 'shift_down_button.'..tech.name,
+                type = 'button',
+                style = 'rq_tech_queue_item_shift_down_button',
+                handlers = 'shift_down_button',
+                tooltip = {'sonaxaton-research-queue.shift-down-button-tooltip', tech.localised_name},
+                visible = queue.can_shift_later(player, tech),
+              },
+            },
+          },
+        },
+      }
   end,
   tech_list_item = function(tech)
     return
-      {type='frame', direction='vertical', style='rq_tech_list_item', children={
-        guilib.templates.tech_button(tech, 'rq_tech_list_item_tech_button'),
-        {type='flow', direction='horizontal', style='rq_tech_list_item_tool_bar', children={
-          {template='tool_button', sprite='rq-enqueue-last', handlers='enqueue_last_button', name='enqueue_last_button.'..tech.name, tooltip={'sonaxaton-research-queue.enqueue-last-button-tooltip', tech.localised_name}},
-          {template='tool_button', sprite='rq-enqueue-second', handlers='enqueue_second_button', name='enqueue_second_button.'..tech.name, tooltip={'sonaxaton-research-queue.enqueue-second-button-tooltip', tech.localised_name}},
-          {template='tool_button', sprite='rq-enqueue-first', handlers='enqueue_first_button', name='enqueue_first_button.'..tech.name, tooltip={'sonaxaton-research-queue.enqueue-first-button-tooltip', tech.localised_name}},
-        }},
-      }}
+      {
+        type = 'frame',
+        style = 'rq_tech_list_item',
+        direction = 'vertical',
+        children = {
+          guilib.templates.tech_button(tech, 'rq_tech_list_item_tech_button'),
+          {
+            type = 'flow',
+            style = 'rq_tech_list_item_tool_bar',
+            direction = 'horizontal',
+            children = {
+              {
+                name = 'enqueue_last_button.'..tech.name,
+                template = 'tool_button',
+                handlers = 'enqueue_last_button',
+                sprite = 'rq-enqueue-last',
+                tooltip = {'sonaxaton-research-queue.enqueue-last-button-tooltip', tech.localised_name},
+              },
+              {
+                name = 'enqueue_second_button.'..tech.name,
+                template = 'tool_button',
+                handlers = 'enqueue_second_button',
+                sprite = 'rq-enqueue-second',
+                tooltip = {'sonaxaton-research-queue.enqueue-second-button-tooltip', tech.localised_name},
+              },
+              {
+                name = 'enqueue_first_button.'..tech.name,
+                template = 'tool_button',
+                handlers = 'enqueue_first_button',
+                sprite = 'rq-enqueue-first',
+                tooltip = {'sonaxaton-research-queue.enqueue-first-button-tooltip', tech.localised_name},
+              },
+            },
+          },
+        },
+      }
   end,
 }
 

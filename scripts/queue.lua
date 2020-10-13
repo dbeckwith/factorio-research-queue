@@ -210,7 +210,7 @@ local function update(player, queue)
   end
 
   local force = player.force
-  if next(queue) then
+  if next(queue) ~= nil then
     force.research_queue = {queue[1]}
   else
     force.research_queue = {}

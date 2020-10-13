@@ -21,6 +21,11 @@ local function update_queue(player)
   end
 end
 
+local function get_translated_strings(player, localised_strings)
+  -- TODO: make translation requests, update search when they come in
+  return {}
+end
+
 local function update_techs(player)
   local player_data = global.players[player.index]
   local gui_data = player_data.gui
@@ -51,14 +56,58 @@ local function update_techs(player)
       if not tech.enabled then
         return false
       end
+
       if tech.researched then
         return false
       end
 
       local search_terms = filter_data.search_terms
-      -- TODO: search in localised names
-      -- TODO: search in effects
-      if not util.fuzzy_search(tech.name, search_terms) then
+      local search_matches = (function()
+        if #search_terms == 0 then
+          return true
+        end
+
+        local localised_strings = {tech.localised_name, tech.localised_description}
+        for _, effect in ipairs(tech.effects) do
+          if effect.type == 'nothing' then
+            table.insert(localised_strings, effect.effect_description)
+          elseif effect.type == 'give-item' then
+            local item = game.item_prototypes[effect.item]
+            table.insert(localised_strings, item.localised_name)
+            -- table.insert(localised_strings, item.localised_description)
+          elseif effect.type == 'unlock-recipe' then
+            local recipe = game.recipe_prototypes[effect.recipe]
+            table.insert(localised_strings, recipe.localised_name)
+            -- table.insert(localised_strings, recipe.localised_description)
+          elseif effect.type == 'gun-speed' then
+            local ammo_category = game.ammo_category_prototypes[effect.ammo_category]
+            table.insert(localised_strings, ammo_category.localised_name)
+            -- table.insert(localised_strings, ammo_category.localised_description)
+          elseif effect.type == 'turret-attack' then
+            local entity = game.entity_prototypes[effect.turret_id]
+            table.insert(localised_strings, entity.localised_name)
+            -- table.insert(localised_strings, entity.localised_description)
+          else
+            table.insert(localised_strings, {'modifier-description.'..effect.type, effect.modifier})
+          end
+        end
+
+        local strings = get_translated_strings(player, localised_strings)
+
+        if next(strings) == nil then
+          -- nothing translated yet, just call it a match
+          return true
+        end
+
+        for _, s in ipairs(strings) do
+          if util.fuzzy_search(s, search_terms) then
+            return true
+          end
+        end
+
+        return false
+      end)()
+      if not search_matches then
         return false
       end
 

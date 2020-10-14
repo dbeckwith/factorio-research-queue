@@ -8,6 +8,12 @@ local translationlib = require('__flib__.translation')
 local gui = require('scripts.gui')
 local queue = require('scripts.queue')
 
+local migrations = {
+}
+
+local queue_save = {
+}
+
 function init_player(player)
   global.players[player.index] = {}
   queue.new(player)
@@ -37,14 +43,44 @@ eventlib.on_load(function()
 end)
 
 eventlib.on_configuration_changed(function(event)
-  if migrationlib.on_config_changed(event, {}) then
+  local init = true
+  local changes = event.mod_changes[script.mod_name]
+  if changes then
+    local old_version = changes.old_version
+    if old_version then
+      -- save queue from old version
+      local queue_save = queue_save[old_version]
+      local saved_queues = {}
+      if queue_save ~= nil then
+        for _, player in pairs(game.players) do
+          saved_queues[player.index] = queue_save[old_version](player)
+        end
+      end
+
+      migrationlib.run(old_version, migrations)
+
+      for _, player in pairs(game.players) do
+        deinit_player(player)
+        init_player(player)
+
+        -- rebuild queue from old version
+        if queue_save ~= nil then
+          for _, tech_name in ipairs(saved_queues[player.index]) do
+            local tech = player.force.technologies[tech_name]
+            if tech ~= nil then
+              queue.enqueue(player, tech)
+            end
+          end
+        end
+      end
+    else
+      init = false
+    end
+  end
+
+  if init then
     translationlib.init()
     guilib.check_filter_validity()
-
-    for _, player in pairs(game.players) do
-      deinit_player(player)
-      init_player(player)
-    end
   end
 end)
 

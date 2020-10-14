@@ -734,6 +734,7 @@ guilib.add_templates{
       'rq_tech_list_item' ..
         ((queued and '_queued') or
           (researched and '_researched') or '')
+    -- TODO: show science packs above buttons
     return
       {
         type = 'flow',

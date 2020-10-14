@@ -109,12 +109,32 @@ local function update_techs(player)
         return false
       end
 
-      if tech.researched and not filter_data.researched then
+      if not filter_data.researched and tech.researched then
         return false
       end
 
-      -- TODO: option to hide upgrades
-      -- https://github.com/Saeuissimus/factorio-research-queue/blob/7676510288b9f8a3e4bf18a426644acf28801294/functions/draw_grid.lua#L153
+      if not filter_data.upgrades and tech.upgrade then
+        -- only include upgrade techs if they have an "qualifying" dependency
+        local has_qualifying_dependency = (function()
+          for _, dependency in pairs(tech.prerequisites) do
+            -- a dependency is "qualifying" if it is:
+            -- not an upgrade
+            -- already researched
+            -- already in the queue
+            if
+                not dependency.upgrade or
+                dependency.researched or
+                queue.in_queue(player, dependency)
+            then
+              return true
+            end
+          end
+          return false
+        end)()
+        if not has_qualifying_dependency then
+          return false
+        end
+      end
 
       local ingredients_filter = filter_data.ingredients
       for _, ingredient in pairs(tech.research_unit_ingredients) do
@@ -236,6 +256,15 @@ local function toggle_researched_filter(player)
   local enabled = filter_data.researched
   enabled = not enabled
   filter_data.researched = enabled
+end
+
+local function toggle_upgrade_filter(player)
+  local player_data = global.players[player.index]
+  local filter_data = player_data.filter
+
+  local enabled = filter_data.upgrades
+  enabled = not enabled
+  filter_data.upgrades = enabled
 end
 
 local function toggle_ingredient_filter(player, item)
@@ -381,7 +410,14 @@ local function create_guis(player)
                   type = 'checkbox',
                   handlers = 'filter_researched_checkbox',
                   caption = {'sonaxaton-research-queue.researched-techs-checkbox'},
-                  state = true,
+                  state = false,
+                },
+                {
+                  save_as = 'upgrade_techs_checkbox',
+                  type = 'checkbox',
+                  handlers = 'filter_upgrade_checkbox',
+                  caption = {'sonaxaton-research-queue.upgrade-techs-checkbox'},
+                  state = false,
                 },
                 {
                   type = 'frame',
@@ -440,6 +476,7 @@ local function create_guis(player)
 
   local filter_data = {
     researched = false,
+    upgrades = false,
     ingredients = {},
     search_terms = {},
   }
@@ -748,6 +785,14 @@ guilib.add_handlers{
       log('filter_researched_checkbox')
       local player = game.players[event.player_index]
       toggle_researched_filter(player)
+      update_techs(player)
+    end
+  },
+  filter_upgrade_checkbox = {
+    on_gui_click = function(event)
+      log('filter_upgrade_checkbox')
+      local player = game.players[event.player_index]
+      toggle_upgrade_filter(player)
       update_techs(player)
     end
   },

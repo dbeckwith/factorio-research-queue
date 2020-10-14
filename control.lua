@@ -1,3 +1,5 @@
+__rq_debug = false
+
 local eventlib = require('__flib__.event')
 local guilib = require('__flib__.gui')
 local migrationlib = require('__flib__.migration')

@@ -316,7 +316,9 @@ local function create_guis(player)
                   type = 'textfield',
                   handlers = 'search',
                   clear_and_focus_on_right_click = true,
-                  elem_mods = { visible = false },
+                  elem_mods = {
+                    visible = false,
+                  },
                   tooltip = {'sonaxaton-research-queue.search-tooltip'},
                 },
                 {
@@ -331,12 +333,18 @@ local function create_guis(player)
                   handlers = 'research_button',
                   sprite = 'rq-enqueue-first-white',
                   tooltip = '[[color=red]Cheat[/color]] Research current technology',
+                  elem_mods = {
+                    visible = __rq_debug,
+                  },
                 },
                 {
                   template = 'frame_action_button',
                   handlers = 'refresh_button',
                   sprite = 'rq-refresh',
                   tooltip = '[[color=purple]Debug[/color]] Refresh data',
+                  elem_mods = {
+                    visible = __rq_debug,
+                  },
                 },
                 {
                   template = 'frame_action_button',

@@ -60,15 +60,40 @@ styles.rq_list_box = {
   },
 }
 
-styles.rq_tech_queue_list_box = {
-  type = 'scroll_pane_style',
-  parent = 'rq_list_box',
-  width = 4+8+tech_queue_tech_button_size+4+16+8+4+12,
+styles.rq_tech_queue_head_frame = {
+  type = 'frame_style',
+  width = 4+6+tech_queue_tech_button_size+8+16+6+4,
+  height = 4+6+tech_queue_tech_button_size+6+4,
+  margin = 0,
+  left_padding = 0,
+  top_padding = 0,
+  bottom_padding = 4,
+  right_padding = 4,
+  graphical_set = {
+    base = {position = {34, 0}, corner_size = 8},
+    shadow = default_inner_shadow,
+  },
   background_graphical_set = {
     position = {282, 17},
     corner_size = 8,
-    overall_tiling_horizontal_size = 8+tech_queue_tech_button_size+4+16+8,
-    overall_tiling_vertical_size = 4+tech_queue_tech_button_size+4,
+    overall_tiling_horizontal_size = 6+tech_queue_tech_button_size+8+16+6,
+    overall_tiling_horizontal_padding = 4,
+    overall_tiling_horizontal_spacing = 16,
+    overall_tiling_vertical_size = 6+tech_queue_tech_button_size+6,
+    overall_tiling_vertical_padding = 4,
+    overall_tiling_vertical_spacing = 4,
+  },
+}
+
+styles.rq_tech_queue_list_box = {
+  type = 'scroll_pane_style',
+  parent = 'rq_list_box',
+  width = 4+6+tech_queue_tech_button_size+8+16+6+4+12,
+  background_graphical_set = {
+    position = {282, 17},
+    corner_size = 8,
+    overall_tiling_horizontal_size = 6+tech_queue_tech_button_size+8+16+6,
+    overall_tiling_vertical_size = 6+tech_queue_tech_button_size+6,
     overall_tiling_vertical_spacing = 4,
   },
 }

@@ -11,10 +11,11 @@ local function update_queue(player)
 
   queue.update(player)
 
+  gui_data.queue_head.clear()
   gui_data.queue.clear()
   local is_head = true
   for tech in queue.iter(player) do
-    guilib.build(gui_data.queue, {
+    guilib.build(gui_data[is_head and 'queue_head' or 'queue'], {
       guilib.templates.tech_queue_item(player, tech, is_head),
     })
     is_head = false
@@ -363,12 +364,28 @@ local function create_guis(player)
               style_mods = {
                 horizontal_spacing = 12,
               },
+              direction = 'horizontal',
               children = {
                 {
-                  save_as = 'queue',
-                  type = 'scroll-pane',
-                  style = 'rq_tech_queue_list_box',
-                  vertical_scroll_policy = 'always',
+                  type = 'flow',
+                  style = 'vertical_flow',
+                  style_mods = {
+                    vertical_spacing = 8,
+                  },
+                  direction = 'vertical',
+                  children = {
+                    {
+                      save_as = 'queue_head',
+                      type = 'frame',
+                      style = 'rq_tech_queue_head_frame',
+                    },
+                    {
+                      save_as = 'queue',
+                      type = 'scroll-pane',
+                      style = 'rq_tech_queue_list_box',
+                      vertical_scroll_policy = 'always',
+                    },
+                  },
                 },
                 {
                   type = 'scroll-pane',
@@ -670,6 +687,7 @@ guilib.add_templates{
                 style = 'rq_tech_queue_item_shift_up_button',
                 handlers = 'shift_up_button',
                 tooltip = {'sonaxaton-research-queue.shift-up-button-tooltip', tech.localised_name},
+                -- TODO: disable instead of making invisible so it takes up space in layout
                 visible = queue.can_shift_earlier(player, tech),
               },
               {

@@ -326,6 +326,8 @@ local function create_guis(player)
                   template = 'frame_action_button',
                   handlers = 'search_toggle_button',
                   sprite = 'utility/search_white',
+                  hovered_sprite = 'utility/search_black',
+                  clicked_sprite = 'utility/search_black',
                   tooltip = {'sonaxaton-research-queue.search-tooltip'},
                 },
                 {

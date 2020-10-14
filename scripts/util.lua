@@ -32,6 +32,50 @@ function util.iter_filter(iter, f)
   end
 end
 
+function util.compare(v1, v2)
+  if v1 == nil then
+    if v2 == nil then
+      return 0
+    else
+      return -1
+    end
+  elseif v2 == nil then
+    return 1
+  end
+  local t = type(v1)
+  assert(t == type(v2), 'cannot compare values of different types')
+  if t == 'table' then
+    for i = 1,math.max(#v1, #v2) do
+      local c = util.compare(v1[i], v2[i])
+      if c ~= 0 then return c end
+    end
+    return 0
+  elseif t == 'boolean' then
+    return (v1 and 1 or 0) - (v2 and 1 or 0)
+  else
+    if v1 == v2 then
+      return 0
+    elseif v1 < v2 then
+      return -1
+    else
+      return 1
+    end
+  end
+end
+
+function util.sort_by_key(list, key)
+  local keys = {}
+  table.sort(list, function(a, b)
+    if keys[a] == nil then
+      keys[a] = key(a)
+    end
+    if keys[b] == nil then
+      keys[b] = key(b)
+    end
+    return util.compare(keys[a], keys[b]) < 0
+  end)
+end
+
 function util.contains_substring(s, sub)
   return string.find(s, sub, 1, true)
 end

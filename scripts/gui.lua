@@ -99,7 +99,8 @@ local function update_techs(player)
     })
   end
 
-  local techs = {}
+  local techs_list = {}
+  local techs_set = {}
   for _, tech in pairs(force.technologies) do
     local visible = (function()
       if not tech.enabled then
@@ -195,13 +196,48 @@ local function update_techs(player)
       return true
     end)()
     if visible then
-      table.insert(techs, tech)
+      table.insert(techs_list, tech)
+      techs_set[tech.name] = true
     end
   end
-  -- TODO: make sort order like tech gui
-  table.sort(techs, function(a, b) return a.order < b.order end)
+  util.sort_by_key(techs_list, function(tech)
+    local ingredients = {}
+    for i, tech_ingredient in ipairs(tech_ingredients) do
+      local has = false
+      for _, ingredient in ipairs(tech.research_unit_ingredients) do
+        if tech_ingredient.name == ingredient.name then
+          has = true
+          break
+        end
+      end
+      ingredients[#tech_ingredients+1-i] = has
+    end
+    return {
+      ingredients,
+      tech.research_unit_count,
+      tech.order,
+      tech.name,
+    }
+  end)
+  do
+    local topo_set = {}
+    local topo_list = {}
+    local function add(tech)
+      if topo_set[tech.name] then return end
+      if not techs_set[tech.name] then return end
+      for _, dep in pairs(tech.prerequisites) do
+        add(dep)
+      end
+      table.insert(topo_list, tech)
+      topo_set[tech.name] = true
+    end
+    for _, tech in ipairs(techs_list) do
+      add(tech)
+    end
+    tech_list = topo_list
+  end
   gui_data.techs.clear()
-  for _, tech in ipairs(techs) do
+  for _, tech in ipairs(techs_list) do
     guilib.build(gui_data.techs, {
       guilib.templates.tech_list_item(player, tech),
     })

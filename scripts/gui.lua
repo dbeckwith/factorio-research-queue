@@ -664,6 +664,8 @@ guilib.add_templates{
   end,
   tech_queue_item = function(player, tech, is_head)
     -- TODO: show ETC
+    local shift_up_enabled = queue.can_shift_earlier(player, tech)
+    local shift_down_enabled = queue.can_shift_later(player, tech)
     return
       {
         type = 'frame',
@@ -686,9 +688,11 @@ guilib.add_templates{
                 type = 'button',
                 style = 'rq_tech_queue_item_shift_up_button',
                 handlers = 'shift_up_button',
-                tooltip = {'sonaxaton-research-queue.shift-up-button-tooltip', tech.localised_name},
-                -- TODO: disable instead of making invisible so it takes up space in layout
-                visible = queue.can_shift_earlier(player, tech),
+                tooltip =
+                  shift_up_enabled and
+                    {'sonaxaton-research-queue.shift-up-button-tooltip', tech.localised_name} or
+                    nil,
+                enabled = shift_up_enabled,
               },
               {
                 type = 'empty-widget',
@@ -711,8 +715,11 @@ guilib.add_templates{
                 type = 'button',
                 style = 'rq_tech_queue_item_shift_down_button',
                 handlers = 'shift_down_button',
-                tooltip = {'sonaxaton-research-queue.shift-down-button-tooltip', tech.localised_name},
-                visible = queue.can_shift_later(player, tech),
+                tooltip =
+                  shift_down_enabled and
+                    {'sonaxaton-research-queue.shift-down-button-tooltip', tech.localised_name} or
+                    nil,
+                enabled = shift_down_enabled,
               },
             },
           },

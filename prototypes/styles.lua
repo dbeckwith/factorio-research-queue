@@ -285,11 +285,7 @@ styles.rq_tech_queue_item_shift_up_button = {
     size = {16, 16},
     scale = 0.5
   },
-  disabled_graphical_set = {
-    filename = '__core__/graphics/arrows/table-header-sort-arrow-up-white.png',
-    size = {16, 16},
-    scale = 0.5
-  }
+  disabled_graphical_set = util.empty_sprite(),
 }
 
 styles.rq_tech_queue_item_shift_down_button = {
@@ -311,11 +307,7 @@ styles.rq_tech_queue_item_shift_down_button = {
     size = {16, 16},
     scale = 0.5
   },
-  disabled_graphical_set = {
-    filename = '__core__/graphics/arrows/table-header-sort-arrow-down-white.png',
-    size = {16, 16},
-    scale = 0.5
-  }
+  disabled_graphical_set = util.empty_sprite(),
 }
 
 styles.rq_settings_section = {

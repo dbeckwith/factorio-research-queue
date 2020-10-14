@@ -108,7 +108,7 @@ styles.rq_tech_list_list_box = {
     overall_tiling_horizontal_size = tech_list_tech_button_size-8,
     overall_tiling_horizontal_padding = 8/2,
     overall_tiling_horizontal_spacing = 8,
-    overall_tiling_vertical_size = tech_list_tech_button_size+40-8,
+    overall_tiling_vertical_size = tech_list_tech_button_size+4+16+4+40-8,
     overall_tiling_vertical_padding = 8/2,
     overall_tiling_vertical_spacing = 8,
   },
@@ -161,6 +161,45 @@ styles.rq_tech_list_item = {
   vertical_spacing = 0,
 }
 
+styles.rq_tech_list_item_ingredients_bar = {
+  type = 'frame_style',
+  padding = 0,
+  horizontal_flow_style = {
+    type = 'horizontal_flow_style',
+    horizontally_stretchable = 'on',
+    horizontal_align = 'left',
+  },
+  graphical_set = {
+    base = {position = {397, 204}, corner_size = 8},
+    shadow = default_shadow,
+  },
+}
+
+styles.rq_tech_list_item_queued_ingredients_bar = {
+  type = 'frame_style',
+  parent = 'rq_tech_list_item_ingredients_bar',
+  graphical_set = {
+    base = {position = {397, 136}, corner_size = 8},
+    shadow = default_shadow,
+  },
+}
+
+styles.rq_tech_list_item_researched_ingredients_bar = {
+  type = 'frame_style',
+  parent = 'rq_tech_list_item_ingredients_bar',
+  graphical_set = {
+    base = {position = {397, 187}, corner_size = 8},
+    shadow = default_shadow,
+  },
+}
+
+styles.rq_tech_list_item_ingredient = {
+  type = 'image_style',
+  width = 16,
+  height = 16,
+  stretch_image_to_widget_size = true,
+}
+
 styles.rq_tech_list_item_tool_bar = {
   type = 'frame_style',
   padding = 0,
@@ -173,6 +212,7 @@ styles.rq_tech_list_item_tool_bar = {
   },
   graphical_set = {
     base = {position = {347, 204}, corner_size = 8},
+    shadow = default_shadow,
   },
 }
 
@@ -181,6 +221,7 @@ styles.rq_tech_list_item_queued_tool_bar = {
   parent = 'rq_tech_list_item_tool_bar',
   graphical_set = {
     base = {position = {347, 136}, corner_size = 8},
+    shadow = default_shadow,
   },
 }
 
@@ -189,6 +230,7 @@ styles.rq_tech_list_item_researched_tool_bar = {
   parent = 'rq_tech_list_item_tool_bar',
   graphical_set = {
     base = {position = {347, 187}, corner_size = 8},
+    shadow = default_shadow,
   },
 }
 

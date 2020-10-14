@@ -741,7 +741,25 @@ guilib.add_templates{
       'rq_tech_list_item' ..
         ((queued and '_queued') or
           (researched and '_researched') or '')
-    -- TODO: show science packs above buttons
+    local tech_list_tech_button_size = 64+8*2+8
+    local ingredient_width = 16
+    local ingredients = {}
+    for _, ingredient in ipairs(tech.research_unit_ingredients) do
+      table.insert(ingredients, {
+        type = 'sprite',
+        style = 'rq_tech_list_item_ingredient',
+        sprite = string.format('%s/%s', ingredient.type, ingredient.name),
+      })
+    end
+    local ingredients_spacing = nil
+    if #ingredients >= 2 then
+      ingredients_spacing =
+        (tech_list_tech_button_size - 8 - #ingredients*ingredient_width) /
+          (#ingredients - 1)
+      if ingredients_spacing > 0 then
+        ingredients_spacing = 0
+      end
+    end
     return
       {
         type = 'flow',
@@ -749,6 +767,22 @@ guilib.add_templates{
         direction = 'vertical',
         children = {
           guilib.templates.tech_button(tech, style_prefix..'_tech_button'),
+          {
+            type = 'frame',
+            style = style_prefix..'_ingredients_bar',
+            direction = 'horizontal',
+            children = {
+              {
+                type = 'flow',
+                style = 'horizontal_flow',
+                style_mods = {
+                  horizontal_spacing = ingredients_spacing,
+                },
+                direction = 'horizontal',
+                children = ingredients,
+              },
+            },
+          },
           {
             type = 'frame',
             style = style_prefix..'_tool_bar',

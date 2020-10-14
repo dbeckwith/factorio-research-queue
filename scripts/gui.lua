@@ -558,6 +558,13 @@ local function close(player)
   player.set_shortcut_toggled('sonaxaton-research-queue', false)
 end
 
+local function on_research_started(player, tech, last_tech)
+  if queue.queue_pos(player, tech) ~= 1 then
+    queue.enqueue_head(player, tech)
+    update_queue(player)
+  end
+end
+
 local function on_research_finished(player, tech)
   local player_data = global.players[player.index]
   local filter_data = player_data.filter
@@ -933,6 +940,7 @@ guilib.add_handlers{
 return {
   create_guis = create_guis,
   destroy_guis = destroy_guis,
+  on_research_started = on_research_started,
   on_research_finished = on_research_finished,
   on_string_translated = on_string_translated,
   open = open,

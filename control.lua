@@ -129,6 +129,13 @@ eventlib.register('rq-focus-search', function(event)
   end
 end)
 
+eventlib.on_research_started(function(event)
+  local force = event.research.force
+  for _, player in pairs(force.players) do
+    gui.on_research_started(player, event.research, event.last_research)
+  end
+end)
+
 eventlib.on_research_finished(function(event)
   local force = event.research.force
   for _, player in pairs(force.players) do

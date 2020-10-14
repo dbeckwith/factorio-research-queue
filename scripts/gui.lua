@@ -525,29 +525,27 @@ local function on_research_finished(player, tech)
 end
 
 local function on_string_translated(player, event)
-  if event.translated then
+  local player_data = global.players[player.index]
+  local translation_data = player_data.translations
+
+  local sort_data, finished = translationlib.process_result(event)
+
+  if sort_data then
     local player_data = global.players[player.index]
     local translation_data = player_data.translations
 
-    local sort_data, finished = translationlib.process_result(event)
-
-    if sort_data then
-      local player_data = global.players[player.index]
-      local translation_data = player_data.translations
-
-      if sort_data.search ~= nil then
-        for _, key in ipairs(sort_data.search) do
-          local result = event.result
-          if translation_data[key] == nil then
-            translation_data[key] = {}
-          end
-          translation_data[key].result = result
+    if event.translated and sort_data.search ~= nil then
+      for _, key in ipairs(sort_data.search) do
+        local result = event.result
+        if translation_data[key] == nil then
+          translation_data[key] = {}
         end
+        translation_data[key].result = result
       end
+    end
 
-      if finished then
-        update_techs(player)
-      end
+    if finished then
+      update_techs(player)
     end
   end
 end

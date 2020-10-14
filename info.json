@@ -6,5 +6,5 @@
   "homepage": "https://mods.factorio.com/mod/sonaxaton-research-queue",
   "description": "A better GUI for managing the research queue.",
   "factorio_version": "0.18",
-  "dependencies": ["base >= 0.18", "flib >= 0.1.5"]
+  "dependencies": ["flib >= 0.4.1"]
 }

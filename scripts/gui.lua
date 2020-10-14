@@ -10,10 +10,6 @@ local function update_queue(player)
   local gui_data = player_data.gui
 
   queue.update(player)
-  log('queue:')
-  for tech in queue.iter(player) do
-    log('\t'..tech.name)
-  end
 
   gui_data.queue.clear()
   local is_head = true
@@ -764,7 +760,6 @@ guilib.add_handlers{
   },
   refresh_button = {
     on_gui_click = function(event)
-      log('refresh_button')
       local player = game.players[event.player_index]
       update_search(player)
       update_queue(player)
@@ -773,7 +768,6 @@ guilib.add_handlers{
   },
   research_button = {
     on_gui_click = function(event)
-      log('research_button')
       local player = game.players[event.player_index]
       if player.force.current_research ~= nil then
         player.force.research_progress = 1
@@ -782,7 +776,6 @@ guilib.add_handlers{
   },
   filter_researched_checkbox = {
     on_gui_click = function(event)
-      log('filter_researched_checkbox')
       local player = game.players[event.player_index]
       toggle_researched_filter(player)
       update_techs(player)
@@ -790,7 +783,6 @@ guilib.add_handlers{
   },
   filter_upgrade_checkbox = {
     on_gui_click = function(event)
-      log('filter_upgrade_checkbox')
       local player = game.players[event.player_index]
       toggle_upgrade_filter(player)
       update_techs(player)
@@ -798,7 +790,6 @@ guilib.add_handlers{
   },
   tech_ingredient_filter_button = {
     on_gui_click = function(event)
-      log('tech_ingredient_filter_button')
       local player = game.players[event.player_index]
       local _, _, item_name = string.find(event.element.name, '^tech_ingredient_filter_button%.(.+)$')
       local item = game.item_prototypes[item_name]
@@ -808,7 +799,6 @@ guilib.add_handlers{
   },
   search = {
     on_gui_text_changed = function(event)
-      log('search')
       local player = game.players[event.player_index]
       update_search(player)
       update_techs(player)
@@ -816,7 +806,6 @@ guilib.add_handlers{
   },
   search_toggle_button = {
     on_gui_click = function(event)
-      log('search_toggle_button')
       local player = game.players[event.player_index]
       toggle_search(player)
     end,
@@ -839,12 +828,10 @@ guilib.add_handlers{
   },
   enqueue_last_button = {
     on_gui_click = function(event)
-      log('enqueue_last_button')
       local player = game.players[event.player_index]
       local _, _, tech_name = string.find(event.element.name, '^enqueue_last_button%.(.+)$')
       local force = player.force
       local tech = force.technologies[tech_name]
-      log('enqueue last '..tech.name)
       queue.enqueue_tail(player, tech)
       update_queue(player)
       update_techs(player)
@@ -852,12 +839,10 @@ guilib.add_handlers{
   },
   enqueue_second_button = {
     on_gui_click = function(event)
-      log('enqueue_second_button')
       local player = game.players[event.player_index]
       local _, _, tech_name = string.find(event.element.name, '^enqueue_second_button%.(.+)$')
       local force = player.force
       local tech = force.technologies[tech_name]
-      log('enqueue second '..tech.name)
       queue.enqueue_before_head(player, tech)
       update_queue(player)
       update_techs(player)
@@ -865,12 +850,10 @@ guilib.add_handlers{
   },
   enqueue_first_button = {
     on_gui_click = function(event)
-      log('enqueue_first_button')
       local player = game.players[event.player_index]
       local _, _, tech_name = string.find(event.element.name, '^enqueue_first_button%.(.+)$')
       local force = player.force
       local tech = force.technologies[tech_name]
-      log('enqueue first '..tech.name)
       queue.enqueue_head(player, tech)
       update_queue(player)
       update_techs(player)
@@ -878,36 +861,30 @@ guilib.add_handlers{
   },
   shift_up_button = {
     on_gui_click = function(event)
-      log('shift_up_button')
       local player = game.players[event.player_index]
       local _, _, tech_name = string.find(event.element.name, '^shift_up_button%.(.+)$')
       local force = player.force
       local tech = force.technologies[tech_name]
-      log('shift earlier '..tech.name)
       queue[event.shift and 'shift_earliest' or 'shift_earlier'](player, tech)
       update_queue(player)
     end,
   },
   shift_down_button = {
     on_gui_click = function(event)
-      log('shift_down_button')
       local player = game.players[event.player_index]
       local _, _, tech_name = string.find(event.element.name, '^shift_down_button%.(.+)$')
       local force = player.force
       local tech = force.technologies[tech_name]
-      log('shift later '..tech.name)
       queue[event.shift and 'shift_latest' or 'shift_later'](player, tech)
       update_queue(player)
     end,
   },
   dequeue_button = {
     on_gui_click = function(event)
-      log('dequeue_button')
       local player = game.players[event.player_index]
       local _, _, tech_name = string.find(event.element.name, '^dequeue_button%.(.+)$')
       local force = player.force
       local tech = force.technologies[tech_name]
-      log('dequeue '..tech.name)
       queue.dequeue(player, tech)
       update_queue(player)
       update_techs(player)

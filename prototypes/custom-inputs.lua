@@ -2,7 +2,7 @@ data:extend{
   {
     type = 'custom-input',
     name = 'rq-toggle-main-window',
-    key_sequence = 'CONTROL + SHIFT + ALT + R',
+    key_sequence = 'SHIFT + T',
     order = 'a',
   },
   {

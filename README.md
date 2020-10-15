@@ -17,5 +17,5 @@ This mod adds a new GUI for managing a queue of research that's easier to use an
 
 ## Default hotkeys
 
-* `Ctrl+Shift+Alt+R` - Open Research Queue GUI
+* `Shift+T` - Open Research Queue GUI
 * `Ctrl+F` - Focus search field

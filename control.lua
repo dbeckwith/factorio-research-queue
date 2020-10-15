@@ -167,40 +167,48 @@ eventlib.on_gui_closed(function(event)
 end)
 
 local research_speed_period = 60
-local research_progress_sample_count = 11
-local research_progress_samples = {}
+local research_progress_sample_count = 3
+local research_progress_samples_by_force = {}
 
 eventlib.on_nth_tick(research_speed_period, function(event)
   for _, force in pairs(game.forces) do
-    local force_samples = research_progress_samples[force.index]
-    if force_samples == nil then
-      force_samples = {}
-      research_progress_samples[force.index] = force_samples
-    end
-    -- TODO: handle discontinuities of research progress
-    table.insert(force_samples, force.research_progress)
-    if #force_samples > research_progress_sample_count then
-      table.remove(force_samples, 1)
-    end
-    if #force_samples > 1 then
-      local speed_avg = 0
-      local tech = force.current_research
-      if tech ~= nil then
-        for i = 1,#force_samples-1 do
-          local speed =
-            (force_samples[i+1]-force_samples[i]) /
-            (research_speed_period/60)
-          speed_avg = speed_avg + speed
+    local tech = force.current_research
+    local speed_estimate = 0
+    if tech ~= nil then
+      local progress_samples = research_progress_samples_by_force[force.index]
+      if progress_samples == nil then
+        progress_samples = {}
+        research_progress_samples_by_force[force.index] = progress_samples
+      end
+      table.insert(progress_samples, {
+        tech = tech,
+        progress = force.research_progress,
+      })
+      if #progress_samples > 1+research_progress_sample_count then
+        table.remove(progress_samples, 1)
+      end
+      if #progress_samples > 1 then
+        local num_samples = 0
+        for i = 2,#progress_samples do
+          local prev_sample = progress_samples[i-1]
+          local curr_sample = progress_samples[i]
+          if prev_sample.tech.name == curr_sample.tech.name then
+            local tech = prev_sample.tech
+            local diff = curr_sample.progress - prev_sample.progress
+            speed_estimate = speed_estimate + diff /
+              (research_speed_period/60) *
+              (tech.research_unit_energy/60) *
+              tech.research_unit_count
+            num_samples = num_samples + 1
+          end
         end
-        speed_avg = speed_avg /
-          (#force_samples-1) *
-          (tech.research_unit_energy/60) *
-          tech.research_unit_count
+        if num_samples > 0 then
+          speed_estimate = speed_estimate / num_samples
+        end
       end
-      log('research speed estimate for '..force.name..': '..speed_avg)
-      for _, player in pairs(force.players) do
-        gui.on_research_speed_estimate(player, speed_avg)
-      end
+    end
+    for _, player in pairs(force.players) do
+      gui.on_research_speed_estimate(player, speed_estimate)
     end
   end
 end)

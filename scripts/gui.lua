@@ -11,7 +11,7 @@ local function update_etcs(player)
   local player_data = global.players[player.index]
   local gui_data = player_data.gui
 
-  local speed = player_data.last_research_speed_estimate
+  local speed = player_data.last_research_speed_estimate or 0
   local is_head = true
   local etc = 0
   for tech in queue.iter(player) do

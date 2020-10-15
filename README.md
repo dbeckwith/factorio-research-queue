@@ -9,7 +9,7 @@ This mod adds a new GUI for managing a queue of research that's easier to use an
 * Maintain a research queue of unlimited size
 * Move technologies up and down in the queue
 * Adding an unavailable technology to the queue will add all of its prerequisites as well
-* Removing a technology from the queue will remove all of its prerequisites as well
+* Removing a technology from the queue will remove everything that has it as a prerequisite as well
 * Easily search and filter technologies to research
 * Pause the research queue while you plan, then unpause and watch your queue go
 

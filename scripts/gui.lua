@@ -813,11 +813,23 @@ guilib.add_templates{
   tech_list_item = function(player, tech)
     local researchable = queue.is_researchable(player, tech)
     local queued = queue.in_queue(player, tech)
+    local queued_head = queue.is_head(player, tech)
     local researched = tech.researched
+    local available = (function()
+      for _, prereq in pairs(tech.prerequisites) do
+        if not prereq.researched then
+          return false
+        end
+      end
+      return true
+    end)()
     local style_prefix =
       'rq_tech_list_item' ..
-        ((queued and '_queued') or
-          (researched and '_researched') or '')
+        (queued_head and '_queued_head' or
+        queued and '_queued' or
+        researched and '_researched' or
+        available and '_available' or
+        '_unavailable')
     local tech_list_tech_button_size = 64+8*2+8
     local ingredient_width = 16
     local ingredients = {}

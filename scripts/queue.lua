@@ -54,6 +54,10 @@ local function queue_pos(player, queue, tech)
   return nil
 end
 
+local function is_head(player, queue, tech)
+  return queue[1] ~= nil and queue[1].name == tech.name
+end
+
 local function queue_prev(player, queue, tech)
   for idx, queued_tech in ipairs(queue) do
     if queued_tech.name == tech.name then
@@ -223,6 +227,10 @@ return {
   in_queue = function(player, tech)
     local queue = global.players[player.index].queue
     return in_queue(player, queue, tech)
+  end,
+  is_head = function(player, tech)
+    local queue = global.players[player.index].queue
+    return is_head(player, queue, tech)
   end,
   queue_pos = function(player, tech)
     local queue = global.players[player.index].queue

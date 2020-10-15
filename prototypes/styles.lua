@@ -5,37 +5,61 @@ local styles = data.raw['gui-style'].default
 local tech_list_tech_button_size = 64+8*2+8
 local tech_queue_tech_button_size = 64*3/4+8
 
-local function tech_graphical_set(y)
-  return {
-    default_graphical_set = {
-      base = {position = {296, y}, corner_size = 8},
-      shadow = default_shadow
-    },
-    hovered_graphical_set = {
-      base = {position = {312, y}, corner_size = 8},
-      shadow = default_shadow
-    },
-    selected_hovered_graphical_set = {
-      base = {position = {312, y}, corner_size = 8},
-      shadow = default_shadow
-    },
-    clicked_graphical_set = {
-      base = {position = {312, y}, corner_size = 8},
-      shadow = default_shadow
-    },
-    selected_graphical_set = {
-      base = {position = {312, y}, corner_size = 8},
-      shadow = default_shadow
-    },
-    selected_clicked_graphical_set = {
-      base = {position = {312, y}, corner_size = 8},
-      shadow = default_shadow
-    },
-    disabled_graphical_set = {
-      base = {position = {296, y}, corner_size = 8},
-      shadow = default_shadow
-    },
-  }
+local function tech_graphical_set(type, opts)
+  local highlighted = opts.highlighted
+  local y = ({
+    available = 136,
+    conditionally_available = 153,
+    unavailable = 170,
+    researched = 187,
+    disabled = 204,
+  })[opts.style]
+  local tint = opts.tint
+
+  if type == 'button' then
+    local default_graphical_set = {
+      base = {
+        position = {highlighted and 330 or 296, y},
+        corner_size = 8,
+        tint = tint,
+      },
+      shadow = default_shadow,
+    }
+    local other_graphical_set = {
+      base = {
+        position = {312, y},
+        corner_size = 8,
+        tint = tint,
+      },
+      shadow = default_shadow,
+    }
+    return {
+      default_graphical_set = default_graphical_set,
+      hovered_graphical_set = other_graphical_set,
+      clicked_graphical_set = other_graphical_set,
+      selected_graphical_set = other_graphical_set,
+      selected_hovered_graphical_set = other_graphical_set,
+      selected_clicked_graphical_set = other_graphical_set,
+    }
+  elseif type == 'ingredients' then
+    return {
+      base = {
+        position = {highlighted and 364 or 347, y},
+        corner_size = 8,
+        tint = tint,
+      },
+      shadow = default_shadow,
+    }
+  elseif type == 'level' then
+    return {
+      base = {
+        position = {397, y},
+        corner_size = 8,
+        tint = tint,
+      },
+      shadow = default_shadow,
+    }
+  end
 end
 
 styles.rq_main_window = {
@@ -161,7 +185,53 @@ styles.rq_tech_list_item = {
   vertical_spacing = 0,
 }
 
-styles.rq_tech_list_item_ingredients_bar = {
+local tech_list_item_available = {style='available'}
+local tech_list_item_unavailable = {style='unavailable'}
+local tech_list_item_queued = {style='conditionally_available'}
+local tech_list_item_queued_head = {style='conditionally_available', highlighted=true}
+local tech_list_item_researched = {style='researched'}
+
+styles.rq_tech_list_item_available_tech_button = util.merge{
+  {
+    type = 'button_style',
+    size = tech_list_tech_button_size,
+  },
+  tech_graphical_set('button', tech_list_item_available),
+}
+
+styles.rq_tech_list_item_unavailable_tech_button = util.merge{
+  {
+    type = 'button_style',
+    size = tech_list_tech_button_size,
+  },
+  tech_graphical_set('button', tech_list_item_unavailable),
+}
+
+styles.rq_tech_list_item_queued_tech_button = util.merge{
+  {
+    type = 'button_style',
+    size = tech_list_tech_button_size,
+  },
+  tech_graphical_set('button', tech_list_item_queued),
+}
+
+styles.rq_tech_list_item_queued_head_tech_button = util.merge{
+  {
+    type = 'button_style',
+    size = tech_list_tech_button_size,
+  },
+  tech_graphical_set('button', tech_list_item_queued_head),
+}
+
+styles.rq_tech_list_item_researched_tech_button = util.merge{
+  {
+    type = 'button_style',
+    size = tech_list_tech_button_size,
+  },
+  tech_graphical_set('button', tech_list_item_researched),
+}
+
+styles.rq_tech_list_item_available_ingredients_bar = {
   type = 'frame_style',
   padding = 0,
   horizontal_flow_style = {
@@ -169,28 +239,31 @@ styles.rq_tech_list_item_ingredients_bar = {
     horizontally_stretchable = 'on',
     horizontal_align = 'left',
   },
-  graphical_set = {
-    base = {position = {397, 204}, corner_size = 8},
-    shadow = default_shadow,
-  },
+  graphical_set = tech_graphical_set('level', tech_list_item_available),
+}
+
+styles.rq_tech_list_item_unavailable_ingredients_bar = {
+  type = 'frame_style',
+  parent = 'rq_tech_list_item_available_ingredients_bar',
+  graphical_set = tech_graphical_set('level', tech_list_item_unavailable),
 }
 
 styles.rq_tech_list_item_queued_ingredients_bar = {
   type = 'frame_style',
-  parent = 'rq_tech_list_item_ingredients_bar',
-  graphical_set = {
-    base = {position = {397, 136}, corner_size = 8},
-    shadow = default_shadow,
-  },
+  parent = 'rq_tech_list_item_available_ingredients_bar',
+  graphical_set = tech_graphical_set('level', tech_list_item_queued),
+}
+
+styles.rq_tech_list_item_queued_head_ingredients_bar = {
+  type = 'frame_style',
+  parent = 'rq_tech_list_item_available_ingredients_bar',
+  graphical_set = tech_graphical_set('level', tech_list_item_queued_head),
 }
 
 styles.rq_tech_list_item_researched_ingredients_bar = {
   type = 'frame_style',
-  parent = 'rq_tech_list_item_ingredients_bar',
-  graphical_set = {
-    base = {position = {397, 187}, corner_size = 8},
-    shadow = default_shadow,
-  },
+  parent = 'rq_tech_list_item_available_ingredients_bar',
+  graphical_set = tech_graphical_set('level', tech_list_item_researched),
 }
 
 styles.rq_tech_list_item_ingredient = {
@@ -200,7 +273,7 @@ styles.rq_tech_list_item_ingredient = {
   stretch_image_to_widget_size = true,
 }
 
-styles.rq_tech_list_item_tool_bar = {
+styles.rq_tech_list_item_available_tool_bar = {
   type = 'frame_style',
   padding = 0,
   top_padding = 4,
@@ -210,52 +283,31 @@ styles.rq_tech_list_item_tool_bar = {
     horizontally_stretchable = 'on',
     horizontal_align = 'center',
   },
-  graphical_set = {
-    base = {position = {347, 204}, corner_size = 8},
-    shadow = default_shadow,
-  },
+  graphical_set = tech_graphical_set('ingredient', tech_list_item_available),
 }
 
 styles.rq_tech_list_item_queued_tool_bar = {
   type = 'frame_style',
-  parent = 'rq_tech_list_item_tool_bar',
-  graphical_set = {
-    base = {position = {347, 136}, corner_size = 8},
-    shadow = default_shadow,
-  },
+  parent = 'rq_tech_list_item_available_tool_bar',
+  graphical_set = tech_graphical_set('ingredient', tech_list_item_queued),
+}
+
+styles.rq_tech_list_item_queued_head_tool_bar = {
+  type = 'frame_style',
+  parent = 'rq_tech_list_item_available_tool_bar',
+  graphical_set = tech_graphical_set('ingredient', tech_list_item_queued_head),
+}
+
+styles.rq_tech_list_item_unavailable_tool_bar = {
+  type = 'frame_style',
+  parent = 'rq_tech_list_item_available_tool_bar',
+  graphical_set = tech_graphical_set('ingredient', tech_list_item_unavailable),
 }
 
 styles.rq_tech_list_item_researched_tool_bar = {
   type = 'frame_style',
-  parent = 'rq_tech_list_item_tool_bar',
-  graphical_set = {
-    base = {position = {347, 187}, corner_size = 8},
-    shadow = default_shadow,
-  },
-}
-
-styles.rq_tech_list_item_tech_button = util.merge{
-  {
-    type = 'button_style',
-    size = tech_list_tech_button_size,
-  },
-  tech_graphical_set(204),
-}
-
-styles.rq_tech_list_item_queued_tech_button = util.merge{
-  {
-    type = 'button_style',
-    size = tech_list_tech_button_size,
-  },
-  tech_graphical_set(136),
-}
-
-styles.rq_tech_list_item_researched_tech_button = util.merge{
-  {
-    type = 'button_style',
-    size = tech_list_tech_button_size,
-  },
-  tech_graphical_set(187),
+  parent = 'rq_tech_list_item_available_tool_bar',
+  graphical_set = tech_graphical_set('ingredient', tech_list_item_researched),
 }
 
 styles.rq_tech_list_item_tool_button = {
@@ -285,7 +337,7 @@ styles.rq_tech_queue_item_tech_button = util.merge{
     size = tech_queue_tech_button_size,
     padding = 0,
   },
-  tech_graphical_set(136),
+  tech_graphical_set('button', tech_list_item_queued),
 }
 
 styles.rq_tech_queue_head_item_tech_button = util.merge{
@@ -294,7 +346,7 @@ styles.rq_tech_queue_head_item_tech_button = util.merge{
     size = tech_queue_tech_button_size,
     padding = 0,
   },
-  tech_graphical_set(187),
+  tech_graphical_set('button', tech_list_item_queued_head),
 }
 
 styles.rq_tech_queue_item_buttons = {

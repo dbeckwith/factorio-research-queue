@@ -139,23 +139,24 @@ local function shift_later(player, queue, tech)
   return false
 end
 
-local function try_shift_earlier(player, queue, tech)
+local function try_shift_earlier(player, queue, tech, head)
+  head = head or 1
   local tech_pos = queue_pos(player, queue, tech)
   local pivot_pos = tech_pos - 1
-  if pivot_pos < 1 then
+  if pivot_pos < head then
     return nil
   end
   while is_depdendency_of_any(player, queue, queue[pivot_pos], pivot_pos, tech_pos) do
     pivot_pos = pivot_pos - 1
-    if pivot_pos < 1 then
+    if pivot_pos < head then
       return nil
     end
   end
   return pivot_pos, tech_pos
 end
 
-local function shift_earlier(player, queue, tech)
-  local pivot_pos, tech_pos = try_shift_earlier(player, queue, tech)
+local function shift_earlier(player, queue, tech, head)
+  local pivot_pos, tech_pos = try_shift_earlier(player, queue, tech, head)
   if pivot_pos ~= nil then
     rotate(player, queue, pivot_pos, tech_pos)
     return true
@@ -172,12 +173,7 @@ local function shift_earliest(player, queue, tech)
 end
 
 local function shift_before_earliest(player, queue, tech)
-  -- FIXME: this doesn't work quite as expected
-  while shift_earlier(player, queue, tech) do end
-  local tech_pos = queue_pos(player, queue, tech)
-  if tech_pos == 1 then
-    shift_later(player, queue, tech)
-  end
+  while shift_earlier(player, queue, tech, 2) do end
 end
 
 local function enqueue_tail(player, queue, tech)

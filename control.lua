@@ -112,20 +112,14 @@ end)
 eventlib.register('rq-toggle-main-window', function(event)
   local player = game.players[event.player_index]
   if player ~= nil then
-    if player.is_shortcut_toggled('sonaxaton-research-queue') then
-      gui.close(player)
-    else
-      gui.open(player)
-    end
+    gui.toggle(player)
   end
 end)
 
 eventlib.register('rq-focus-search', function(event)
   local player = game.players[event.player_index]
   if player ~= nil then
-    if player.is_shortcut_toggled('sonaxaton-research-queue') then
-      gui.focus_search(player)
-    end
+    gui.focus_search(player)
   end
 end)
 
@@ -147,5 +141,27 @@ eventlib.on_string_translated(function(event)
   local player = game.players[event.player_index]
   if player ~= nil then
     gui.on_string_translated(player, event)
+  end
+end)
+
+eventlib.on_gui_opened(function(event)
+  if not guilib.dispatch_handlers(event) then
+    local player = game.players[event.player_index]
+    if player ~= nil then
+      if event.gui_type == defines.gui_type.research then
+        gui.on_technology_gui_opened(player)
+      end
+    end
+  end
+end)
+
+eventlib.on_gui_closed(function(event)
+  if not guilib.dispatch_handlers(event) then
+    local player = game.players[event.player_index]
+    if player ~= nil then
+      if event.gui_type == defines.gui_type.research then
+        gui.on_technology_gui_closed(player)
+      end
+    end
   end
 end)

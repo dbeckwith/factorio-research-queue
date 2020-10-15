@@ -253,37 +253,6 @@ local function update_search(player)
   filter_data.search_terms = util.prepare_search_terms(search_text)
 end
 
-local function focus_search(player)
-  local player_data = global.players[player.index]
-  local gui_data = player_data.gui
-  if not gui_data.search.visible then
-    gui_data.search_toggle_button.style = 'flib_selected_frame_action_button'
-    gui_data.search.visible = true
-    gui_data.search.focus()
-    gui_data.search.select_all()
-  else
-    gui_data.search.focus()
-    gui_data.search.select_all()
-  end
-end
-
-local function toggle_search(player)
-  local player_data = global.players[player.index]
-  local gui_data = player_data.gui
-  if not gui_data.search.visible then
-    gui_data.search_toggle_button.style = 'flib_selected_frame_action_button'
-    gui_data.search.visible = true
-    gui_data.search.focus()
-    gui_data.search.select_all()
-  else
-    gui_data.search_toggle_button.style = 'frame_action_button'
-    gui_data.search.visible = false
-    gui_data.search.text = ''
-    update_search(player)
-    update_techs(player)
-  end
-end
-
 local function toggle_researched_filter(player)
   local player_data = global.players[player.index]
   local filter_data = player_data.filter
@@ -564,11 +533,47 @@ local function destroy_guis(player)
   player_data.translations = nil
 end
 
+local function focus_search(player)
+  local player_data = global.players[player.index]
+  local gui_data = player_data.gui
+
+  if gui_data.window.visible then
+    if not gui_data.search.visible then
+      gui_data.search_toggle_button.style = 'flib_selected_frame_action_button'
+      gui_data.search.visible = true
+      gui_data.search.focus()
+      gui_data.search.select_all()
+    else
+      gui_data.search.focus()
+      gui_data.search.select_all()
+    end
+  end
+end
+
+local function toggle_search(player)
+  local player_data = global.players[player.index]
+  local gui_data = player_data.gui
+
+  if gui_data.window.visible then
+    if not gui_data.search.visible then
+      gui_data.search_toggle_button.style = 'flib_selected_frame_action_button'
+      gui_data.search.visible = true
+      gui_data.search.focus()
+      gui_data.search.select_all()
+    else
+      gui_data.search_toggle_button.style = 'frame_action_button'
+      gui_data.search.visible = false
+      gui_data.search.text = ''
+      update_search(player)
+      update_techs(player)
+    end
+  end
+end
+
 local function open(player)
   local player_data = global.players[player.index]
   local gui_data = player_data.gui
 
-  player_data.tech_gui_open = nil
   gui_data.window.visible = true
   player.opened = gui_data.window
   player.set_shortcut_toggled('sonaxaton-research-queue', true)
@@ -592,6 +597,42 @@ local function close(player)
     player.opened = nil
   end
   player.set_shortcut_toggled('sonaxaton-research-queue', false)
+  player_data.closed_tick = game.tick
+end
+
+local function toggle(player)
+  local player_data = global.players[player.index]
+  local gui_data = player_data.gui
+
+  if gui_data.window.visible then
+    close(player)
+  else
+    open(player)
+  end
+end
+
+local function on_technology_gui_opened(player)
+  local player_data = global.players[player.index]
+  local gui_data = player_data.gui
+
+  if player_data.closed_tick == game.tick then
+    -- if the window was closed in the same tick that the tech gui was opened,
+    -- keep the window visible in the background
+    -- when the tech gui is closed, the window will be officially opened and
+    -- made the opened gui of the player
+    gui_data.window.visible = true
+  end
+end
+
+local function on_technology_gui_closed(player)
+  local player_data = global.players[player.index]
+  local gui_data = player_data.gui
+
+  if gui_data.window.visible then
+    -- after the tech gui is closed, if the window was still visible, make it
+    -- the official opened gui of the player
+    open(player)
+  end
 end
 
 local function on_research_started(player, tech, last_tech)
@@ -862,9 +903,7 @@ guilib.add_handlers{
   window = {
     on_gui_closed = function(event)
       local player = game.players[event.player_index]
-      if not global.players[player.index].tech_gui_open then
-        close(player)
-      end
+      close(player)
     end,
   },
   close_button = {
@@ -932,7 +971,6 @@ guilib.add_handlers{
       local force = player.force
       local tech = force.technologies[tech_name]
       if event.button == defines.mouse_button_type.left then
-        global.players[player.index].tech_gui_open = true
         player.open_technology_gui(tech.name)
       elseif event.button == defines.mouse_button_type.right then
         queue.dequeue(player, tech)
@@ -1013,7 +1051,10 @@ return {
   on_research_started = on_research_started,
   on_research_finished = on_research_finished,
   on_string_translated = on_string_translated,
+  on_technology_gui_opened = on_technology_gui_opened,
+  on_technology_gui_closed = on_technology_gui_closed,
   open = open,
-  focus_search = focus_search,
   close = close,
+  toggle = toggle,
+  focus_search = focus_search,
 }

@@ -7,6 +7,39 @@ local translationlib = require('__flib__.translation')
 local queue = require('.queue')
 local util = require('.util')
 
+local function update_etcs(player)
+  local player_data = global.players[player.index]
+  local gui_data = player_data.gui
+
+  local speed = player_data.last_research_speed_estimate
+  local is_head = true
+  local etc = 0
+  for tech in queue.iter(player) do
+    local etc_text = '[img=quantity-time]'
+    if speed == 0 then
+      etc_text = etc_text..'[img=infinity]'
+    else
+      local progress
+      if
+        player.force.current_research ~= nil and
+        player.force.current_research.name == tech.name
+      then
+        progress = player.force.research_progress
+      else
+        progress = player.force.get_saved_technology_progress(tech) or 0
+      end
+      etc = etc +
+        (1-progress) *
+        (tech.research_unit_energy/60) *
+        tech.research_unit_count /
+        speed
+      etc_text = etc_text..util.format_duration(etc)
+    end
+    gui_data.etc_labels[tech.name].caption = etc_text
+    is_head = false
+  end
+end
+
 local function update_queue(player)
   local player_data = global.players[player.index]
   local gui_data = player_data.gui
@@ -56,6 +89,8 @@ local function update_queue(player)
     is_head = false
   end
   player_data.gui = futil.merge{player_data.gui, items_gui_data}
+
+  update_etcs(player)
 end
 
 local function get_localised_string_key(player, localised_string)
@@ -721,28 +756,10 @@ local function on_research_speed_estimate(player, speed)
   local player_data = global.players[player.index]
   local gui_data = player_data.gui
 
-  -- TODO: also need to set these values whenever the queue updates
-  -- when the queue GUI is rebuilt it goes back to infinity for a moment
+  player_data.last_research_speed_estimate = speed
+
   if gui_data.window.visible then
-    local is_head = true
-    local etc = 0
-    for tech in queue.iter(player) do
-      local etc_text = '[img=quantity-time]'
-      if speed == 0 then
-        etc_text = etc_text..'[img=infinity]'
-      else
-        local progress = is_head and player.force.research_progress or
-          player.force.get_saved_technology_progress(tech) or 0
-        etc = etc +
-          (1-progress) *
-          (tech.research_unit_energy/60) *
-          tech.research_unit_count /
-          speed
-        etc_text = etc_text..util.format_duration(etc)
-      end
-      gui_data.etc_labels[tech.name].caption = etc_text
-      is_head = false
-    end
+    update_etcs(player)
   end
 end
 

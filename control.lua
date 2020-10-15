@@ -165,3 +165,42 @@ eventlib.on_gui_closed(function(event)
     end
   end
 end)
+
+local research_speed_period = 60
+local research_progress_sample_count = 11
+local research_progress_samples = {}
+
+eventlib.on_nth_tick(research_speed_period, function(event)
+  for _, force in pairs(game.forces) do
+    local force_samples = research_progress_samples[force.index]
+    if force_samples == nil then
+      force_samples = {}
+      research_progress_samples[force.index] = force_samples
+    end
+    -- TODO: handle discontinuities of research progress
+    table.insert(force_samples, force.research_progress)
+    if #force_samples > research_progress_sample_count then
+      table.remove(force_samples, 1)
+    end
+    if #force_samples > 1 then
+      local speed_avg = 0
+      local tech = force.current_research
+      if tech ~= nil then
+        for i = 1,#force_samples-1 do
+          local speed =
+            (force_samples[i+1]-force_samples[i]) /
+            (research_speed_period/60)
+          speed_avg = speed_avg + speed
+        end
+        speed_avg = speed_avg /
+          (#force_samples-1) *
+          (tech.research_unit_energy/60) *
+          tech.research_unit_count
+      end
+      log('research speed estimate for '..force.name..': '..speed_avg)
+      for _, player in pairs(force.players) do
+        gui.on_research_speed_estimate(player, speed_avg)
+      end
+    end
+  end
+end)

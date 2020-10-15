@@ -1,3 +1,5 @@
+local futil = require('__core__/lualib/util')
+
 local eventlib = require('__flib__.event')
 local guilib = require('__flib__.gui')
 local translationlib = require('__flib__.translation')
@@ -13,6 +15,7 @@ local function update_queue(player)
 
   gui_data.queue_head.clear()
   gui_data.queue.clear()
+  gui_data.etc_labels = nil
   local is_head = true
   if player_data.queue_paused then
     -- TODO: color play/pause buttons
@@ -44,12 +47,15 @@ local function update_queue(player)
     gui_data.frame_pause_toggle_button.clicked_sprite = 'rq-pause-black'
     gui_data.frame_pause_toggle_button.tooltip = {'sonaxaton-research-queue.queue-pause-button-tooltip'}
   end
+  local items_gui_data = {}
   for tech in queue.iter(player) do
-    guilib.build(gui_data[is_head and 'queue_head' or 'queue'], {
+    local item_gui_data = guilib.build(gui_data[is_head and 'queue_head' or 'queue'], {
       guilib.templates.tech_queue_item(player, tech, is_head),
     })
+    items_gui_data = futil.merge{items_gui_data, item_gui_data}
     is_head = false
   end
+  player_data.gui = futil.merge{player_data.gui, items_gui_data}
 end
 
 local function get_localised_string_key(player, localised_string)
@@ -711,6 +717,35 @@ local function on_research_finished(player, tech)
   update_techs(player)
 end
 
+local function on_research_speed_estimate(player, speed)
+  local player_data = global.players[player.index]
+  local gui_data = player_data.gui
+
+  -- TODO: also need to set these values whenever the queue updates
+  -- when the queue GUI is rebuilt it goes back to infinity for a moment
+  if gui_data.window.visible then
+    local is_head = true
+    local etc = 0
+    for tech in queue.iter(player) do
+      local etc_text = '[img=quantity-time]'
+      if speed == 0 then
+        etc_text = etc_text..'[img=infinity]'
+      else
+        local progress = is_head and player.force.research_progress or
+          player.force.get_saved_technology_progress(tech) or 0
+        etc = etc +
+          (1-progress) *
+          (tech.research_unit_energy/60) *
+          tech.research_unit_count /
+          speed
+        etc_text = etc_text..util.format_duration(etc)
+      end
+      gui_data.etc_labels[tech.name].caption = etc_text
+      is_head = false
+    end
+  end
+end
+
 local function on_string_translated(player, event)
   local player_data = global.players[player.index]
   local translation_data = player_data.translations
@@ -786,65 +821,81 @@ guilib.add_templates{
     }
   end,
   tech_queue_item = function(player, tech, is_head)
-    -- TODO: show ETC
+    -- TODO: show progress bar
     local shift_up_enabled = queue.can_shift_earlier(player, tech)
     local shift_down_enabled = queue.can_shift_later(player, tech)
     return
       {
         type = 'frame',
         style = 'rq_tech_queue_item',
+        direction = 'vertical',
         children = {
-          guilib.templates.tech_button(
-            tech,
-            'rq_tech_queue'..(is_head and '_head' or '')..'_item_tech_button'),
-          {
-            type = 'empty-widget',
-            style = 'flib_horizontal_pusher',
-          },
           {
             type = 'flow',
-            direction = 'vertical',
-            style = 'rq_tech_queue_item_buttons',
+            style = 'rq_tech_queue_item_button_flow',
+            direction = 'horizontal',
             children = {
-              {
-                name = 'shift_up_button.'..tech.name,
-                type = 'button',
-                style = 'rq_tech_queue_item_shift_up_button',
-                handlers = 'shift_up_button',
-                tooltip =
-                  shift_up_enabled and
-                    {'sonaxaton-research-queue.shift-up-button-tooltip', tech.localised_name} or
-                    nil,
-                enabled = shift_up_enabled,
-              },
+              guilib.templates.tech_button(
+                tech,
+                'rq_tech_queue'..(is_head and '_head' or '')..'_item_tech_button'),
               {
                 type = 'empty-widget',
-                style = 'flib_vertical_pusher',
+                style = 'flib_horizontal_pusher',
               },
               {
-                name = 'dequeue_button.'..tech.name,
-                template = 'tool_button',
-                style = 'rq_tech_queue_item_close_button',
-                handlers = 'dequeue_button',
-                sprite = 'utility/close_black',
-                tooltip = {'sonaxaton-research-queue.dequeue-button-tooltip', tech.localised_name},
-              },
-              {
-                type = 'empty-widget',
-                style = 'flib_vertical_pusher',
-              },
-              {
-                name = 'shift_down_button.'..tech.name,
-                type = 'button',
-                style = 'rq_tech_queue_item_shift_down_button',
-                handlers = 'shift_down_button',
-                tooltip =
-                  shift_down_enabled and
-                    {'sonaxaton-research-queue.shift-down-button-tooltip', tech.localised_name} or
-                    nil,
-                enabled = shift_down_enabled,
+                type = 'flow',
+                style = 'rq_tech_queue_item_buttons',
+                direction = 'vertical',
+                children = {
+                  {
+                    name = 'shift_up_button.'..tech.name,
+                    type = 'button',
+                    style = 'rq_tech_queue_item_shift_up_button',
+                    handlers = 'shift_up_button',
+                    tooltip =
+                      shift_up_enabled and
+                        {'sonaxaton-research-queue.shift-up-button-tooltip', tech.localised_name} or
+                        nil,
+                    enabled = shift_up_enabled,
+                  },
+                  {
+                    type = 'empty-widget',
+                    style = 'flib_vertical_pusher',
+                  },
+                  {
+                    name = 'dequeue_button.'..tech.name,
+                    template = 'tool_button',
+                    style = 'rq_tech_queue_item_close_button',
+                    handlers = 'dequeue_button',
+                    sprite = 'utility/close_black',
+                    tooltip = {'sonaxaton-research-queue.dequeue-button-tooltip', tech.localised_name},
+                  },
+                  {
+                    type = 'empty-widget',
+                    style = 'flib_vertical_pusher',
+                  },
+                  {
+                    name = 'shift_down_button.'..tech.name,
+                    type = 'button',
+                    style = 'rq_tech_queue_item_shift_down_button',
+                    handlers = 'shift_down_button',
+                    tooltip =
+                      shift_down_enabled and
+                        {'sonaxaton-research-queue.shift-down-button-tooltip', tech.localised_name} or
+                        nil,
+                    enabled = shift_down_enabled,
+                  },
+                },
               },
             },
+          },
+          {
+            save_as = 'etc_labels.'..tech.name,
+            type = 'label',
+            style = 'rq_etc_label',
+            -- caption = '[img=quantity-time]1m23s',
+            caption = '[img=quantity-time][img=infinity]',
+            tooltip = {'sonaxaton-research-queue.etc-label-tooltip'},
           },
         },
       }
@@ -1055,6 +1106,7 @@ guilib.add_handlers{
   },
   enqueue_first_button = {
     on_gui_click = function(event)
+      -- TODO: think about how enqueue first/second works with paused queue
       local player = game.players[event.player_index]
       local _, _, tech_name = string.find(event.element.name, '^enqueue_first_button%.(.+)$')
       local force = player.force
@@ -1114,6 +1166,7 @@ return {
   on_string_translated = on_string_translated,
   on_technology_gui_opened = on_technology_gui_opened,
   on_technology_gui_closed = on_technology_gui_closed,
+  on_research_speed_estimate = on_research_speed_estimate,
   open = open,
   close = close,
   toggle = toggle,

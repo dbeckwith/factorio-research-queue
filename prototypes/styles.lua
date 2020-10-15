@@ -93,7 +93,7 @@ styles.rq_list_box = {
 styles.rq_tech_queue_head_frame = {
   type = 'frame_style',
   width = 4+6+tech_queue_tech_button_size+8+16+6+4,
-  height = 4+6+tech_queue_tech_button_size+6+4,
+  height = 6+tech_queue_tech_button_size+4+20+6,
   margin = 0,
   padding = 0,
   graphical_set = {
@@ -106,7 +106,7 @@ styles.rq_tech_queue_head_frame = {
     overall_tiling_horizontal_size = 6+tech_queue_tech_button_size+8+16+6,
     overall_tiling_horizontal_padding = 4,
     overall_tiling_horizontal_spacing = 16,
-    overall_tiling_vertical_size = 6+tech_queue_tech_button_size+6,
+    overall_tiling_vertical_size = 6+tech_queue_tech_button_size+4+20+6,
     overall_tiling_vertical_padding = 4,
     overall_tiling_vertical_spacing = 4,
   },
@@ -120,7 +120,7 @@ styles.rq_tech_queue_list_box = {
     position = {282, 17},
     corner_size = 8,
     overall_tiling_horizontal_size = 6+tech_queue_tech_button_size+8+16+6,
-    overall_tiling_vertical_size = 6+tech_queue_tech_button_size+6,
+    overall_tiling_vertical_size = 6+tech_queue_tech_button_size+4+20+6,
     overall_tiling_vertical_spacing = 4,
   },
 }
@@ -324,11 +324,15 @@ styles.rq_tech_queue_item = {
   type = 'frame_style',
   parent = 'subpanel_frame',
   padding = 2,
-  horizontal_flow_style = {
-    type = 'horizontal_flow_style',
+  vertical_flow_style = {
+    type = 'vertical_flow_style',
     vertically_stretchable = 'off',
-    vertical_align = 'center',
   },
+}
+
+styles.rq_tech_queue_item_button_flow = {
+  type = 'horizontal_flow_style',
+  vertical_align = 'center',
 }
 
 styles.rq_tech_queue_item_tech_button = util.merge{
@@ -410,7 +414,7 @@ styles.rq_tech_queue_item_paused = {
   horizontal_flow_style = {
     type = 'horizontal_flow_style',
     width = 6+tech_queue_tech_button_size+8+16+6,
-    height = 6+tech_queue_tech_button_size+6,
+    height = 6+tech_queue_tech_button_size+4+20+6,
     -- horizontally_stretchable = 'on',
     horizontal_align = 'center',
     -- vertically_stretchable = 'on',
@@ -421,6 +425,12 @@ styles.rq_tech_queue_item_paused = {
 styles.rq_tech_queue_item_paused_unpause_button = {
   type = 'button_style',
   parent = 'tool_button',
+}
+
+styles.rq_etc_label = {
+  type = 'label_style',
+  parent = 'label',
+  font = 'count-font',
 }
 
 styles.rq_settings_section = {

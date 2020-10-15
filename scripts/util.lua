@@ -76,6 +76,19 @@ function util.sort_by_key(list, key)
   end)
 end
 
+function util.format_duration(t)
+  local neg = t < 0
+  if neg then t = -t end
+  s = math.floor(t % 60)
+  m = math.floor((t / 60) % 60)
+  h = math.floor(t / 60 / 60)
+  return
+    (neg and '-' or '') ..
+    (h > 0 and tostring(h)..'h' or '') ..
+    (m > 0 and tostring(m)..'m' or '') ..
+    (tostring(s)..'s')
+end
+
 function util.contains_substring(s, sub)
   return string.find(s, sub, 1, true)
 end

@@ -89,10 +89,7 @@ styles.rq_tech_queue_head_frame = {
   width = 4+6+tech_queue_tech_button_size+8+16+6+4,
   height = 4+6+tech_queue_tech_button_size+6+4,
   margin = 0,
-  left_padding = 0,
-  top_padding = 0,
-  bottom_padding = 4,
-  right_padding = 4,
+  padding = 0,
   graphical_set = {
     base = {position = {34, 0}, corner_size = 8},
     shadow = default_inner_shadow,
@@ -320,10 +317,7 @@ styles.rq_tech_list_item_tool_button = {
 styles.rq_tech_queue_item = {
   type = 'frame_style',
   parent = 'subpanel_frame',
-  top_padding = 2,
-  bottom_padding = 2,
-  left_padding = 2,
-  right_padding = 2,
+  padding = 2,
   horizontal_flow_style = {
     type = 'horizontal_flow_style',
     vertically_stretchable = 'off',
@@ -402,6 +396,25 @@ styles.rq_tech_queue_item_shift_down_button = {
     scale = 0.5
   },
   disabled_graphical_set = util.empty_sprite(),
+}
+
+styles.rq_tech_queue_item_paused = {
+  type = 'frame_style',
+  parent = 'invisible_frame',
+  horizontal_flow_style = {
+    type = 'horizontal_flow_style',
+    width = 6+tech_queue_tech_button_size+8+16+6,
+    height = 6+tech_queue_tech_button_size+6,
+    -- horizontally_stretchable = 'on',
+    horizontal_align = 'center',
+    -- vertically_stretchable = 'on',
+    vertical_align = 'center',
+  },
+}
+
+styles.rq_tech_queue_item_paused_unpause_button = {
+  type = 'button_style',
+  parent = 'tool_button',
 }
 
 styles.rq_settings_section = {

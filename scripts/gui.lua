@@ -14,6 +14,33 @@ local function update_queue(player)
   gui_data.queue_head.clear()
   gui_data.queue.clear()
   local is_head = true
+  if player_data.queue_paused then
+    -- TODO: color play/pause buttons
+    -- gui_data.frame_pause_toggle_button.style = 'rq_frame_action_button_green'
+    gui_data.frame_pause_toggle_button.sprite = 'rq-play-white'
+    gui_data.frame_pause_toggle_button.hovered_sprite = 'rq-play-black'
+    gui_data.frame_pause_toggle_button.clicked_sprite = 'rq-play-black'
+    guilib.build(gui_data.queue_head, {
+      {
+        type = 'frame',
+        style = 'rq_tech_queue_item_paused',
+        children = {
+          {
+            type = 'sprite-button',
+            style = 'rq_tech_queue_item_paused_unpause_button',
+            handlers = 'queue_pause_toggle_button',
+            sprite = 'rq-play-black',
+          },
+        },
+      },
+    })
+    is_head = false
+  else
+    -- gui_data.frame_pause_toggle_button.style = 'rq_frame_action_button_red'
+    gui_data.frame_pause_toggle_button.sprite = 'rq-pause-white'
+    gui_data.frame_pause_toggle_button.hovered_sprite = 'rq-pause-black'
+    gui_data.frame_pause_toggle_button.clicked_sprite = 'rq-pause-black'
+  end
   for tech in queue.iter(player) do
     guilib.build(gui_data[is_head and 'queue_head' or 'queue'], {
       guilib.templates.tech_queue_item(player, tech, is_head),
@@ -337,6 +364,12 @@ local function create_guis(player)
                   tooltip = {'sonaxaton-research-queue.search-tooltip'},
                 },
                 {
+                  save_as = 'frame_pause_toggle_button',
+                  template = 'frame_action_button',
+                  handlers = 'queue_pause_toggle_button',
+                  sprite = 'utility/play',
+                },
+                {
                   template = 'frame_action_button',
                   handlers = 'research_button',
                   sprite = 'rq-enqueue-first-white',
@@ -516,6 +549,7 @@ local function create_guis(player)
   player_data.filter = filter_data
   player_data.tech_ingredients = tech_ingredients
   player_data.translations = {}
+  player_data.queue_paused = true
 
   auto_select_tech_ingredients(player)
   update_queue(player)
@@ -628,6 +662,8 @@ local function on_technology_gui_closed(player)
   local player_data = global.players[player.index]
   local gui_data = player_data.gui
 
+  player_data.queue_paused = player.force.current_research == nil
+
   if gui_data.window.visible then
     -- after the tech gui is closed, if the window was still visible, make it
     -- the official opened gui of the player
@@ -636,7 +672,9 @@ local function on_technology_gui_closed(player)
 end
 
 local function on_research_started(player, tech, last_tech)
-  if queue.queue_pos(player, tech) ~= 1 then
+  local player_data = global.players[player.index]
+  if not queue.is_head(player, tech) then
+    player_data.queue_paused = false
     queue.enqueue_head(player, tech)
     update_queue(player)
   end
@@ -811,9 +849,10 @@ guilib.add_templates{
       }
   end,
   tech_list_item = function(player, tech)
+    local player_data = global.players[player.index]
     local researchable = queue.is_researchable(player, tech)
     local queued = queue.in_queue(player, tech)
-    local queued_head = queue.is_head(player, tech)
+    local queued_head = not player_data.queue_paused and queue.is_head(player, tech)
     local researched = tech.researched
     local available = (function()
       for _, prereq in pairs(tech.prerequisites) do
@@ -1051,6 +1090,15 @@ guilib.add_handlers{
       local force = player.force
       local tech = force.technologies[tech_name]
       queue.dequeue(player, tech)
+      update_queue(player)
+      update_techs(player)
+    end,
+  },
+  queue_pause_toggle_button = {
+    on_gui_click = function(event)
+      local player = game.players[event.player_index]
+      local player_data = global.players[player.index]
+      player_data.queue_paused = not player_data.queue_paused
       update_queue(player)
       update_techs(player)
     end,

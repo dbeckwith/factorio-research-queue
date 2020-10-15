@@ -58,6 +58,10 @@ local function is_head(player, queue, tech)
   return queue[1] ~= nil and queue[1].name == tech.name
 end
 
+local function get_head(player, queue)
+  return queue[1]
+end
+
 local function queue_prev(player, queue, tech)
   for idx, queued_tech in ipairs(queue) do
     if queued_tech.name == tech.name then
@@ -199,7 +203,7 @@ local function iter(player, queue)
   return util.iter_list(queue)
 end
 
-local function update(player, queue)
+local function update(player, queue, paused)
   local to_dequeue = {}
   for _, tech in ipairs(queue) do
     if not is_researchable(player, queue, tech) then
@@ -211,7 +215,7 @@ local function update(player, queue)
   end
 
   local force = player.force
-  if next(queue) ~= nil then
+  if not paused and next(queue) ~= nil then
     force.research_queue = {queue[1]}
   else
     force.research_queue = {}
@@ -231,6 +235,10 @@ return {
   is_head = function(player, tech)
     local queue = global.players[player.index].queue
     return is_head(player, queue, tech)
+  end,
+  get_head = function(player)
+    local queue = global.players[player.index].queue
+    return get_head(player, queue)
   end,
   queue_pos = function(player, tech)
     local queue = global.players[player.index].queue
@@ -282,6 +290,7 @@ return {
   end,
   update = function(player)
     local queue = global.players[player.index].queue
-    return update(player, queue)
+    local paused = global.players[player.index].queue_paused
+    return update(player, queue, paused)
   end
 }

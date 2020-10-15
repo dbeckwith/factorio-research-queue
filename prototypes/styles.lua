@@ -16,6 +16,10 @@ local function tech_graphical_set(type, opts)
   })[opts.style]
   local tint = opts.tint
 
+  if y == nil then
+    error('unknown tech_graphical_set style')
+  end
+
   if type == 'button' then
     local default_graphical_set = {
       base = {
@@ -59,6 +63,8 @@ local function tech_graphical_set(type, opts)
       },
       shadow = default_shadow,
     }
+  else
+    error('unknown tech_graphical_set type '..serpent.line(type))
   end
 end
 
@@ -280,31 +286,31 @@ styles.rq_tech_list_item_available_tool_bar = {
     horizontally_stretchable = 'on',
     horizontal_align = 'center',
   },
-  graphical_set = tech_graphical_set('ingredient', tech_list_item_available),
+  graphical_set = tech_graphical_set('ingredients', tech_list_item_available),
 }
 
 styles.rq_tech_list_item_queued_tool_bar = {
   type = 'frame_style',
   parent = 'rq_tech_list_item_available_tool_bar',
-  graphical_set = tech_graphical_set('ingredient', tech_list_item_queued),
+  graphical_set = tech_graphical_set('ingredients', tech_list_item_queued),
 }
 
 styles.rq_tech_list_item_queued_head_tool_bar = {
   type = 'frame_style',
   parent = 'rq_tech_list_item_available_tool_bar',
-  graphical_set = tech_graphical_set('ingredient', tech_list_item_queued_head),
+  graphical_set = tech_graphical_set('ingredients', tech_list_item_queued_head),
 }
 
 styles.rq_tech_list_item_unavailable_tool_bar = {
   type = 'frame_style',
   parent = 'rq_tech_list_item_available_tool_bar',
-  graphical_set = tech_graphical_set('ingredient', tech_list_item_unavailable),
+  graphical_set = tech_graphical_set('ingredients', tech_list_item_unavailable),
 }
 
 styles.rq_tech_list_item_researched_tool_bar = {
   type = 'frame_style',
   parent = 'rq_tech_list_item_available_tool_bar',
-  graphical_set = tech_graphical_set('ingredient', tech_list_item_researched),
+  graphical_set = tech_graphical_set('ingredients', tech_list_item_researched),
 }
 
 styles.rq_tech_list_item_tool_button = {

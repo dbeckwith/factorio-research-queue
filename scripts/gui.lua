@@ -20,6 +20,7 @@ local function update_queue(player)
     gui_data.frame_pause_toggle_button.sprite = 'rq-play-white'
     gui_data.frame_pause_toggle_button.hovered_sprite = 'rq-play-black'
     gui_data.frame_pause_toggle_button.clicked_sprite = 'rq-play-black'
+    gui_data.frame_pause_toggle_button.tooltip = {'sonaxaton-research-queue.queue-play-button-tooltip'}
     guilib.build(gui_data.queue_head, {
       {
         type = 'frame',
@@ -30,6 +31,7 @@ local function update_queue(player)
             style = 'rq_tech_queue_item_paused_unpause_button',
             handlers = 'queue_pause_toggle_button',
             sprite = 'rq-play-black',
+            tooltip = {'sonaxaton-research-queue.queue-play-button-tooltip'},
           },
         },
       },
@@ -40,6 +42,7 @@ local function update_queue(player)
     gui_data.frame_pause_toggle_button.sprite = 'rq-pause-white'
     gui_data.frame_pause_toggle_button.hovered_sprite = 'rq-pause-black'
     gui_data.frame_pause_toggle_button.clicked_sprite = 'rq-pause-black'
+    gui_data.frame_pause_toggle_button.tooltip = {'sonaxaton-research-queue.queue-pause-button-tooltip'}
   end
   for tech in queue.iter(player) do
     guilib.build(gui_data[is_head and 'queue_head' or 'queue'], {

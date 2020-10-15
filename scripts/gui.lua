@@ -763,19 +763,17 @@ guilib.add_templates{
     },
   },
   tech_button = function(tech, style)
-    local cost =
-      '(' ..
-      '[img=quantity-time]' ..
-      (tech.research_unit_energy / 60) ..
-      's'
+    local cost = '['
     for _, ingredient in ipairs(tech.research_unit_ingredients) do
-      cost = cost .. string.format(' [img=%s/%s]%d',
+      cost = cost .. string.format('[img=%s/%s]%d ',
         ingredient.type,
         ingredient.name,
         ingredient.amount)
     end
     cost = cost ..
-      ') × ' ..
+      '[img=quantity-time]' ..
+      (tech.research_unit_energy / 60) ..
+      '] × ' ..
       tostring(tech.research_unit_count)
     return {
       name = 'tech_button.'..tech.name,

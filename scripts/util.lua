@@ -102,23 +102,24 @@ function util.prepare_search_terms(s)
     return {}
   end
   local terms = {}
-  for w in string.gmatch(s, '([%w]+)') do
+  -- unfortunately %w doesn't seem to work in some locales (ru)
+  for w in string.gmatch(s, '([^%c%z%s%p]+)') do
     table.insert(terms, string.lower(w))
   end
   return terms
 end
 
-function util.fuzzy_search(s, terms)
+function util.fuzzy_search(text, terms)
   if next(terms) == nil then
     return true
   end
-  local s_terms = util.prepare_search_terms(s)
-  if next(s_terms) == nil then
+  local text_terms = util.prepare_search_terms(text)
+  if next(text_terms) == nil then
     return false
   end
-  local s_terms_joined = util.join_strings(s_terms)
+  local text_terms_joined = util.join_strings(text_terms)
   for _, term in pairs(terms) do
-    if not util.contains_substring(s_terms_joined, term) then
+    if not util.contains_substring(text_terms_joined, term) then
       return false
     end
   end

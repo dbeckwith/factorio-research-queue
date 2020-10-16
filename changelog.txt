@@ -1,4 +1,14 @@
 ---------------------------------------------------------------------------------------------------
+Version: 0.2.0
+Date: 2020-10-15
+  Features:
+    - Added estimated time to completion for technologies in the queue
+    - Added progress bars on technologies like in the vanilla GUI
+  Changes:
+    - Changed how the Enqueue and Research Now buttons work when the queue is paused. Enqueue will move the tech as close as possible to the top of the queue instead of second-to-the-top, and Research Now will unpause the queue.
+  Minor Changes:
+    - Small adjustments to colors and layout
+---------------------------------------------------------------------------------------------------
 Version: 0.1.1
 Date: 2020-10-15
   Minor Changes:

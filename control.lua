@@ -11,12 +11,33 @@ local queue = require('scripts.queue')
 local migrations = {
 }
 
-local queue_save = {
+local queue_saves = {
+  current = function(player)
+    local tech_names = {}
+    for tech in queue.iter(player) do
+      if tech.valid then
+        table.insert(tech_names, tech.name)
+      end
+    end
+    local paused = queue.is_paused(player)
+    return tech_names, paused
+  end,
 }
 
-function init_player(player)
+function init_player(player, saved_queue, queue_paused)
+  if saved_queue == nil then saved_queue = {} end
+  if queue_paused == nil then queue_paused = true end
+
   global.players[player.index] = {}
-  queue.new(player)
+
+  queue.new(player, queue_paused)
+  for _, tech_name in ipairs(saved_queue) do
+    local tech = player.force.technologies[tech_name]
+    if tech ~= nil then
+      queue.enqueue(player, tech)
+    end
+  end
+
   gui.create_guis(player)
 end
 
@@ -43,39 +64,42 @@ eventlib.on_load(function()
 end)
 
 eventlib.on_configuration_changed(function(event)
+  local saved_queues = {}
+  local saved_queue_paused = {}
+
+  local function save_queues(old_version)
+    -- get a function to save the queue from the given version,
+    -- or default to the current one
+    local version = old_version or script.active_mods[script.mod_name]
+    local queue_save = queue_saves[version] or queue_saves.current
+
+    for _, player in pairs(game.players) do
+      local saved_queue, paused = queue_save(player)
+      saved_queues[player.index] = saved_queue
+      saved_queue_paused[player.index] = paused
+    end
+  end
+
   local init = true
   local changes = event.mod_changes[script.mod_name]
   if changes then
     local old_version = changes.old_version
     if old_version then
-      -- save queue from old version
-      local queue_save = queue_save[old_version]
-      local saved_queues = {}
-      if queue_save ~= nil then
-        for _, player in pairs(game.players) do
-          saved_queues[player.index] = queue_save[old_version](player)
-        end
-      end
+      -- save queues before running migrations
+      save_queues(old_version)
 
       migrationlib.run(old_version, migrations)
-
-      for _, player in pairs(game.players) do
-        deinit_player(player)
-        init_player(player)
-
-        -- rebuild queue from old version
-        if queue_save ~= nil then
-          for _, tech_name in ipairs(saved_queues[player.index]) do
-            local tech = player.force.technologies[tech_name]
-            if tech ~= nil then
-              queue.enqueue(player, tech)
-            end
-          end
-        end
-      end
     else
+      save_queues()
       init = false
     end
+  else
+    save_queues()
+  end
+
+  for _, player in pairs(game.players) do
+    deinit_player(player)
+    init_player(player, saved_queues[player.index], saved_queue_paused[player.index])
   end
 
   if init then

@@ -1,8 +1,9 @@
 local util = require('.util')
 
-local function new(player)
+local function new(player, paused)
   local queue = {}
   global.players[player.index].queue = queue
+  global.players[player.index].queue_paused = paused
 end
 
 local function rotate(player, queue, i, j)
@@ -224,6 +225,19 @@ end
 
 return {
   new = new,
+  is_paused = function(player)
+    local player_data = global.players[player.index]
+    local paused = player_data.queue_paused
+    return paused
+  end,
+  set_paused = function(player, paused)
+    local player_data = global.players[player.index]
+    player_data.queue_paused = paused
+  end,
+  toggle_paused = function(player, paused)
+    local player_data = global.players[player.index]
+    player_data.queue_paused = not player_data.queue_paused
+  end,
   is_researchable = function(player, tech)
     local player_data = global.players[player.index]
     local queue = player_data.queue
@@ -248,6 +262,11 @@ return {
     local player_data = global.players[player.index]
     local queue = player_data.queue
     return queue_pos(player, queue, tech)
+  end,
+  enqueue = function(player, tech)
+    local player_data = global.players[player.index]
+    local queue = player_data.queue
+    return enqueue(player, queue, tech)
   end,
   enqueue_tail = function(player, tech)
     local player_data = global.players[player.index]

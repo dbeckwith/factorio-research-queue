@@ -71,7 +71,7 @@ local function update_queue(player)
   gui_data.etc_labels = nil
   gui_data.tech_queue_progressbars = nil
   local is_head = true
-  if player_data.queue_paused then
+  if queue.is_paused(player) then
     gui_data.frame_pause_toggle_button.style = 'rq_frame_action_button_green'
     gui_data.frame_pause_toggle_button.sprite = 'rq-play-white'
     gui_data.frame_pause_toggle_button.hovered_sprite = 'rq-play-black'
@@ -617,7 +617,6 @@ local function create_guis(player)
   player_data.filter = filter_data
   player_data.tech_ingredients = tech_ingredients
   player_data.translations = {}
-  player_data.queue_paused = true
 
   auto_select_tech_ingredients(player)
   update_queue(player)
@@ -730,7 +729,7 @@ local function on_technology_gui_closed(player)
   local player_data = global.players[player.index]
   local gui_data = player_data.gui
 
-  player_data.queue_paused = player.force.current_research == nil
+  queue.set_paused(player, player.force.current_research == nil)
 
   if gui_data.window.visible then
     -- after the tech gui is closed, if the window was still visible, make it
@@ -742,7 +741,7 @@ end
 local function on_research_started(player, tech, last_tech)
   local player_data = global.players[player.index]
   if not queue.is_head(player, tech) then
-    player_data.queue_paused = false
+    queue.set_paused(player, false)
     queue.enqueue_head(player, tech)
     update_queue(player)
   end
@@ -956,10 +955,9 @@ guilib.add_templates{
       }
   end,
   tech_list_item = function(player, tech)
-    local player_data = global.players[player.index]
     local researchable = queue.is_researchable(player, tech)
     local queued = queue.in_queue(player, tech)
-    local queued_head = not player_data.queue_paused and queue.is_head(player, tech)
+    local queued_head = not queue.is_paused(player) and queue.is_head(player, tech)
     local researched = tech.researched
     local available = (function()
       for _, prereq in pairs(tech.prerequisites) do
@@ -1204,8 +1202,7 @@ guilib.add_handlers{
   queue_pause_toggle_button = {
     on_gui_click = function(event)
       local player = game.players[event.player_index]
-      local player_data = global.players[player.index]
-      player_data.queue_paused = not player_data.queue_paused
+      queue.toggle_paused(player)
       update_queue(player)
       update_techs(player)
     end,

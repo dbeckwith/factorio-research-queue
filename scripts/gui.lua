@@ -72,8 +72,7 @@ local function update_queue(player)
   gui_data.tech_queue_progressbars = nil
   local is_head = true
   if player_data.queue_paused then
-    -- TODO: color play/pause buttons
-    -- gui_data.frame_pause_toggle_button.style = 'rq_frame_action_button_green'
+    gui_data.frame_pause_toggle_button.style = 'rq_frame_action_button_green'
     gui_data.frame_pause_toggle_button.sprite = 'rq-play-white'
     gui_data.frame_pause_toggle_button.hovered_sprite = 'rq-play-black'
     gui_data.frame_pause_toggle_button.clicked_sprite = 'rq-play-black'
@@ -95,7 +94,7 @@ local function update_queue(player)
     })
     is_head = false
   else
-    -- gui_data.frame_pause_toggle_button.style = 'rq_frame_action_button_red'
+    gui_data.frame_pause_toggle_button.style = 'rq_frame_action_button_red'
     gui_data.frame_pause_toggle_button.sprite = 'rq-pause-white'
     gui_data.frame_pause_toggle_button.hovered_sprite = 'rq-pause-black'
     gui_data.frame_pause_toggle_button.clicked_sprite = 'rq-pause-black'

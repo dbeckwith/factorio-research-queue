@@ -424,7 +424,7 @@ styles.rq_tech_queue_item_paused = {
 
 styles.rq_tech_queue_item_paused_unpause_button = {
   type = 'button_style',
-  parent = 'tool_button',
+  parent = 'tool_button_green',
 }
 
 styles.rq_etc_label = {
@@ -475,4 +475,48 @@ styles.rq_tech_button_progressbar_tech_queue = {
   type = 'progressbar_style',
   parent = 'rq_tech_button_progressbar',
   top_margin = -tech_queue_tech_button_size,
+}
+
+styles.rq_frame_action_button_green = {
+  type = 'button_style',
+  parent = 'frame_action_button',
+  default_graphical_set = {
+    base = {position = {420, 17}, corner_size = 8},
+    shadow = {position = {440, 24}, corner_size = 8, draw_type = 'outer'},
+  },
+  hovered_graphical_set = {
+    base = {position = {102, 17}, corner_size = 8},
+    shadow = {position = {440, 24}, corner_size = 8, draw_type = 'outer'},
+    glow = default_glow(green_button_glow_color, 0.5),
+  },
+  clicked_graphical_set = {
+    base = {position = {119, 17}, corner_size = 8},
+    shadow = {position = {440, 24}, corner_size = 8, draw_type = 'outer'},
+  },
+  disabled_graphical_set = {
+    base = {position = {85, 17}, corner_size = 8},
+    shadow = {position = {440, 24}, corner_size = 8, draw_type = 'outer'},
+  },
+}
+
+styles.rq_frame_action_button_red = {
+  type = 'button_style',
+  parent = 'frame_action_button',
+  default_graphical_set = {
+    base = {position = {403, 17}, corner_size = 8},
+    shadow = {position = {440, 24}, corner_size = 8, draw_type = 'outer'},
+  },
+  hovered_graphical_set = {
+    base = {position = {170, 17}, corner_size = 8},
+    shadow = {position = {440, 24}, corner_size = 8, draw_type = 'outer'},
+    glow = default_glow(red_button_glow_color, 0.5),
+  },
+  clicked_graphical_set = {
+    base = {position = {187, 17}, corner_size = 8},
+    shadow = {position = {440, 24}, corner_size = 8, draw_type = 'outer'},
+  },
+  disabled_graphical_set = {
+    base = {position = {153, 17}, corner_size = 8},
+    shadow = {position = {440, 24}, corner_size = 8, draw_type = 'outer'},
+  },
 }

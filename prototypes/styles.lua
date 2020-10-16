@@ -314,6 +314,21 @@ styles.rq_tech_queue_head_frame = {
   },
 }
 
+styles.rq_tech_queue_item_paused = {
+    type = 'horizontal_flow_style',
+    horizontally_stretchable = 'on',
+    -- FIXME: if this is vertically stretchable, the queue scrollbox gets shorter???
+    height = tech_queue_item_height,
+    -- vertically_stretchable = 'on',
+    horizontal_align = 'center',
+    vertical_align = 'center',
+}
+
+styles.rq_tech_queue_item_paused_unpause_button = {
+  type = 'button_style',
+  parent = 'tool_button_green',
+}
+
 styles.rq_tech_queue_list_box = {
   type = 'scroll_pane_style',
   parent = 'rq_list_box',
@@ -415,22 +430,6 @@ styles.rq_tech_queue_item_shift_down_button = {
     scale = 0.5
   },
   disabled_graphical_set = util.empty_sprite(),
-}
-
-styles.rq_tech_queue_item_paused = {
-    type = 'horizontal_flow_style',
-    width = tech_queue_item_width,
-    height = tech_queue_item_height,
-    -- FIXME: if this is vertically stretchable, the queue scrollbox gets shorter???
-    -- horizontally_stretchable = 'on',
-    -- vertically_stretchable = 'on',
-    horizontal_align = 'center',
-    vertical_align = 'center',
-}
-
-styles.rq_tech_queue_item_paused_unpause_button = {
-  type = 'button_style',
-  parent = 'tool_button_green',
 }
 
 styles.rq_etc_label = {

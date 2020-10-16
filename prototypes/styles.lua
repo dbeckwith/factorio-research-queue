@@ -437,3 +437,42 @@ styles.rq_settings_section = {
   type = 'frame_style',
   parent = 'bordered_frame',
 }
+
+styles.rq_tech_button_container = {
+  type = 'vertical_flow_style',
+  vertical_spacing = 0,
+  padding = 0,
+  margin = 0,
+}
+
+styles.rq_tech_button_container_tech_list = {
+  type = 'vertical_flow_style',
+  parent = 'rq_tech_button_container',
+  height = tech_list_tech_button_size,
+}
+
+styles.rq_tech_button_container_tech_queue = {
+  type = 'vertical_flow_style',
+  parent = 'rq_tech_button_container',
+  height = tech_queue_tech_button_size,
+}
+
+styles.rq_tech_button_progressbar = {
+  type = 'progressbar_style',
+  horizontally_stretchable = 'on',
+  bar_width = 4,
+  bar_background = {position = {296, 39}, corner_size = 4},
+  bar = {position = {305, 39}, corner_size = 4},
+}
+
+styles.rq_tech_button_progressbar_tech_list = {
+  type = 'progressbar_style',
+  parent = 'rq_tech_button_progressbar',
+  top_margin = -tech_list_tech_button_size,
+}
+
+styles.rq_tech_button_progressbar_tech_queue = {
+  type = 'progressbar_style',
+  parent = 'rq_tech_button_progressbar',
+  top_margin = -tech_queue_tech_button_size,
+}

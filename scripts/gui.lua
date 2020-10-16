@@ -7,6 +7,17 @@ local translationlib = require('__flib__.translation')
 local queue = require('.queue')
 local util = require('.util')
 
+local function tech_progress(tech)
+  if
+    tech.force.current_research ~= nil and
+    tech.force.current_research.name == tech.name
+  then
+    return tech.force.research_progress
+  else
+    return tech.force.get_saved_technology_progress(tech) or 0
+  end
+end
+
 local function update_etcs(player)
   local player_data = global.players[player.index]
   local gui_data = player_data.gui
@@ -19,15 +30,7 @@ local function update_etcs(player)
     if speed == 0 then
       etc_text = etc_text..'[img=infinity]'
     else
-      local progress
-      if
-        player.force.current_research ~= nil and
-        player.force.current_research.name == tech.name
-      then
-        progress = player.force.research_progress
-      else
-        progress = player.force.get_saved_technology_progress(tech) or 0
-      end
+      local progress = tech_progress(tech)
       etc = etc +
         (1-progress) *
         (tech.research_unit_energy/60) *
@@ -40,6 +43,23 @@ local function update_etcs(player)
   end
 end
 
+local function update_progressbars(player)
+  local player_data = global.players[player.index]
+  local gui_data = player_data.gui
+
+  for _, progressbars in ipairs{
+    gui_data.tech_list_progressbars,
+    gui_data.tech_queue_progressbars,
+  } do
+    for tech_name, progressbar in pairs(progressbars) do
+      local tech = player.force.technologies[tech_name]
+      local progress = tech_progress(tech)
+      progressbar.value = progress
+      progressbar.visible = progress > 0
+    end
+  end
+end
+
 local function update_queue(player)
   local player_data = global.players[player.index]
   local gui_data = player_data.gui
@@ -49,6 +69,7 @@ local function update_queue(player)
   gui_data.queue_head.clear()
   gui_data.queue.clear()
   gui_data.etc_labels = nil
+  gui_data.tech_queue_progressbars = nil
   local is_head = true
   if player_data.queue_paused then
     -- TODO: color play/pause buttons
@@ -308,11 +329,15 @@ local function update_techs(player)
     tech_list = topo_list
   end
   gui_data.techs.clear()
+  gui_data.tech_list_progressbars = nil
+  local items_gui_data = {}
   for _, tech in ipairs(techs_list) do
-    guilib.build(gui_data.techs, {
+    local item_gui_data = guilib.build(gui_data.techs, {
       guilib.templates.tech_list_item(player, tech),
     })
+    items_gui_data = futil.merge{items_gui_data, item_gui_data}
   end
+  player_data.gui = futil.merge{player_data.gui, items_gui_data}
 end
 
 local function update_search(player)
@@ -760,6 +785,7 @@ local function on_research_speed_estimate(player, speed)
 
   if gui_data.window.visible then
     update_etcs(player)
+    update_progressbars(player)
   end
 end
 
@@ -827,18 +853,36 @@ guilib.add_templates{
       '[img=quantity-time]%d[/font]][font=count-font][img=quantity-multiplier]%d[/font]',
       tech.research_unit_energy / 60,
       tech.research_unit_count)
+    local progress = tech_progress(tech)
+    local list_type =
+      string.find(style, '^rq_tech_list') and
+        'tech_list' or
+        'tech_queue'
     return {
-      name = 'tech_button.'..tech.name,
-      type = 'sprite-button',
-      style = style,
-      handlers = 'tech_button',
-      sprite = 'technology/'..tech.name,
-      tooltip = {'', tech.localised_name, '\n', cost},
-      number = string.match(tech.name, '-%d+$') and tech.level or nil,
+      type = 'flow',
+      style = 'rq_tech_button_container_'..list_type,
+      direction = 'vertical',
+      children = {
+        {
+          name = 'tech_button.'..tech.name,
+          type = 'sprite-button',
+          style = style,
+          handlers = 'tech_button',
+          sprite = 'technology/'..tech.name,
+          tooltip = {'', tech.localised_name, '\n', cost},
+          number = string.match(tech.name, '-%d+$') and tech.level or nil,
+        },
+        {
+          save_as = list_type..'_progressbars.'..tech.name,
+          type = 'progressbar',
+          style = 'rq_tech_button_progressbar_'..list_type,
+          value = progress,
+          visible = progress > 0,
+        },
+      },
     }
   end,
   tech_queue_item = function(player, tech, is_head)
-    -- TODO: show progress bar
     local shift_up_enabled = queue.can_shift_earlier(player, tech)
     local shift_down_enabled = queue.can_shift_later(player, tech)
     return

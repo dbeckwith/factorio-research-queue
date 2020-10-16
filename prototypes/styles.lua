@@ -3,7 +3,7 @@ local util = require('util')
 local styles = data.raw['gui-style'].default
 
 local tech_list_tech_button_size = 64+8*2+8
-local tech_queue_tech_button_size = 64*3/4+8
+local tech_queue_tech_button_size = 64*4/4+8
 
 local function tech_graphical_set(type, opts)
   local highlighted = opts.highlighted
@@ -87,41 +87,6 @@ styles.rq_list_box = {
   graphical_set = {
     base = {position = {34, 0}, corner_size = 8},
     shadow = default_inner_shadow,
-  },
-}
-
-styles.rq_tech_queue_head_frame = {
-  type = 'frame_style',
-  width = 4+6+tech_queue_tech_button_size+8+16+6+4,
-  height = 6+tech_queue_tech_button_size+4+20+6,
-  margin = 0,
-  padding = 0,
-  graphical_set = {
-    base = {position = {34, 0}, corner_size = 8},
-    shadow = default_inner_shadow,
-  },
-  background_graphical_set = {
-    position = {282, 17},
-    corner_size = 8,
-    overall_tiling_horizontal_size = 6+tech_queue_tech_button_size+8+16+6,
-    overall_tiling_horizontal_padding = 4,
-    overall_tiling_horizontal_spacing = 16,
-    overall_tiling_vertical_size = 6+tech_queue_tech_button_size+4+20+6,
-    overall_tiling_vertical_padding = 4,
-    overall_tiling_vertical_spacing = 4,
-  },
-}
-
-styles.rq_tech_queue_list_box = {
-  type = 'scroll_pane_style',
-  parent = 'rq_list_box',
-  width = 4+6+tech_queue_tech_button_size+8+16+6+4+12,
-  background_graphical_set = {
-    position = {282, 17},
-    corner_size = 8,
-    overall_tiling_horizontal_size = 6+tech_queue_tech_button_size+8+16+6,
-    overall_tiling_vertical_size = 6+tech_queue_tech_button_size+4+20+6,
-    overall_tiling_vertical_spacing = 4,
   },
 }
 
@@ -320,19 +285,61 @@ styles.rq_tech_list_item_tool_button = {
   padding = 0,
 }
 
+local tech_queue_item_inner_width = tech_queue_tech_button_size+8+16
+local tech_queue_item_width = 2+4+tech_queue_item_inner_width+4+2
+local tech_queue_item_inner_height = tech_queue_tech_button_size+4+20
+local tech_queue_item_height = 2+4+tech_queue_item_inner_height+4+2
+
+styles.rq_tech_queue_head_frame = {
+  type = 'frame_style',
+  width = 4+tech_queue_item_width+4,
+  height = 4+tech_queue_item_height+4,
+  padding = 0,
+  horizontal_flow_style = {
+    type = 'horizontal_flow_style',
+    padding = 0,
+  },
+  graphical_set = {
+    base = {position = {34, 0}, corner_size = 8},
+    shadow = default_inner_shadow,
+  },
+  background_graphical_set = {
+    position = {282, 17},
+    corner_size = 8,
+    overall_tiling_horizontal_size = tech_queue_item_width,
+    overall_tiling_horizontal_padding = 4,
+    overall_tiling_vertical_size = tech_queue_item_height,
+    overall_tiling_vertical_padding = 4,
+    overall_tiling_vertical_spacing = 4,
+  },
+}
+
+styles.rq_tech_queue_list_box = {
+  type = 'scroll_pane_style',
+  parent = 'rq_list_box',
+  width = 4+tech_queue_item_width+4+12,
+  background_graphical_set = {
+    position = {282, 17},
+    corner_size = 8,
+    overall_tiling_horizontal_size = tech_queue_item_width,
+    overall_tiling_vertical_size = tech_queue_item_height,
+    overall_tiling_vertical_spacing = 4,
+  },
+}
+
 styles.rq_tech_queue_item = {
   type = 'frame_style',
   parent = 'subpanel_frame',
   padding = 2,
-  vertical_flow_style = {
-    type = 'vertical_flow_style',
+  horizontal_flow_style = {
+    type = 'horizontal_flow_style',
     vertically_stretchable = 'off',
+    horizontal_spacing = 8,
   },
 }
 
-styles.rq_tech_queue_item_button_flow = {
-  type = 'horizontal_flow_style',
-  vertical_align = 'center',
+styles.rq_tech_queue_item_inner_flow = {
+  type = 'vertical_flow_style',
 }
 
 styles.rq_tech_queue_item_tech_button = util.merge{
@@ -357,6 +364,8 @@ styles.rq_tech_queue_item_buttons = {
   type = 'vertical_flow_style',
   horizontal_align = 'center',
   vertical_spacing = 0,
+  top_padding = 4,
+  bottom_padding = 4,
 }
 
 styles.rq_tech_queue_item_close_button = {
@@ -409,17 +418,14 @@ styles.rq_tech_queue_item_shift_down_button = {
 }
 
 styles.rq_tech_queue_item_paused = {
-  type = 'frame_style',
-  parent = 'invisible_frame',
-  horizontal_flow_style = {
     type = 'horizontal_flow_style',
-    width = 6+tech_queue_tech_button_size+8+16+6,
-    height = 6+tech_queue_tech_button_size+4+20+6,
+    width = tech_queue_item_width,
+    height = tech_queue_item_height,
+    -- FIXME: if this is vertically stretchable, the queue scrollbox gets shorter???
     -- horizontally_stretchable = 'on',
-    horizontal_align = 'center',
     -- vertically_stretchable = 'on',
+    horizontal_align = 'center',
     vertical_align = 'center',
-  },
 }
 
 styles.rq_tech_queue_item_paused_unpause_button = {
@@ -431,6 +437,7 @@ styles.rq_etc_label = {
   type = 'label_style',
   parent = 'label',
   font = 'count-font',
+  maximal_width = tech_queue_tech_button_size,
 }
 
 styles.rq_settings_section = {

@@ -26,7 +26,7 @@ local function update_etcs(player)
   local is_head = true
   local etc = 0
   for tech in queue.iter(player) do
-    local etc_text = '[img=quantity-time]'
+    local etc_text = ''
     if speed == 0 then
       etc_text = etc_text..'[img=infinity]'
     else
@@ -79,7 +79,7 @@ local function update_queue(player)
     gui_data.frame_pause_toggle_button.tooltip = {'sonaxaton-research-queue.queue-play-button-tooltip'}
     guilib.build(gui_data.queue_head, {
       {
-        type = 'frame',
+        type = 'flow',
         style = 'rq_tech_queue_item_paused',
         children = {
           {
@@ -888,74 +888,69 @@ guilib.add_templates{
       {
         type = 'frame',
         style = 'rq_tech_queue_item',
-        direction = 'vertical',
+        direction = 'horizontal',
         children = {
           {
             type = 'flow',
-            style = 'rq_tech_queue_item_button_flow',
-            direction = 'horizontal',
+            style = 'rq_tech_queue_item_inner_flow',
+            direction = 'vertical',
             children = {
               guilib.templates.tech_button(
                 tech,
                 'rq_tech_queue'..(is_head and '_head' or '')..'_item_tech_button'),
               {
-                type = 'empty-widget',
-                style = 'flib_horizontal_pusher',
-              },
-              {
-                type = 'flow',
-                style = 'rq_tech_queue_item_buttons',
-                direction = 'vertical',
-                children = {
-                  {
-                    name = 'shift_up_button.'..tech.name,
-                    type = 'button',
-                    style = 'rq_tech_queue_item_shift_up_button',
-                    handlers = 'shift_up_button',
-                    tooltip =
-                      shift_up_enabled and
-                        {'sonaxaton-research-queue.shift-up-button-tooltip', tech.localised_name} or
-                        nil,
-                    enabled = shift_up_enabled,
-                  },
-                  {
-                    type = 'empty-widget',
-                    style = 'flib_vertical_pusher',
-                  },
-                  {
-                    name = 'dequeue_button.'..tech.name,
-                    template = 'tool_button',
-                    style = 'rq_tech_queue_item_close_button',
-                    handlers = 'dequeue_button',
-                    sprite = 'utility/close_black',
-                    tooltip = {'sonaxaton-research-queue.dequeue-button-tooltip', tech.localised_name},
-                  },
-                  {
-                    type = 'empty-widget',
-                    style = 'flib_vertical_pusher',
-                  },
-                  {
-                    name = 'shift_down_button.'..tech.name,
-                    type = 'button',
-                    style = 'rq_tech_queue_item_shift_down_button',
-                    handlers = 'shift_down_button',
-                    tooltip =
-                      shift_down_enabled and
-                        {'sonaxaton-research-queue.shift-down-button-tooltip', tech.localised_name} or
-                        nil,
-                    enabled = shift_down_enabled,
-                  },
-                },
+                save_as = 'etc_labels.'..tech.name,
+                type = 'label',
+                style = 'rq_etc_label',
+                caption = '[img=quantity-time][img=infinity]',
+                tooltip = {'sonaxaton-research-queue.etc-label-tooltip'},
               },
             },
           },
           {
-            save_as = 'etc_labels.'..tech.name,
-            type = 'label',
-            style = 'rq_etc_label',
-            -- caption = '[img=quantity-time]1m23s',
-            caption = '[img=quantity-time][img=infinity]',
-            tooltip = {'sonaxaton-research-queue.etc-label-tooltip'},
+            type = 'flow',
+            style = 'rq_tech_queue_item_buttons',
+            direction = 'vertical',
+            children = {
+              {
+                name = 'shift_up_button.'..tech.name,
+                type = 'button',
+                style = 'rq_tech_queue_item_shift_up_button',
+                handlers = 'shift_up_button',
+                tooltip =
+                  shift_up_enabled and
+                    {'sonaxaton-research-queue.shift-up-button-tooltip', tech.localised_name} or
+                    nil,
+                enabled = shift_up_enabled,
+              },
+              {
+                type = 'empty-widget',
+                style = 'flib_vertical_pusher',
+              },
+              {
+                name = 'dequeue_button.'..tech.name,
+                template = 'tool_button',
+                style = 'rq_tech_queue_item_close_button',
+                handlers = 'dequeue_button',
+                sprite = 'utility/close_black',
+                tooltip = {'sonaxaton-research-queue.dequeue-button-tooltip', tech.localised_name},
+              },
+              {
+                type = 'empty-widget',
+                style = 'flib_vertical_pusher',
+              },
+              {
+                name = 'shift_down_button.'..tech.name,
+                type = 'button',
+                style = 'rq_tech_queue_item_shift_down_button',
+                handlers = 'shift_down_button',
+                tooltip =
+                  shift_down_enabled and
+                    {'sonaxaton-research-queue.shift-down-button-tooltip', tech.localised_name} or
+                    nil,
+                enabled = shift_down_enabled,
+              },
+            },
           },
         },
       }

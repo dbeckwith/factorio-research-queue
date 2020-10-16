@@ -1167,7 +1167,6 @@ guilib.add_handlers{
   },
   enqueue_first_button = {
     on_gui_click = function(event)
-      -- TODO: think about how enqueue first/second works with paused queue
       local player = game.players[event.player_index]
       local _, _, tech_name = string.find(event.element.name, '^enqueue_first_button%.(.+)$')
       local force = player.force

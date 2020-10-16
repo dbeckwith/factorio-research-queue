@@ -180,8 +180,8 @@ local function shift_earliest(player, queue, tech)
   while shift_earlier(player, queue, tech) do end
 end
 
-local function shift_before_earliest(player, queue, tech)
-  while shift_earlier(player, queue, tech, 2) do end
+local function shift_before_earliest(player, queue, paused, tech)
+  while shift_earlier(player, queue, tech, paused and 1 or 2) do end
 end
 
 local function enqueue_tail(player, queue, tech)
@@ -194,9 +194,9 @@ local function enqueue_head(player, queue, tech)
   shift_earliest(player, queue, tech)
 end
 
-local function enqueue_before_head(player, queue, tech)
+local function enqueue_before_head(player, queue, paused, tech)
   enqueue(player, queue, tech)
-  shift_before_earliest(player, queue, tech)
+  shift_before_earliest(player, queue, paused, tech)
 end
 
 local function iter(player, queue)
@@ -225,72 +225,91 @@ end
 return {
   new = new,
   is_researchable = function(player, tech)
-    local queue = global.players[player.index].queue
+    local player_data = global.players[player.index]
+    local queue = player_data.queue
     return is_researchable(player, queue, tech)
   end,
   in_queue = function(player, tech)
-    local queue = global.players[player.index].queue
+    local player_data = global.players[player.index]
+    local queue = player_data.queue
     return in_queue(player, queue, tech)
   end,
   is_head = function(player, tech)
-    local queue = global.players[player.index].queue
+    local player_data = global.players[player.index]
+    local queue = player_data.queue
     return is_head(player, queue, tech)
   end,
   get_head = function(player)
-    local queue = global.players[player.index].queue
+    local player_data = global.players[player.index]
+    local queue = player_data.queue
     return get_head(player, queue)
   end,
   queue_pos = function(player, tech)
-    local queue = global.players[player.index].queue
+    local player_data = global.players[player.index]
+    local queue = player_data.queue
     return queue_pos(player, queue, tech)
   end,
   enqueue_tail = function(player, tech)
-    local queue = global.players[player.index].queue
+    local player_data = global.players[player.index]
+    local queue = player_data.queue
     return enqueue_tail(player, queue, tech)
   end,
   enqueue_head = function(player, tech)
-    local queue = global.players[player.index].queue
+    local player_data = global.players[player.index]
+    local queue = player_data.queue
+    player_data.queue_paused = false
     return enqueue_head(player, queue, tech)
   end,
   enqueue_before_head = function(player, tech)
-    local queue = global.players[player.index].queue
-    return enqueue_before_head(player, queue, tech)
+    local player_data = global.players[player.index]
+    local queue = player_data.queue
+    local paused = player_data.queue_paused
+    return enqueue_before_head(player, queue, paused, tech)
   end,
   shift_earlier = function(player, tech)
-    local queue = global.players[player.index].queue
+    local player_data = global.players[player.index]
+    local queue = player_data.queue
     return shift_earlier(player, queue, tech)
   end,
   shift_earliest = function(player, tech)
-    local queue = global.players[player.index].queue
+    local player_data = global.players[player.index]
+    local queue = player_data.queue
     return shift_earliest(player, queue, tech)
   end,
   can_shift_earlier = function(player, tech)
-    local queue = global.players[player.index].queue
+    local player_data = global.players[player.index]
+    local queue = player_data.queue
     return try_shift_earlier(player, queue, tech) ~= nil
   end,
   shift_later = function(player, tech)
-    local queue = global.players[player.index].queue
+    local player_data = global.players[player.index]
+    local queue = player_data.queue
     return shift_later(player, queue, tech)
   end,
   shift_latest = function(player, tech)
-    local queue = global.players[player.index].queue
+    local player_data = global.players[player.index]
+    local queue = player_data.queue
     return shift_latest(player, queue, tech)
   end,
   can_shift_later = function(player, tech)
-    local queue = global.players[player.index].queue
+    local player_data = global.players[player.index]
+    local queue = player_data.queue
     return try_shift_later(player, queue, tech) ~= nil
   end,
   dequeue = function(player, tech)
-    local queue = global.players[player.index].queue
+    local player_data = global.players[player.index]
+    local queue = player_data.queue
     return dequeue(player, queue, tech)
   end,
   iter = function(player)
-    local queue = global.players[player.index].queue
+    local player_data = global.players[player.index]
+    local queue = player_data.queue
     return iter(player, queue)
   end,
   update = function(player)
-    local queue = global.players[player.index].queue
-    local paused = global.players[player.index].queue_paused
+    local player_data = global.players[player.index]
+    local queue = player_data.queue
+    local paused = player_data.queue_paused
     return update(player, queue, paused)
   end
 }

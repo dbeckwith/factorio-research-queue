@@ -132,7 +132,7 @@ function is_rocket_silo_available(player)
     {filter='type', type='rocket-silo'},
   }) do
     -- get all items that create the rocket silo
-    for _, item in pairs(entity.items_to_place_this) do
+    for _, item in pairs(entity.items_to_place_this or {}) do
       -- check if the item is a product of an enabled recipe
       for _, recipe in pairs(player.force.recipes) do
         if recipe.enabled then

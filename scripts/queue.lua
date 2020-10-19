@@ -300,6 +300,12 @@ return {
     local queue = player_data.queue
     return try_shift_earlier(player, queue, tech) ~= nil
   end,
+  shift_before_earliest = function(player, tech)
+    local player_data = global.players[player.index]
+    local queue = player_data.queue
+    local paused = player_data.queue_paused
+    return shift_before_earliest(player, queue, paused, tech)
+  end,
   shift_later = function(player, tech)
     local player_data = global.players[player.index]
     local queue = player_data.queue

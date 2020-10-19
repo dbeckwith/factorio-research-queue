@@ -841,6 +841,14 @@ guilib.add_templates{
     },
   },
   tech_button = function(tech, style)
+    local researched = tech.researched
+    local progress = tech_progress(tech)
+    if researched then progress = 0 end
+    local list_type =
+      string.find(style, '^rq_tech_list') and
+        'tech_list' or
+        'tech_queue'
+
     local cost = '[[font=count-font]'
     for _, ingredient in ipairs(tech.research_unit_ingredients) do
       cost = cost .. string.format(
@@ -853,11 +861,26 @@ guilib.add_templates{
       '[img=quantity-time]%d[/font]][font=count-font][img=quantity-multiplier]%d[/font]',
       tech.research_unit_energy / 60,
       tech.research_unit_count)
-    local progress = tech_progress(tech)
-    local list_type =
-      string.find(style, '^rq_tech_list') and
-        'tech_list' or
-        'tech_queue'
+
+    local tooltip_lines = {tech.localised_name, cost}
+    if not researched then
+      table.insert(tooltip_lines, {'sonaxaton-research-queue.tech-button-enqueue-last'})
+      table.insert(tooltip_lines, {'sonaxaton-research-queue.tech-button-enqueue-second'})
+      table.insert(tooltip_lines, {'sonaxaton-research-queue.tech-button-dequeue'})
+    end
+    table.insert(tooltip_lines, {'sonaxaton-research-queue.tech-button-open'})
+    local tooltip = {}
+    local first = true
+    for _, line in ipairs(tooltip_lines) do
+      if first then
+        table.insert(tooltip, '')
+      else
+        table.insert(tooltip, '\n')
+      end
+      table.insert(tooltip, line)
+      first = false
+    end
+
     return {
       type = 'flow',
       style = 'rq_tech_button_container_'..list_type,
@@ -869,7 +892,7 @@ guilib.add_templates{
           style = style,
           handlers = 'tech_button',
           sprite = 'technology/'..tech.name,
-          tooltip = {'', tech.localised_name, '\n', cost},
+          tooltip = tooltip,
           number = string.match(tech.name, '-%d+$') and tech.level or nil,
           mouse_button_filter = {'left', 'right'},
         },
@@ -1132,11 +1155,29 @@ guilib.add_handlers{
       local force = player.force
       local tech = force.technologies[tech_name]
       if event.button == defines.mouse_button_type.left then
-        player.open_technology_gui(tech.name)
+        if not event.shift and not event.control and not event.alt then
+          if not tech.researched then
+            queue.enqueue_tail(player, tech)
+            update_queue(player)
+            update_techs(player)
+          end
+        elseif event.shift and not event.control and not event.alt then
+          if not tech.researched then
+            queue.enqueue_before_head(player, tech)
+            update_queue(player)
+            update_techs(player)
+          end
+        elseif not event.shift and not event.control and event.alt then
+          player.open_technology_gui(tech.name)
+        end
       elseif event.button == defines.mouse_button_type.right then
-        queue.dequeue(player, tech)
-        update_queue(player)
-        update_techs(player)
+        if not event.shift and not event.control and not event.alt then
+          if not tech.researched then
+            queue.dequeue(player, tech)
+            update_queue(player)
+            update_techs(player)
+          end
+        end
       end
     end,
   },
@@ -1179,7 +1220,7 @@ guilib.add_handlers{
       local _, _, tech_name = string.find(event.element.name, '^shift_up_button%.(.+)$')
       local force = player.force
       local tech = force.technologies[tech_name]
-      queue[event.shift and 'shift_earliest' or 'shift_earlier'](player, tech)
+      queue[event.shift and 'shift_before_earliest' or 'shift_earlier'](player, tech)
       update_queue(player)
     end,
   },

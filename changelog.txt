@@ -1,6 +1,8 @@
 ---------------------------------------------------------------------------------------------------
-Version: ???
-Date: ???
+Version: 0.3.0
+Date: 2020-10-19
+  Features:
+    - Queue will now automatically scroll to the technology that was just added
   Changes:
     - Changed click behavior for technology buttons, now documented in tooltips
 ---------------------------------------------------------------------------------------------------

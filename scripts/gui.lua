@@ -60,7 +60,7 @@ local function update_progressbars(player)
   end
 end
 
-local function update_queue(player)
+local function update_queue(player, new_tech)
   local player_data = global.players[player.index]
   local gui_data = player_data.gui
 
@@ -101,15 +101,32 @@ local function update_queue(player)
     gui_data.frame_pause_toggle_button.clicked_sprite = 'rq-pause-black'
     gui_data.frame_pause_toggle_button.tooltip = {'sonaxaton-research-queue.queue-pause-button-tooltip'}
   end
+  local new_tech_element = nil
   local items_gui_data = {}
   for tech in queue.iter(player) do
     local item_gui_data = guilib.build(gui_data[is_head and 'queue_head' or 'queue'], {
       guilib.templates.tech_queue_item(player, tech, is_head),
     })
     items_gui_data = futil.merge{items_gui_data, item_gui_data}
+    if new_tech ~= nil and new_tech.name == tech.name then
+      if not is_head then
+        new_tech_element = gui_data.queue.children[#gui_data.queue.children]
+      else
+        new_tech_element = 'head'
+      end
+    end
     is_head = false
   end
   player_data.gui = futil.merge{player_data.gui, items_gui_data}
+  gui_data = player_data.gui
+
+  if new_tech_element ~= nil then
+    if new_tech_element == 'head' then
+      gui_data.queue.scroll_to_top()
+    else
+      gui_data.queue.scroll_to_element(new_tech_element, 'top-third')
+    end
+  end
 
   update_etcs(player)
 end
@@ -745,7 +762,7 @@ local function on_research_started(player, tech, last_tech)
   if not queue.is_head(player, tech) then
     queue.set_paused(player, false)
     queue.enqueue_head(player, tech)
-    update_queue(player)
+    update_queue(player, tech)
   end
 end
 
@@ -1158,13 +1175,13 @@ guilib.add_handlers{
         if not event.shift and not event.control and not event.alt then
           if not tech.researched then
             queue.enqueue_tail(player, tech)
-            update_queue(player)
+            update_queue(player, tech)
             update_techs(player)
           end
         elseif event.shift and not event.control and not event.alt then
           if not tech.researched then
             queue.enqueue_before_head(player, tech)
-            update_queue(player)
+            update_queue(player, tech)
             update_techs(player)
           end
         elseif not event.shift and not event.control and event.alt then
@@ -1188,7 +1205,7 @@ guilib.add_handlers{
       local force = player.force
       local tech = force.technologies[tech_name]
       queue.enqueue_tail(player, tech)
-      update_queue(player)
+      update_queue(player, tech)
       update_techs(player)
     end,
   },
@@ -1199,7 +1216,7 @@ guilib.add_handlers{
       local force = player.force
       local tech = force.technologies[tech_name]
       queue.enqueue_before_head(player, tech)
-      update_queue(player)
+      update_queue(player, tech)
       update_techs(player)
     end,
   },
@@ -1210,7 +1227,7 @@ guilib.add_handlers{
       local force = player.force
       local tech = force.technologies[tech_name]
       queue.enqueue_head(player, tech)
-      update_queue(player)
+      update_queue(player, tech)
       update_techs(player)
     end,
   },

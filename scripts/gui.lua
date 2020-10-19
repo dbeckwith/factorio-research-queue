@@ -88,6 +88,7 @@ local function update_queue(player)
             handlers = 'queue_pause_toggle_button',
             sprite = 'rq-play-black',
             tooltip = {'sonaxaton-research-queue.queue-play-button-tooltip'},
+            mouse_button_filter = {'left'},
           },
         },
       },
@@ -186,6 +187,7 @@ local function update_techs(player)
             (enabled and 'enabled' or 'disabled'),
           tech_ingredient.localised_name,
         },
+        mouse_button_filter = {'left'},
       },
     })
   end
@@ -869,6 +871,7 @@ guilib.add_templates{
           sprite = 'technology/'..tech.name,
           tooltip = {'', tech.localised_name, '\n', cost},
           number = string.match(tech.name, '-%d+$') and tech.level or nil,
+          mouse_button_filter = {'left', 'right'},
         },
         {
           save_as = list_type..'_progressbars.'..tech.name,
@@ -921,6 +924,7 @@ guilib.add_templates{
                     {'sonaxaton-research-queue.shift-up-button-tooltip', tech.localised_name} or
                     nil,
                 enabled = shift_up_enabled,
+                mouse_button_filter = {'left'},
               },
               {
                 type = 'empty-widget',
@@ -948,6 +952,7 @@ guilib.add_templates{
                     {'sonaxaton-research-queue.shift-down-button-tooltip', tech.localised_name} or
                     nil,
                 enabled = shift_down_enabled,
+                mouse_button_filter = {'left'},
               },
             },
           },

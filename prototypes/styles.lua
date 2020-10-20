@@ -526,3 +526,14 @@ styles.rq_frame_action_button_red = {
     shadow = {position = {440, 24}, corner_size = 8, draw_type = 'outer'},
   },
 }
+
+data:extend{
+  {
+    type = 'font',
+    name = 'rq-notification',
+    from = 'default-semibold',
+    border = true,
+    border_color = {},
+    size = 18,
+  },
+}

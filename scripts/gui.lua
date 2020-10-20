@@ -771,6 +771,13 @@ local function on_research_finished(player, tech)
   local filter_data = player_data.filter
   local tech_ingredients = player_data.tech_ingredients
 
+  if settings.get_player_settings(player)['rq-notifications'].value then
+    player.print{'',
+      '[color=150,206,130]',
+      {'sonaxaton-research-queue.notification', tech.name},
+      '[/color]'}
+  end
+
   for _, tech_ingredient in ipairs(tech_ingredients) do
     local newly_available = (function()
       for _, effect in pairs(tech.effects) do

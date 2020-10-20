@@ -20,6 +20,11 @@ This mod adds a new GUI for managing a queue of research that's easier to use an
 
 Note: while using this mod you probably want to turn off the setting that brings up the technology screen after every research. Disable the option under `Settings` -> `Interface` -> `Interaction` -> `Technology screen opens when research is completed`.
 
+This mod is intended to replace these great, but outdated, mods:
+
+* [Research queue](https://mods.factorio.com/mod/research-queue) / [Research Queue: The Old New Thing](https://mods.factorio.com/mod/research-queue-the-old-new-thing) / [Research Queue: The Old New Thing, 0.18.34 fix](https://mods.factorio.com/mod/research-queue-0-18-34)
+* [Deadlock's Research Notifications](https://mods.factorio.com/mod/DeadlockResearchNotifications)
+
 ## Default hotkeys
 
 * `Shift+T` - Open Research Queue GUI

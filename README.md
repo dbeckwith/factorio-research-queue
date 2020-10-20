@@ -13,6 +13,7 @@ This mod adds a new GUI for managing a queue of research that's easier to use an
 * Easily search and filter technologies to research
 * Pause the research queue while you plan, then unpause and watch your queue go
 * See estimated time to completion for technologies in the queue
+* Receive a chat notification when a research finishes (can turn off with in settings)
 * Works with any modded technologies and science packs
 
 *Do not use the vanilla research queue with this mod*; the mod will most likely overwrite the vanilla queue. However, starting and cancelling research using the vanilla technology GUI will work fine with this mod. Starting a new research will add it to the start of the queue and unpause the queue. Cancelling the current research will pause the queue.
@@ -23,3 +24,7 @@ Note: while using this mod you probably want to turn off the setting that brings
 
 * `Shift+T` - Open Research Queue GUI
 * `Ctrl+F` - Focus search field
+
+## To-Do List/Known Issues
+
+* Multiplayer is not yet supported, but definitely possible

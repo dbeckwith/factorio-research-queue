@@ -886,7 +886,9 @@ guilib.add_templates{
       tech.research_unit_energy / 60,
       tech.research_unit_count)
 
-    local tooltip_lines = {tech.localised_name, cost}
+    local tooltip_lines = {
+      {'', '[font=heading-2]', tech.localised_name, '[/font]'},
+      cost}
     if not researched then
       table.insert(tooltip_lines, {'sonaxaton-research-queue.tech-button-enqueue-last'})
       table.insert(tooltip_lines, {'sonaxaton-research-queue.tech-button-enqueue-second'})

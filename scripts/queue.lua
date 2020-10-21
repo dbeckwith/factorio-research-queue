@@ -216,6 +216,14 @@ local function update(player, queue, paused)
   end
 
   local force = player.force
+  if force.research_queue_enabled then
+    force.print{'',
+      '[[color=150,206,130]',
+      {'mod-name.sonaxaton-research-queue'},
+      '[/color]] ',
+      {'sonaxaton-research-queue.vanilla-queue-overwritten-warning'}}
+    force.research_queue_enabled = false
+  end
   if not paused and next(queue) ~= nil then
     force.research_queue = {queue[1]}
   else

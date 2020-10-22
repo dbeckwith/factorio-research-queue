@@ -1,4 +1,9 @@
 ---------------------------------------------------------------------------------------------------
+Version: 0.3.2
+Date: 2020-10-21
+  Features:
+    - Will disable the vanilla research queue if it is enabled whenever the modded queue updates and warn the user about it
+---------------------------------------------------------------------------------------------------
 Version: 0.3.1
 Date: 2020-10-20
   Features:

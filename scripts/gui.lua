@@ -279,8 +279,7 @@ local function update_techs(player)
             -- table.insert(localised_strings, entity.localised_description)
           else
             table.insert(localised_strings,
-              -- FIXME: tostring is workaround for https://github.com/factoriolib/flib/pull/21
-              {'modifier-description.'..effect.type, tostring(effect.modifier)})
+              {'modifier-description.'..effect.type, effect.modifier})
           end
         end
 

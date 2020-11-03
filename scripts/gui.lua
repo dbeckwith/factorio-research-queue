@@ -21,11 +21,12 @@ end
 local function update_etcs(player)
   local player_data = global.players[player.index]
   local gui_data = player_data.gui
+  local force = player.force
 
   local speed = player_data.last_research_speed_estimate or 0
   local is_head = true
   local etc = 0
-  for tech in queue.iter(player) do
+  for tech in queue.iter(force) do
     local etc_text = ''
     if speed == 0 then
       etc_text = etc_text..'[img=infinity]'
@@ -46,13 +47,14 @@ end
 local function update_progressbars(player)
   local player_data = global.players[player.index]
   local gui_data = player_data.gui
+  local force = player.force
 
   for _, progressbars in ipairs{
     gui_data.tech_list_progressbars,
     gui_data.tech_queue_progressbars,
   } do
     for tech_name, progressbar in pairs(progressbars) do
-      local tech = player.force.technologies[tech_name]
+      local tech = force.technologies[tech_name]
       local progress = tech_progress(tech)
       progressbar.value = progress
       progressbar.visible = progress > 0
@@ -63,15 +65,14 @@ end
 local function update_queue(player, new_tech)
   local player_data = global.players[player.index]
   local gui_data = player_data.gui
-
-  queue.update(player)
+  local force = player.force
 
   gui_data.queue_head.clear()
   gui_data.queue.clear()
   gui_data.etc_labels = nil
   gui_data.tech_queue_progressbars = nil
   local is_head = true
-  if queue.is_paused(player) then
+  if queue.is_paused(force) then
     gui_data.frame_pause_toggle_button.style = 'rq_frame_action_button_green'
     gui_data.frame_pause_toggle_button.sprite = 'rq-play-white'
     gui_data.frame_pause_toggle_button.hovered_sprite = 'rq-play-black'
@@ -103,7 +104,7 @@ local function update_queue(player, new_tech)
   end
   local new_tech_element = nil
   local items_gui_data = {}
-  for tech in queue.iter(player) do
+  for tech in queue.iter(force) do
     local item_gui_data = guilib.build(gui_data[is_head and 'queue_head' or 'queue'], {
       guilib.templates.tech_queue_item(player, tech, is_head),
     })
@@ -230,9 +231,9 @@ local function update_techs(player)
             -- already researched
             -- already in the queue
             if
-                not dependency.upgrade or
-                dependency.researched or
-                queue.in_queue(player, dependency)
+              not dependency.upgrade or
+              dependency.researched or
+              queue.in_queue(force, dependency)
             then
               return true
             end
@@ -404,6 +405,8 @@ local function auto_select_tech_ingredients(player)
 end
 
 local function create_guis(player)
+  local force = player.force
+
   local gui_data = guilib.build(player.gui.screen, {
     {
       save_as = 'window',
@@ -606,7 +609,7 @@ local function create_guis(player)
   local tech_ingredients = {}
   for _, item in pairs(game.get_filtered_item_prototypes{{filter='tool'}}) do
     local is_tech_ingredient = (function()
-      for _, tech in pairs(player.force.technologies) do
+      for _, tech in pairs(force.technologies) do
         if tech.enabled then
           for _, ingredient in pairs(tech.research_unit_ingredients) do
             if ingredient.type == 'item' and ingredient.name == item.name then
@@ -746,8 +749,14 @@ end
 local function on_technology_gui_closed(player)
   local player_data = global.players[player.index]
   local gui_data = player_data.gui
+  local force = player.force
 
-  queue.set_paused(player, player.force.current_research == nil)
+  queue.set_paused(force, force.current_research == nil)
+  queue.update(force)
+  for _, player in pairs(force.players) do
+    update_queue(player)
+    update_techs(player)
+  end
 
   if gui_data.window.visible then
     -- after the tech gui is closed, if the window was still visible, make it
@@ -756,59 +765,69 @@ local function on_technology_gui_closed(player)
   end
 end
 
-local function on_research_started(player, tech, last_tech)
-  local player_data = global.players[player.index]
-  if not queue.is_head(player, tech) then
-    queue.set_paused(player, false)
-    queue.enqueue_head(player, tech)
-    update_queue(player, tech)
+local function on_research_started(force, tech, last_tech)
+  if not queue.is_head(force, tech) then
+    queue.set_paused(force, false)
+    queue.enqueue_head(force, tech)
+    queue.update(force)
+    for _, player in pairs(force.players) do
+      update_queue(player, tech)
+    end
   end
 end
 
-local function on_research_finished(player, tech)
-  local player_data = global.players[player.index]
-  local filter_data = player_data.filter
-  local tech_ingredients = player_data.tech_ingredients
+local function on_research_finished(force, tech)
+  queue.update(force)
+  for _, player in pairs(force.players) do
+    local player_data = global.players[player.index]
+    local filter_data = player_data.filter
+    local tech_ingredients = player_data.tech_ingredients
 
-  if settings.get_player_settings(player)['rq-notifications'].value then
-    player.print{'',
-      '[color=150,206,130]',
-      {'sonaxaton-research-queue.notification', tech.name},
-      '[/color]'}
-  end
+    if settings.get_player_settings(player)['rq-notifications'].value then
+      player.print{'',
+        '[color=150,206,130]',
+        {'sonaxaton-research-queue.notification', tech.name},
+        '[/color]'}
+    end
 
-  for _, tech_ingredient in ipairs(tech_ingredients) do
-    local newly_available = (function()
-      for _, effect in pairs(tech.effects) do
-        if effect.type == 'unlock-recipe' then
-          local recipe = game.recipe_prototypes[effect.recipe]
-          for _, product in pairs(recipe.products) do
-            if product.type == 'item' and product.name == tech_ingredient.name then
-              return true
+    for _, tech_ingredient in ipairs(tech_ingredients) do
+      local newly_available = (function()
+        for _, effect in pairs(tech.effects) do
+          if effect.type == 'unlock-recipe' then
+            local recipe = game.recipe_prototypes[effect.recipe]
+            for _, product in pairs(recipe.products) do
+              if
+                product.type == 'item' and
+                product.name == tech_ingredient.name
+              then
+                return true
+              end
             end
           end
         end
+        return false
+      end)()
+      if newly_available then
+        filter_data.ingredients[tech_ingredient.name] = true
       end
-      return false
-    end)()
-    if newly_available then
-      filter_data.ingredients[tech_ingredient.name] = true
     end
-  end
 
-  update_queue(player)
-  update_techs(player)
+    update_queue(player)
+    update_techs(player)
+  end
 end
 
-local function on_research_speed_estimate(player, speed)
-  local player_data = global.players[player.index]
-  local gui_data = player_data.gui
+local function on_research_speed_estimate(force, speed)
+  for _, player in pairs(force.players) do
+    local player_data = global.players[player.index]
+    local gui_data = player_data.gui
 
-  player_data.last_research_speed_estimate = speed
+    player_data.last_research_speed_estimate = speed
 
-  if gui_data.window.visible then
-    update_etcs(player)
-    update_progressbars(player)
+    if gui_data.window.visible then
+      update_etcs(player)
+      update_progressbars(player)
+    end
   end
 end
 
@@ -836,6 +855,11 @@ local function on_string_translated(player, event)
       update_techs(player)
     end
   end
+end
+
+local function on_player_changed_force(player)
+  update_queue(player)
+  update_techs(player)
 end
 
 guilib.add_templates{
@@ -932,8 +956,9 @@ guilib.add_templates{
     }
   end,
   tech_queue_item = function(player, tech, is_head)
-    local shift_up_enabled = queue.can_shift_earlier(player, tech)
-    local shift_down_enabled = queue.can_shift_later(player, tech)
+    local force = player.force
+    local shift_up_enabled = queue.can_shift_earlier(force, tech)
+    local shift_down_enabled = queue.can_shift_later(force, tech)
     return
       {
         type = 'frame',
@@ -1008,9 +1033,10 @@ guilib.add_templates{
       }
   end,
   tech_list_item = function(player, tech)
-    local researchable = queue.is_researchable(player, tech)
-    local queued = queue.in_queue(player, tech)
-    local queued_head = not queue.is_paused(player) and queue.is_head(player, tech)
+    local force = player.force
+    local researchable = queue.is_researchable(force, tech)
+    local queued = queue.in_queue(force, tech)
+    local queued_head = not queue.is_paused(force) and queue.is_head(force, tech)
     local researched = tech.researched
     local available = (function()
       for _, prereq in pairs(tech.prerequisites) do
@@ -1132,8 +1158,9 @@ guilib.add_handlers{
   research_button = {
     on_gui_click = function(event)
       local player = game.players[event.player_index]
-      if player.force.current_research ~= nil then
-        player.force.research_progress = 1
+      local force = player.force
+      if force.current_research ~= nil then
+        force.research_progress = 1
       end
     end,
   },
@@ -1182,15 +1209,21 @@ guilib.add_handlers{
       if event.button == defines.mouse_button_type.left then
         if not event.shift and not event.control and not event.alt then
           if not tech.researched then
-            queue.enqueue_tail(player, tech)
-            update_queue(player, tech)
-            update_techs(player)
+            queue.enqueue_tail(force, tech)
+            queue.update(force)
+            for _, player in pairs(force.players) do
+              update_queue(player, tech)
+              update_techs(player)
+            end
           end
         elseif event.shift and not event.control and not event.alt then
           if not tech.researched then
-            queue.enqueue_before_head(player, tech)
-            update_queue(player, tech)
-            update_techs(player)
+            queue.enqueue_before_head(force, tech)
+            queue.update(force)
+            for _, player in pairs(force.players) do
+              update_queue(player, tech)
+              update_techs(player)
+            end
           end
         elseif not event.shift and not event.control and event.alt then
           player.open_technology_gui(tech.name)
@@ -1198,9 +1231,12 @@ guilib.add_handlers{
       elseif event.button == defines.mouse_button_type.right then
         if not event.shift and not event.control and not event.alt then
           if not tech.researched then
-            queue.dequeue(player, tech)
-            update_queue(player)
-            update_techs(player)
+            queue.dequeue(force, tech)
+            queue.update(force)
+            for _, player in pairs(force.players) do
+              update_queue(player)
+              update_techs(player)
+            end
           end
         end
       end
@@ -1212,9 +1248,12 @@ guilib.add_handlers{
       local _, _, tech_name = string.find(event.element.name, '^enqueue_last_button%.(.+)$')
       local force = player.force
       local tech = force.technologies[tech_name]
-      queue.enqueue_tail(player, tech)
-      update_queue(player, tech)
-      update_techs(player)
+      queue.enqueue_tail(force, tech)
+      queue.update(force)
+      for _, player in pairs(force.players) do
+        update_queue(player, tech)
+        update_techs(player)
+      end
     end,
   },
   enqueue_second_button = {
@@ -1223,9 +1262,12 @@ guilib.add_handlers{
       local _, _, tech_name = string.find(event.element.name, '^enqueue_second_button%.(.+)$')
       local force = player.force
       local tech = force.technologies[tech_name]
-      queue.enqueue_before_head(player, tech)
-      update_queue(player, tech)
-      update_techs(player)
+      queue.enqueue_before_head(force, tech)
+      queue.update(force)
+      for _, player in pairs(force.players) do
+        update_queue(player, tech)
+        update_techs(player)
+      end
     end,
   },
   enqueue_first_button = {
@@ -1234,9 +1276,12 @@ guilib.add_handlers{
       local _, _, tech_name = string.find(event.element.name, '^enqueue_first_button%.(.+)$')
       local force = player.force
       local tech = force.technologies[tech_name]
-      queue.enqueue_head(player, tech)
-      update_queue(player, tech)
-      update_techs(player)
+      queue.enqueue_head(force, tech)
+      queue.update(force)
+      for _, player in pairs(force.players) do
+        update_queue(player, tech)
+        update_techs(player)
+      end
     end,
   },
   shift_up_button = {
@@ -1245,8 +1290,11 @@ guilib.add_handlers{
       local _, _, tech_name = string.find(event.element.name, '^shift_up_button%.(.+)$')
       local force = player.force
       local tech = force.technologies[tech_name]
-      queue[event.shift and 'shift_before_earliest' or 'shift_earlier'](player, tech)
-      update_queue(player)
+      queue[event.shift and 'shift_before_earliest' or 'shift_earlier'](force, tech)
+      queue.update(force)
+      for _, player in pairs(force.players) do
+        update_queue(player)
+      end
     end,
   },
   shift_down_button = {
@@ -1255,8 +1303,11 @@ guilib.add_handlers{
       local _, _, tech_name = string.find(event.element.name, '^shift_down_button%.(.+)$')
       local force = player.force
       local tech = force.technologies[tech_name]
-      queue[event.shift and 'shift_latest' or 'shift_later'](player, tech)
-      update_queue(player)
+      queue[event.shift and 'shift_latest' or 'shift_later'](force, tech)
+      queue.update(force)
+      for _, player in pairs(force.players) do
+        update_queue(player)
+      end
     end,
   },
   dequeue_button = {
@@ -1265,17 +1316,24 @@ guilib.add_handlers{
       local _, _, tech_name = string.find(event.element.name, '^dequeue_button%.(.+)$')
       local force = player.force
       local tech = force.technologies[tech_name]
-      queue.dequeue(player, tech)
-      update_queue(player)
-      update_techs(player)
+      queue.dequeue(force, tech)
+      queue.update(force)
+      for _, player in pairs(force.players) do
+        update_queue(player)
+        update_techs(player)
+      end
     end,
   },
   queue_pause_toggle_button = {
     on_gui_click = function(event)
       local player = game.players[event.player_index]
-      queue.toggle_paused(player)
-      update_queue(player)
-      update_techs(player)
+      local force = player.force
+      queue.toggle_paused(force)
+      queue.update(force)
+      for _, player in pairs(force.players) do
+        update_queue(player)
+        update_techs(player)
+      end
     end,
   },
 }
@@ -1289,6 +1347,7 @@ return {
   on_technology_gui_opened = on_technology_gui_opened,
   on_technology_gui_closed = on_technology_gui_closed,
   on_research_speed_estimate = on_research_speed_estimate,
+  on_player_changed_force = on_player_changed_force,
   open = open,
   close = close,
   toggle = toggle,

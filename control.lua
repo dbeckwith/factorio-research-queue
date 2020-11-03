@@ -8,35 +8,64 @@ local translationlib = require('__flib__.translation')
 local gui = require('scripts.gui')
 local queue = require('scripts.queue')
 
+local CURRENT_VERSION = script.active_mods[script.mod_name]
+
 local migrations = {
+  ['0.4.0'] = function()
+    global.forces = {}
+
+    for _, player in pairs(game.players) do
+      global.players[player.index].queue = nil
+      global.players[player.index].queue_paused = nil
+    end
+  end,
 }
 
 local queue_saves = {
-  current = function(player)
+  {
+    version = '0.3.3',
+    save = function(force)
+      for _, player in pairs(force.players) do
+        local player_data = global.players[player.index]
+        local tech_names = {}
+        for _, tech in ipairs(player_data.queue) do
+          if tech.valid then
+            table.insert(tech_names, tech.name)
+          end
+        end
+        local paused = player_data.queue_paused
+        return tech_names, paused
+      end
+    end,
+  },
+}
+
+function lookup_queue_save(version)
+  log('looking up queue save fn for v'..version)
+  -- find the oldest qs that's newer or equal to the map version
+  for _, qs in ipairs(queue_saves) do
+    if
+      qs.version == version or
+      migrationlib.is_newer_version(version, qs.version)
+    then
+      log('using queue save fn v'..(qs.version or CURRENT_VERSION))
+      return qs.save
+    end
+  end
+  return function(force)
     local tech_names = {}
-    for tech in queue.iter(player) do
+    for tech in queue.iter(force) do
       if tech.valid then
         table.insert(tech_names, tech.name)
       end
     end
-    local paused = queue.is_paused(player)
+    local paused = queue.is_paused(force)
     return tech_names, paused
-  end,
-}
-
-function init_player(player, saved_queue, queue_paused)
-  if saved_queue == nil then saved_queue = {} end
-  if queue_paused == nil then queue_paused = true end
-
-  global.players[player.index] = {}
-
-  queue.new(player, queue_paused)
-  for _, tech_name in ipairs(saved_queue) do
-    local tech = player.force.technologies[tech_name]
-    if tech ~= nil then
-      queue.enqueue(player, tech)
-    end
   end
+end
+
+function init_player(player)
+  global.players[player.index] = {}
 
   gui.create_guis(player)
 end
@@ -48,10 +77,36 @@ function deinit_player(player)
   global.players[player.index] = nil
 end
 
+function init_force(force, saved_queue, queue_paused)
+  if global.forces[force.index] ~= nil then return end
+
+  global.forces[force.index] = {}
+
+  if saved_queue == nil then saved_queue = {} end
+  if queue_paused == nil then queue_paused = true end
+
+  queue.new(force, queue_paused)
+  for _, tech_name in ipairs(saved_queue) do
+    local tech = force.technologies[tech_name]
+    if tech ~= nil then
+      queue.enqueue(force, tech)
+    end
+  end
+end
+
+function deinit_force(force)
+  global.forces[force.index] = nil
+end
+
 eventlib.on_init(function()
   translationlib.init()
   guilib.init()
   guilib.build_lookup_tables()
+
+  global.forces = {}
+  for _, force in pairs(game.forces) do
+    init_force(force)
+  end
 
   global.players = {}
   for _, player in pairs(game.players) do
@@ -70,13 +125,14 @@ eventlib.on_configuration_changed(function(event)
   local function save_queues(old_version)
     -- get a function to save the queue from the given version,
     -- or default to the current one
-    local version = old_version or script.active_mods[script.mod_name]
-    local queue_save = queue_saves[version] or queue_saves.current
+    local version = old_version or CURRENT_VERSION
+    local queue_save = lookup_queue_save(version)
 
-    for _, player in pairs(game.players) do
-      local saved_queue, paused = queue_save(player)
-      saved_queues[player.index] = saved_queue
-      saved_queue_paused[player.index] = paused
+    for _, force in pairs(game.forces) do
+      local saved_queue, paused = queue_save(force)
+      log('saved queue for '..force.name..': '..serpent.line({ queue = saved_queue, paused = paused }))
+      saved_queues[force.index] = saved_queue
+      saved_queue_paused[force.index] = paused
     end
   end
 
@@ -97,9 +153,14 @@ eventlib.on_configuration_changed(function(event)
     save_queues()
   end
 
+  for _, force in pairs(game.forces) do
+    deinit_force(force)
+    init_force(force, saved_queues[force.index], saved_queue_paused[force.index])
+  end
+
   for _, player in pairs(game.players) do
     deinit_player(player)
-    init_player(player, saved_queues[player.index], saved_queue_paused[player.index])
+    init_player(player)
   end
 
   if init then
@@ -110,6 +171,20 @@ end)
 
 guilib.register_handlers()
 
+eventlib.on_force_created(function(event)
+  local force = event.force
+  init_force(force)
+end)
+
+eventlib.on_forces_merging(function(event)
+  local force = event.source
+  deinit_force(force)
+end)
+
+eventlib.on_force_reset(function(event)
+  -- TODO: clear all research
+end)
+
 eventlib.on_player_created(function(event)
   local player = game.players[event.player_index]
   init_player(player)
@@ -118,6 +193,11 @@ end)
 eventlib.on_player_removed(function(event)
   local player = game.players[event.player_index]
   deinit_player(player)
+end)
+
+eventlib.on_player_changed_force(function(event)
+  local player = game.players[event.player_index]
+  gui.on_player_changed_force(player)
 end)
 
 eventlib.on_lua_shortcut(function(event)
@@ -149,16 +229,12 @@ end)
 
 eventlib.on_research_started(function(event)
   local force = event.research.force
-  for _, player in pairs(force.players) do
-    gui.on_research_started(player, event.research, event.last_research)
-  end
+  gui.on_research_started(force, event.research, event.last_research)
 end)
 
 eventlib.on_research_finished(function(event)
   local force = event.research.force
-  for _, player in pairs(force.players) do
-    gui.on_research_finished(player, event.research)
-  end
+  gui.on_research_finished(force, event.research)
 end)
 
 eventlib.on_string_translated(function(event)
@@ -231,8 +307,6 @@ eventlib.on_nth_tick(research_speed_period, function(event)
         end
       end
     end
-    for _, player in pairs(force.players) do
-      gui.on_research_speed_estimate(player, speed_estimate)
-    end
+    gui.on_research_speed_estimate(force, speed_estimate)
   end
 end)

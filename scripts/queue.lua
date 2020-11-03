@@ -1,12 +1,12 @@
 local util = require('.util')
 
-local function new(player, paused)
+local function new(force, paused)
   local queue = {}
-  global.players[player.index].queue = queue
-  global.players[player.index].queue_paused = paused
+  global.forces[force.index].queue = queue
+  global.forces[force.index].queue_paused = paused
 end
 
-local function rotate(player, queue, i, j)
+local function rotate(force, queue, i, j)
   if i == j then return end
   local dir = i < j and 1 or -1
   local tmp = queue[i]
@@ -18,35 +18,35 @@ local function rotate(player, queue, i, j)
   queue[j] = tmp
 end
 
-local function is_researchable(player, queue, tech)
+local function is_researchable(force, queue, tech)
   return tech.enabled and not tech.researched
 end
 
-local function is_dependency(player, queue, dependency, tech)
-  return is_researchable(player, queue, dependency) and tech.prerequisites[dependency.name] ~= nil
+local function is_dependency(force, queue, dependency, tech)
+  return is_researchable(force, queue, dependency) and tech.prerequisites[dependency.name] ~= nil
 end
 
-local function is_dependent(player, queue, dependent, tech)
-  return is_researchable(player, queue, dependent) and is_dependency(player, queue, tech, dependent)
+local function is_dependent(force, queue, dependent, tech)
+  return is_researchable(force, queue, dependent) and is_dependency(force, queue, tech, dependent)
 end
 
-local function tech_dependencies(player, queue, tech)
+local function tech_dependencies(force, queue, tech)
   return util.iter_filter(
     util.iter_values(tech.prerequisites),
     function(dependency)
-      return is_researchable(player, queue, dependency)
+      return is_researchable(force, queue, dependency)
     end)
 end
 
-local function tech_dependents(player, queue, tech)
+local function tech_dependents(force, queue, tech)
   return util.iter_filter(
-    util.iter_values(player.force.technologies),
+    util.iter_values(force.technologies),
     function(depdendent)
-      return is_dependent(player, queue, depdendent, tech)
+      return is_dependent(force, queue, depdendent, tech)
     end)
 end
 
-local function queue_pos(player, queue, tech)
+local function queue_pos(force, queue, tech)
   for idx, queued_tech in ipairs(queue) do
     if queued_tech.name == tech.name then
       return idx
@@ -55,15 +55,15 @@ local function queue_pos(player, queue, tech)
   return nil
 end
 
-local function is_head(player, queue, tech)
+local function is_head(force, queue, tech)
   return queue[1] ~= nil and queue[1].name == tech.name
 end
 
-local function get_head(player, queue)
+local function get_head(force, queue)
   return queue[1]
 end
 
-local function queue_prev(player, queue, tech)
+local function queue_prev(force, queue, tech)
   for idx, queued_tech in ipairs(queue) do
     if queued_tech.name == tech.name then
       return idx
@@ -72,7 +72,7 @@ local function queue_prev(player, queue, tech)
   return nil
 end
 
-local function in_queue(player, queue, tech)
+local function in_queue(force, queue, tech)
   for _, queued_tech in ipairs(queue) do
     if queued_tech.name == tech.name then
       return true
@@ -81,20 +81,20 @@ local function in_queue(player, queue, tech)
   return false
 end
 
-local function enqueue(player, queue, tech)
-  if not in_queue(player, queue, tech) then
-    for dependency in tech_dependencies(player, queue, tech) do
-      enqueue(player, queue, dependency)
+local function enqueue(force, queue, tech)
+  if not in_queue(force, queue, tech) then
+    for dependency in tech_dependencies(force, queue, tech) do
+      enqueue(force, queue, dependency)
     end
 
     table.insert(queue, tech)
   end
 end
 
-local function dequeue(player, queue, tech)
-  if in_queue(player, queue, tech) then
-    for dependent in tech_dependents(player, queue, tech) do
-      dequeue(player, queue, dependent)
+local function dequeue(force, queue, tech)
+  if in_queue(force, queue, tech) then
+    for dependent in tech_dependents(force, queue, tech) do
+      dequeue(force, queue, dependent)
     end
 
     for idx, queued_tech in ipairs(queue) do
@@ -106,31 +106,31 @@ local function dequeue(player, queue, tech)
   end
 end
 
-local function is_depdendency_of_any(player, queue, tech, from_pos, to_pos)
+local function is_depdendency_of_any(force, queue, tech, from_pos, to_pos)
   for i = from_pos,to_pos do
-    if is_dependency(player, queue, tech, queue[i]) then
+    if is_dependency(force, queue, tech, queue[i]) then
       return true
     end
   end
   return false
 end
 
-local function is_depdendent_of_any(player, queue, tech, from_pos, to_pos)
+local function is_depdendent_of_any(force, queue, tech, from_pos, to_pos)
   for i = from_pos,to_pos do
-    if is_dependent(player, queue, tech, queue[i]) then
+    if is_dependent(force, queue, tech, queue[i]) then
       return true
     end
   end
   return false
 end
 
-local function try_shift_later(player, queue, tech)
-  local tech_pos = queue_pos(player, queue, tech)
+local function try_shift_later(force, queue, tech)
+  local tech_pos = queue_pos(force, queue, tech)
   local pivot_pos = tech_pos + 1
   if pivot_pos > #queue then
     return nil
   end
-  while is_depdendent_of_any(player, queue, queue[pivot_pos], tech_pos, pivot_pos) do
+  while is_depdendent_of_any(force, queue, queue[pivot_pos], tech_pos, pivot_pos) do
     pivot_pos = pivot_pos + 1
     if pivot_pos > #queue then
       return nil
@@ -139,23 +139,23 @@ local function try_shift_later(player, queue, tech)
   return pivot_pos, tech_pos
 end
 
-local function shift_later(player, queue, tech)
-  local pivot_pos, tech_pos = try_shift_later(player, queue, tech)
+local function shift_later(force, queue, tech)
+  local pivot_pos, tech_pos = try_shift_later(force, queue, tech)
   if pivot_pos ~= nil then
-    rotate(player, queue, pivot_pos, tech_pos)
+    rotate(force, queue, pivot_pos, tech_pos)
     return true
   end
   return false
 end
 
-local function try_shift_earlier(player, queue, tech, head)
+local function try_shift_earlier(force, queue, tech, head)
   head = head or 1
-  local tech_pos = queue_pos(player, queue, tech)
+  local tech_pos = queue_pos(force, queue, tech)
   local pivot_pos = tech_pos - 1
   if pivot_pos < head then
     return nil
   end
-  while is_depdendency_of_any(player, queue, queue[pivot_pos], pivot_pos, tech_pos) do
+  while is_depdendency_of_any(force, queue, queue[pivot_pos], pivot_pos, tech_pos) do
     pivot_pos = pivot_pos - 1
     if pivot_pos < head then
       return nil
@@ -164,58 +164,57 @@ local function try_shift_earlier(player, queue, tech, head)
   return pivot_pos, tech_pos
 end
 
-local function shift_earlier(player, queue, tech, head)
-  local pivot_pos, tech_pos = try_shift_earlier(player, queue, tech, head)
+local function shift_earlier(force, queue, tech, head)
+  local pivot_pos, tech_pos = try_shift_earlier(force, queue, tech, head)
   if pivot_pos ~= nil then
-    rotate(player, queue, pivot_pos, tech_pos)
+    rotate(force, queue, pivot_pos, tech_pos)
     return true
   end
   return false
 end
 
-local function shift_latest(player, queue, tech)
-  while shift_later(player, queue, tech) do end
+local function shift_latest(force, queue, tech)
+  while shift_later(force, queue, tech) do end
 end
 
-local function shift_earliest(player, queue, tech)
-  while shift_earlier(player, queue, tech) do end
+local function shift_earliest(force, queue, tech)
+  while shift_earlier(force, queue, tech) do end
 end
 
-local function shift_before_earliest(player, queue, paused, tech)
-  while shift_earlier(player, queue, tech, paused and 1 or 2) do end
+local function shift_before_earliest(force, queue, paused, tech)
+  while shift_earlier(force, queue, tech, paused and 1 or 2) do end
 end
 
-local function enqueue_tail(player, queue, tech)
-  enqueue(player, queue, tech)
-  shift_latest(player, queue, tech)
+local function enqueue_tail(force, queue, tech)
+  enqueue(force, queue, tech)
+  shift_latest(force, queue, tech)
 end
 
-local function enqueue_head(player, queue, tech)
-  enqueue(player, queue, tech)
-  shift_earliest(player, queue, tech)
+local function enqueue_head(force, queue, tech)
+  enqueue(force, queue, tech)
+  shift_earliest(force, queue, tech)
 end
 
-local function enqueue_before_head(player, queue, paused, tech)
-  enqueue(player, queue, tech)
-  shift_before_earliest(player, queue, paused, tech)
+local function enqueue_before_head(force, queue, paused, tech)
+  enqueue(force, queue, tech)
+  shift_before_earliest(force, queue, paused, tech)
 end
 
-local function iter(player, queue)
+local function iter(force, queue)
   return util.iter_list(queue)
 end
 
-local function update(player, queue, paused)
+local function update(force, queue, paused)
   local to_dequeue = {}
   for _, tech in ipairs(queue) do
-    if not is_researchable(player, queue, tech) then
+    if not is_researchable(force, queue, tech) then
       table.insert(to_dequeue, tech)
     end
   end
   for _, tech in ipairs(to_dequeue) do
-    dequeue(player, queue, tech)
+    dequeue(force, queue, tech)
   end
 
-  local force = player.force
   if force.research_queue_enabled then
     force.print{'',
       '[[color=150,206,130]',
@@ -233,116 +232,116 @@ end
 
 return {
   new = new,
-  is_paused = function(player)
-    local player_data = global.players[player.index]
-    local paused = player_data.queue_paused
+  is_paused = function(force)
+    local force_data = global.forces[force.index]
+    local paused = force_data.queue_paused
     return paused
   end,
-  set_paused = function(player, paused)
-    local player_data = global.players[player.index]
-    player_data.queue_paused = paused
+  set_paused = function(force, paused)
+    local force_data = global.forces[force.index]
+    force_data.queue_paused = paused
   end,
-  toggle_paused = function(player, paused)
-    local player_data = global.players[player.index]
-    player_data.queue_paused = not player_data.queue_paused
+  toggle_paused = function(force, paused)
+    local force_data = global.forces[force.index]
+    force_data.queue_paused = not force_data.queue_paused
   end,
-  is_researchable = function(player, tech)
-    local player_data = global.players[player.index]
-    local queue = player_data.queue
-    return is_researchable(player, queue, tech)
+  is_researchable = function(force, tech)
+    local force_data = global.forces[force.index]
+    local queue = force_data.queue
+    return is_researchable(force, queue, tech)
   end,
-  in_queue = function(player, tech)
-    local player_data = global.players[player.index]
-    local queue = player_data.queue
-    return in_queue(player, queue, tech)
+  in_queue = function(force, tech)
+    local force_data = global.forces[force.index]
+    local queue = force_data.queue
+    return in_queue(force, queue, tech)
   end,
-  is_head = function(player, tech)
-    local player_data = global.players[player.index]
-    local queue = player_data.queue
-    return is_head(player, queue, tech)
+  is_head = function(force, tech)
+    local force_data = global.forces[force.index]
+    local queue = force_data.queue
+    return is_head(force, queue, tech)
   end,
-  get_head = function(player)
-    local player_data = global.players[player.index]
-    local queue = player_data.queue
-    return get_head(player, queue)
+  get_head = function(force)
+    local force_data = global.forces[force.index]
+    local queue = force_data.queue
+    return get_head(force, queue)
   end,
-  queue_pos = function(player, tech)
-    local player_data = global.players[player.index]
-    local queue = player_data.queue
-    return queue_pos(player, queue, tech)
+  queue_pos = function(force, tech)
+    local force_data = global.forces[force.index]
+    local queue = force_data.queue
+    return queue_pos(force, queue, tech)
   end,
-  enqueue = function(player, tech)
-    local player_data = global.players[player.index]
-    local queue = player_data.queue
-    return enqueue(player, queue, tech)
+  enqueue = function(force, tech)
+    local force_data = global.forces[force.index]
+    local queue = force_data.queue
+    return enqueue(force, queue, tech)
   end,
-  enqueue_tail = function(player, tech)
-    local player_data = global.players[player.index]
-    local queue = player_data.queue
-    return enqueue_tail(player, queue, tech)
+  enqueue_tail = function(force, tech)
+    local force_data = global.forces[force.index]
+    local queue = force_data.queue
+    return enqueue_tail(force, queue, tech)
   end,
-  enqueue_head = function(player, tech)
-    local player_data = global.players[player.index]
-    local queue = player_data.queue
-    player_data.queue_paused = false
-    return enqueue_head(player, queue, tech)
+  enqueue_head = function(force, tech)
+    local force_data = global.forces[force.index]
+    local queue = force_data.queue
+    force_data.queue_paused = false
+    return enqueue_head(force, queue, tech)
   end,
-  enqueue_before_head = function(player, tech)
-    local player_data = global.players[player.index]
-    local queue = player_data.queue
-    local paused = player_data.queue_paused
-    return enqueue_before_head(player, queue, paused, tech)
+  enqueue_before_head = function(force, tech)
+    local force_data = global.forces[force.index]
+    local queue = force_data.queue
+    local paused = force_data.queue_paused
+    return enqueue_before_head(force, queue, paused, tech)
   end,
-  shift_earlier = function(player, tech)
-    local player_data = global.players[player.index]
-    local queue = player_data.queue
-    return shift_earlier(player, queue, tech)
+  shift_earlier = function(force, tech)
+    local force_data = global.forces[force.index]
+    local queue = force_data.queue
+    return shift_earlier(force, queue, tech)
   end,
-  shift_earliest = function(player, tech)
-    local player_data = global.players[player.index]
-    local queue = player_data.queue
-    return shift_earliest(player, queue, tech)
+  shift_earliest = function(force, tech)
+    local force_data = global.forces[force.index]
+    local queue = force_data.queue
+    return shift_earliest(force, queue, tech)
   end,
-  can_shift_earlier = function(player, tech)
-    local player_data = global.players[player.index]
-    local queue = player_data.queue
-    return try_shift_earlier(player, queue, tech) ~= nil
+  can_shift_earlier = function(force, tech)
+    local force_data = global.forces[force.index]
+    local queue = force_data.queue
+    return try_shift_earlier(force, queue, tech) ~= nil
   end,
-  shift_before_earliest = function(player, tech)
-    local player_data = global.players[player.index]
-    local queue = player_data.queue
-    local paused = player_data.queue_paused
-    return shift_before_earliest(player, queue, paused, tech)
+  shift_before_earliest = function(force, tech)
+    local force_data = global.forces[force.index]
+    local queue = force_data.queue
+    local paused = force_data.queue_paused
+    return shift_before_earliest(force, queue, paused, tech)
   end,
-  shift_later = function(player, tech)
-    local player_data = global.players[player.index]
-    local queue = player_data.queue
-    return shift_later(player, queue, tech)
+  shift_later = function(force, tech)
+    local force_data = global.forces[force.index]
+    local queue = force_data.queue
+    return shift_later(force, queue, tech)
   end,
-  shift_latest = function(player, tech)
-    local player_data = global.players[player.index]
-    local queue = player_data.queue
-    return shift_latest(player, queue, tech)
+  shift_latest = function(force, tech)
+    local force_data = global.forces[force.index]
+    local queue = force_data.queue
+    return shift_latest(force, queue, tech)
   end,
-  can_shift_later = function(player, tech)
-    local player_data = global.players[player.index]
-    local queue = player_data.queue
-    return try_shift_later(player, queue, tech) ~= nil
+  can_shift_later = function(force, tech)
+    local force_data = global.forces[force.index]
+    local queue = force_data.queue
+    return try_shift_later(force, queue, tech) ~= nil
   end,
-  dequeue = function(player, tech)
-    local player_data = global.players[player.index]
-    local queue = player_data.queue
-    return dequeue(player, queue, tech)
+  dequeue = function(force, tech)
+    local force_data = global.forces[force.index]
+    local queue = force_data.queue
+    return dequeue(force, queue, tech)
   end,
-  iter = function(player)
-    local player_data = global.players[player.index]
-    local queue = player_data.queue
-    return iter(player, queue)
+  iter = function(force)
+    local force_data = global.forces[force.index]
+    local queue = force_data.queue
+    return iter(force, queue)
   end,
-  update = function(player)
-    local player_data = global.players[player.index]
-    local queue = player_data.queue
-    local paused = player_data.queue_paused
-    return update(player, queue, paused)
+  update = function(force)
+    local force_data = global.forces[force.index]
+    local queue = force_data.queue
+    local paused = force_data.queue_paused
+    return update(force, queue, paused)
   end
 }

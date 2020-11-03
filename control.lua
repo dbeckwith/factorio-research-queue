@@ -182,7 +182,12 @@ eventlib.on_forces_merging(function(event)
 end)
 
 eventlib.on_force_reset(function(event)
-  -- TODO: clear all research
+  local force = event.force
+  deinit_force(force)
+  init_force(force)
+  for _, player in pairs(force.players) do
+    gui.update(player)
+  end
 end)
 
 eventlib.on_player_created(function(event)
@@ -197,7 +202,7 @@ end)
 
 eventlib.on_player_changed_force(function(event)
   local player = game.players[event.player_index]
-  gui.on_player_changed_force(player)
+  gui.update(player)
 end)
 
 eventlib.on_lua_shortcut(function(event)

@@ -857,7 +857,7 @@ local function on_string_translated(player, event)
   end
 end
 
-local function on_player_changed_force(player)
+local function update(player)
   update_queue(player)
   update_techs(player)
 end
@@ -1347,7 +1347,7 @@ return {
   on_technology_gui_opened = on_technology_gui_opened,
   on_technology_gui_closed = on_technology_gui_closed,
   on_research_speed_estimate = on_research_speed_estimate,
-  on_player_changed_force = on_player_changed_force,
+  update = update,
   open = open,
   close = close,
   toggle = toggle,

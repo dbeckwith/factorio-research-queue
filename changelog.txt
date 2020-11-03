@@ -1,4 +1,12 @@
 ---------------------------------------------------------------------------------------------------
+Version: 0.4.0
+Date: 2020-11-03
+  Features:
+    - Multiplayer is now officially supported! Players on the same team share the same research queue.
+    - `on_force_reset` is now handled properly
+  Bugfixes:
+    - Fixed crash when a player changes teams
+---------------------------------------------------------------------------------------------------
 Version: 0.3.3
 Date: 2020-10-21
   Minor Changes:

@@ -15,12 +15,13 @@ This mod adds a new GUI for managing a queue of research that's easier to use an
 * See estimated time to completion for technologies in the queue
 * Receive a chat notification when a research finishes (can turn off in settings)
 * Works with any modded technologies and science packs
+* In multiplayer, players on the same team will share the same research queue
 
-*Do not use the vanilla research queue with this mod*; the mod will most likely overwrite the vanilla queue. However, starting and cancelling research using the vanilla technology GUI will work fine with this mod. Starting a new research will add it to the start of the queue and unpause the queue. Cancelling the current research will pause the queue.
+*Do not use the vanilla research queue with this mod*; this mod will most likely overwrite the vanilla queue. However, starting and cancelling research using the vanilla technology GUI will work fine with this mod. Starting a new research will add it to the start of the queue and unpause the queue. Cancelling the current research will pause the queue.
 
 Note: while using this mod you probably want to turn off the setting that brings up the technology screen after every research. Disable the option under `Settings` -> `Interface` -> `Interaction` -> `Technology screen opens when research is completed`.
 
-This mod is intended to replace these great, but outdated, mods:
+This mod is intended to replace these other great but outdated mods:
 
 * [Research queue](https://mods.factorio.com/mod/research-queue) / [Research Queue: The Old New Thing](https://mods.factorio.com/mod/research-queue-the-old-new-thing) / [Research Queue: The Old New Thing, 0.18.34 fix](https://mods.factorio.com/mod/research-queue-0-18-34)
 * [Deadlock's Research Notifications](https://mods.factorio.com/mod/DeadlockResearchNotifications)
@@ -29,7 +30,3 @@ This mod is intended to replace these great, but outdated, mods:
 
 * `Shift+T` - Open Research Queue GUI
 * `Ctrl+F` - Focus search field
-
-## To-Do List/Known Issues
-
-* Multiplayer is not yet supported, but definitely possible

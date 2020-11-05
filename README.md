@@ -26,7 +26,6 @@ This mod is intended to replace these other great but outdated mods:
 * [Research queue](https://mods.factorio.com/mod/research-queue) / [Research Queue: The Old New Thing](https://mods.factorio.com/mod/research-queue-the-old-new-thing) / [Research Queue: The Old New Thing, 0.18.34 fix](https://mods.factorio.com/mod/research-queue-0-18-34)
 * [Deadlock's Research Notifications](https://mods.factorio.com/mod/DeadlockResearchNotifications)
 
-## Default hotkeys
+## How to Use
 
-* `Shift+T` - Open Research Queue GUI
-* `Ctrl+F` - Focus search field
+To open the Improved Research Queue window, use the shortcut on your shortcut bar or press `Shift+T`. You will see a list of technologies in the center, the queue on the left, and settings/filters on the right. Hover over any element to see additional info and descriptions of how to use it.

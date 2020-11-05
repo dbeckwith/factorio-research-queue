@@ -7,6 +7,12 @@ local translationlib = require('__flib__.translation')
 local queue = require('.queue')
 local util = require('.util')
 
+local function is_same_tech_upgrade_group(tech1, tech2)
+  local group1 = string.match(tech1.name, '^(.+)-%d+$')
+  local group2 = string.match(tech2.name, '^(.+)-%d+$')
+  return group1 == group2
+end
+
 local function tech_progress(tech)
   if
     tech.force.current_research ~= nil and
@@ -223,26 +229,34 @@ local function update_techs(player)
       end
 
       if not filter_data.upgrades and tech.upgrade then
-        -- only include upgrade techs if they have an "qualifying" dependency
-        local has_qualifying_dependency = (function()
+        -- only include upgrade techs if they have a "significant" dependency
+        local has_significant_dependency = (function()
           for _, dependency in pairs(tech.prerequisites) do
-            -- a dependency is "qualifying" if it is:
-            -- not an upgrade
-            -- already researched
-            -- already in the queue
-            if
-              not dependency.upgrade or
-              dependency.researched or
-              queue.in_queue(force, dependency)
-            then
-              return true
-            end
+            local is_significant_dependency = (function()
+              -- significant if not an upgrade
+              if not dependency.upgrade then return true end
+
+              -- is an upgrade
+              -- significant if not in the same group
+              if not is_same_tech_upgrade_group(tech, dependency) then
+                return true
+              end
+
+              -- is an upgrade and in the same group
+              -- significant if researched
+              if dependency.researched then return true end
+
+              -- is an upgrade, in the same group, and not researched
+              -- significant if in the queue
+              if queue.in_queue(force, dependency) then return true end
+
+              return false
+            end)()
+            if is_significant_dependency then return true end
           end
           return false
         end)()
-        if not has_qualifying_dependency then
-          return false
-        end
+        if not has_significant_dependency then return false end
       end
 
       local ingredients_filter = filter_data.ingredients

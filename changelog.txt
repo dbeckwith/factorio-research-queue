@@ -1,4 +1,9 @@
 ---------------------------------------------------------------------------------------------------
+Version: 0.4.2
+Date: 2020-11-04
+  Bugfixes:
+    - Fix that some technologies were incorrectly considered "upgrade" technologies and hidden by default
+---------------------------------------------------------------------------------------------------
 Version: 0.4.1
 Date: 2020-11-04
   Bugfixes:

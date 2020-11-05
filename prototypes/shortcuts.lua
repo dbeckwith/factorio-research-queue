@@ -7,7 +7,7 @@ data:extend{
     type = 'shortcut',
     name = 'sonaxaton-research-queue',
     order = 'r[research-queue]',
-    associated_control_input = 'sonaxaton-research-queue',
+    associated_control_input = 'rq-toggle-main-window',
     action = 'lua',
     toggleable = true,
     icon = {

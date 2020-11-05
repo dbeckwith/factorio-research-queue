@@ -195,7 +195,7 @@ eventlib.on_player_created(function(event)
   init_player(player)
 end)
 
-eventlib.on_player_removed(function(event)
+eventlib.on_pre_player_removed(function(event)
   local player = game.players[event.player_index]
   deinit_player(player)
 end)

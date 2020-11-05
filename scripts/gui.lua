@@ -1181,7 +1181,7 @@ guilib.add_handlers{
   tech_ingredient_filter_button = {
     on_gui_click = function(event)
       local player = game.players[event.player_index]
-      local _, _, item_name = string.find(event.element.name, '^tech_ingredient_filter_button%.(.+)$')
+      local item_name = string.match(event.element.name, '^tech_ingredient_filter_button%.(.+)$')
       local item = game.item_prototypes[item_name]
       toggle_ingredient_filter(player, item)
       update_techs(player)
@@ -1203,7 +1203,7 @@ guilib.add_handlers{
   tech_button = {
     on_gui_click = function(event)
       local player = game.players[event.player_index]
-      local _, _, tech_name = string.find(event.element.name, '^tech_button%.(.+)$')
+      local tech_name = string.match(event.element.name, '^tech_button%.(.+)$')
       local force = player.force
       local tech = force.technologies[tech_name]
       if event.button == defines.mouse_button_type.left then
@@ -1245,7 +1245,7 @@ guilib.add_handlers{
   enqueue_last_button = {
     on_gui_click = function(event)
       local player = game.players[event.player_index]
-      local _, _, tech_name = string.find(event.element.name, '^enqueue_last_button%.(.+)$')
+      local tech_name = string.match(event.element.name, '^enqueue_last_button%.(.+)$')
       local force = player.force
       local tech = force.technologies[tech_name]
       queue.enqueue_tail(force, tech)
@@ -1259,7 +1259,7 @@ guilib.add_handlers{
   enqueue_second_button = {
     on_gui_click = function(event)
       local player = game.players[event.player_index]
-      local _, _, tech_name = string.find(event.element.name, '^enqueue_second_button%.(.+)$')
+      local tech_name = string.match(event.element.name, '^enqueue_second_button%.(.+)$')
       local force = player.force
       local tech = force.technologies[tech_name]
       queue.enqueue_before_head(force, tech)
@@ -1273,7 +1273,7 @@ guilib.add_handlers{
   enqueue_first_button = {
     on_gui_click = function(event)
       local player = game.players[event.player_index]
-      local _, _, tech_name = string.find(event.element.name, '^enqueue_first_button%.(.+)$')
+      local tech_name = string.match(event.element.name, '^enqueue_first_button%.(.+)$')
       local force = player.force
       local tech = force.technologies[tech_name]
       queue.enqueue_head(force, tech)
@@ -1287,7 +1287,7 @@ guilib.add_handlers{
   shift_up_button = {
     on_gui_click = function(event)
       local player = game.players[event.player_index]
-      local _, _, tech_name = string.find(event.element.name, '^shift_up_button%.(.+)$')
+      local tech_name = string.match(event.element.name, '^shift_up_button%.(.+)$')
       local force = player.force
       local tech = force.technologies[tech_name]
       queue[event.shift and 'shift_before_earliest' or 'shift_earlier'](force, tech)
@@ -1300,7 +1300,7 @@ guilib.add_handlers{
   shift_down_button = {
     on_gui_click = function(event)
       local player = game.players[event.player_index]
-      local _, _, tech_name = string.find(event.element.name, '^shift_down_button%.(.+)$')
+      local tech_name = string.match(event.element.name, '^shift_down_button%.(.+)$')
       local force = player.force
       local tech = force.technologies[tech_name]
       queue[event.shift and 'shift_latest' or 'shift_later'](force, tech)
@@ -1313,7 +1313,7 @@ guilib.add_handlers{
   dequeue_button = {
     on_gui_click = function(event)
       local player = game.players[event.player_index]
-      local _, _, tech_name = string.find(event.element.name, '^dequeue_button%.(.+)$')
+      local tech_name = string.match(event.element.name, '^dequeue_button%.(.+)$')
       local force = player.force
       local tech = force.technologies[tech_name]
       queue.dequeue(force, tech)

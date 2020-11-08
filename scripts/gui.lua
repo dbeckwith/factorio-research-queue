@@ -24,6 +24,16 @@ local function tech_progress(tech)
   end
 end
 
+local function can_pause_game(player)
+  if game.is_multiplayer() then
+    return false
+  end
+  if player.controller_type == defines.controllers.editor then
+    return false
+  end
+  return true
+end
+
 local function update_etcs(player)
   local player_data = global.players[player.index]
   local gui_data = player_data.gui
@@ -713,10 +723,12 @@ local function open(player)
   gui_data.window.visible = true
   player.opened = gui_data.window
   player.set_shortcut_toggled('sonaxaton-research-queue', true)
-
   if gui_data.search.visible then
     gui_data.search.focus()
     gui_data.search.select_all()
+  end
+  if can_pause_game(player) then
+    game.tick_paused = true
   end
 
   update_search(player)
@@ -734,6 +746,9 @@ local function close(player)
   end
   player.set_shortcut_toggled('sonaxaton-research-queue', false)
   player_data.closed_tick = game.tick
+  if can_pause_game(player) then
+    game.tick_paused = false
+  end
 end
 
 local function toggle(player)

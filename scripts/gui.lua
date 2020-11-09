@@ -547,7 +547,7 @@ local function create_guis(player)
                       save_as = 'techs',
                       type = 'table',
                       style = 'rq_tech_list_table',
-                      column_count = 5,
+                      column_count = 7,
                     },
                   },
                 },

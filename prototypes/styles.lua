@@ -71,13 +71,13 @@ end
 styles.rq_main_window = {
   type = 'frame_style',
   parent = 'inner_frame_in_outer_frame',
-  height = 500,
+  height = 770,
 }
 
 styles.rq_settings_window = {
   type = 'frame_style',
   parent = 'inner_frame_in_outer_frame',
-  height = 500,
+  height = 770,
 }
 
 styles.rq_list_box = {
@@ -93,7 +93,7 @@ styles.rq_list_box = {
 styles.rq_tech_list_list_box = {
   type = 'scroll_pane_style',
   parent = 'rq_list_box',
-  width = 4+5*tech_list_tech_button_size+4+12,
+  width = 4+7*tech_list_tech_button_size+4+12,
   background_graphical_set = {
     position = {282, 17},
     corner_size = 8,

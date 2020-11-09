@@ -672,11 +672,18 @@ local function destroy_guis(player)
   local player_data = global.players[player.index]
   local gui_data = player_data.gui
 
+  if gui_data.window.visible and can_pause_game(player) then
+    game.tick_paused = false
+  end
+
   gui_data.window.destroy()
 
   player_data.gui = nil
   player_data.filter = nil
   player_data.translations = nil
+  player_data.tech_ingredients = nil
+  player_data.closed_tick = nil
+  player_data.last_research_speed_estimate = nil
 end
 
 local function focus_search(player)

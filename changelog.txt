@@ -1,4 +1,11 @@
 ---------------------------------------------------------------------------------------------------
+Version: 0.4.5
+Date: 2020-11-09
+  Features:
+    - Added mod setting to pause the game while the window is open like the vanilla GUI does (off by default)
+  Changes:
+    - Made the window bigger
+---------------------------------------------------------------------------------------------------
 Version: 0.4.4
 Date: 2020-11-05
   Bugfixes:

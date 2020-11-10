@@ -155,7 +155,10 @@ eventlib.on_configuration_changed(function(event)
 
   for _, force in pairs(game.forces) do
     deinit_force(force)
-    init_force(force, saved_queues[force.index], saved_queue_paused[force.index])
+    init_force(
+      force,
+      saved_queues[force.index],
+      saved_queue_paused[force.index])
   end
 
   for _, player in pairs(game.players) do

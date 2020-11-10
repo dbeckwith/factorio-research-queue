@@ -25,6 +25,9 @@ local function tech_progress(tech)
 end
 
 local function can_pause_game(player)
+  if not settings.get_player_settings(player)['rq-pause-game'].value then
+    return false
+  end
   if game.is_multiplayer() then
     return false
   end

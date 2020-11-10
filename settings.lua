@@ -6,4 +6,11 @@ data:extend{
     setting_type = 'runtime-per-user',
     default_value = true,
   },
+  {
+    type = 'bool-setting',
+    name = 'rq-pause-game',
+    order = 'b',
+    setting_type = 'runtime-per-user',
+    default_value = false,
+  },
 }

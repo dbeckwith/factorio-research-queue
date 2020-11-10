@@ -167,34 +167,6 @@ local function start_translations(player)
   end
 end
 
-local function get_translated_strings(player, localised_strings)
-  local player_data = global.players[player.index]
-  local translation_data = player_data.translations
-  local translated_strings = {}
-  local requests = {}
-  for _, localised_string in ipairs(localised_strings) do
-    local key = get_localised_string_key(player, localised_string)
-    local translation_request = translation_data[key]
-    if translation_request ~= nil then
-      if translation_request.result ~= nil then
-        table.insert(translated_strings, translation_request.result)
-      end
-    else
-      translation_data[key] = {}
-      table.insert(requests, {
-        dictionary = 'search',
-        internal = key,
-        localised = localised_string,
-      })
-    end
-  end
-  if #requests > 0 then
-    translationlib.add_requests(player.index, requests)
-    start_translations(player)
-  end
-  return translated_strings
-end
-
 local function update_techs(player)
   local player_data = global.players[player.index]
   local gui_data = player_data.gui
@@ -285,40 +257,14 @@ local function update_techs(player)
           return true
         end
 
-        local localised_strings = {tech.localised_name, tech.localised_description}
-        for _, effect in ipairs(tech.effects) do
-          if effect.type == 'nothing' then
-            table.insert(localised_strings, effect.effect_description)
-          elseif effect.type == 'give-item' then
-            local item = game.item_prototypes[effect.item]
-            table.insert(localised_strings, item.localised_name)
-            -- table.insert(localised_strings, item.localised_description)
-          elseif effect.type == 'unlock-recipe' then
-            local recipe = game.recipe_prototypes[effect.recipe]
-            table.insert(localised_strings, recipe.localised_name)
-            -- table.insert(localised_strings, recipe.localised_description)
-          elseif effect.type == 'gun-speed' then
-            local ammo_category = game.ammo_category_prototypes[effect.ammo_category]
-            table.insert(localised_strings, ammo_category.localised_name)
-            -- table.insert(localised_strings, ammo_category.localised_description)
-          elseif effect.type == 'turret-attack' then
-            local entity = game.entity_prototypes[effect.turret_id]
-            table.insert(localised_strings, entity.localised_name)
-            -- table.insert(localised_strings, entity.localised_description)
-          else
-            table.insert(localised_strings,
-              {'modifier-description.'..effect.type, effect.modifier})
-          end
-        end
-
-        local strings = get_translated_strings(player, localised_strings)
+        local strings = player_data.translations[tech.name] or {}
 
         if next(strings) == nil then
           -- nothing translated yet, just call it a match
           return true
         end
 
-        for _, s in ipairs(strings) do
+        for _, s in pairs(strings) do
           if util.fuzzy_search(s, search_terms) then
             return true
           end
@@ -666,6 +612,51 @@ local function create_guis(player)
   player_data.tech_ingredients = tech_ingredients
   player_data.translations = {}
 
+  do
+    local requests = {}
+
+    for _, tech in pairs(player.force.technologies) do
+      local function add_request(localised_string)
+        local key = get_localised_string_key(player, localised_string)
+        local request = {
+          dictionary = tech.name,
+          internal = key,
+          localised = localised_string,
+        }
+        table.insert(requests, request)
+      end
+
+      add_request(tech.localised_name)
+      add_request(tech.localised_description)
+      for _, effect in ipairs(tech.effects) do
+        if effect.type == 'nothing' then
+          add_request(effect.effect_description)
+        elseif effect.type == 'give-item' then
+          local item = game.item_prototypes[effect.item]
+          add_request(item.localised_name)
+          -- add_request(item.localised_description)
+        elseif effect.type == 'unlock-recipe' then
+          local recipe = game.recipe_prototypes[effect.recipe]
+          add_request(recipe.localised_name)
+          -- add_request(recipe.localised_description)
+        elseif effect.type == 'gun-speed' then
+          local ammo_category = game.ammo_category_prototypes[effect.ammo_category]
+          add_request(ammo_category.localised_name)
+          -- add_request(ammo_category.localised_description)
+        elseif effect.type == 'turret-attack' then
+          local entity = game.entity_prototypes[effect.turret_id]
+          add_request(entity.localised_name)
+          -- add_request(entity.localised_description)
+        else
+          add_request{'modifier-description.'..effect.type, effect.modifier}
+        end
+      end
+    end
+
+    translationlib.add_requests(player.index, requests)
+    start_translations(player)
+  end
+
   auto_select_tech_ingredients(player)
   update_queue(player)
   update_techs(player)
@@ -880,13 +871,15 @@ local function on_string_translated(player, event)
     local player_data = global.players[player.index]
     local translation_data = player_data.translations
 
-    if event.translated and sort_data.search ~= nil then
-      for _, key in ipairs(sort_data.search) do
-        local result = event.result
-        if translation_data[key] == nil then
-          translation_data[key] = {}
+    if event.translated then
+      for tech_name, keys in pairs(sort_data) do
+        for _, key in ipairs(keys) do
+          local result = event.result
+          if translation_data[tech_name] == nil then
+            translation_data[tech_name] = {}
+          end
+          translation_data[tech_name][key] = result
         end
-        translation_data[key].result = result
       end
     end
 

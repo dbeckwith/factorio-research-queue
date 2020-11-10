@@ -161,13 +161,16 @@ eventlib.on_configuration_changed(function(event)
       saved_queue_paused[force.index])
   end
 
+  if init then
+    translationlib.init()
+  end
+
   for _, player in pairs(game.players) do
     deinit_player(player)
     init_player(player)
   end
 
   if init then
-    translationlib.init()
     guilib.check_filter_validity()
   end
 end)

@@ -5,6 +5,8 @@ Date: 2020-11-09
     - Added mod setting to pause the game while the window is open like the vanilla GUI does (off by default)
   Changes:
     - Made the window bigger
+  Minor Changes:
+    - Translate all terms used for search on mod startup instead of on-demand
 ---------------------------------------------------------------------------------------------------
 Version: 0.4.4
 Date: 2020-11-05

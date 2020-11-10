@@ -89,11 +89,11 @@ local function update_queue(player, new_tech)
   gui_data.tech_queue_progressbars = nil
   local is_head = true
   if queue.is_paused(force) then
-    gui_data.frame_pause_toggle_button.style = 'rq_frame_action_button_green'
-    gui_data.frame_pause_toggle_button.sprite = 'rq-play-white'
-    gui_data.frame_pause_toggle_button.hovered_sprite = 'rq-play-black'
-    gui_data.frame_pause_toggle_button.clicked_sprite = 'rq-play-black'
-    gui_data.frame_pause_toggle_button.tooltip = {'sonaxaton-research-queue.queue-play-button-tooltip'}
+    gui_data.queue_pause_toggle_button.style = 'rq_frame_action_button_green'
+    gui_data.queue_pause_toggle_button.sprite = 'rq-play-white'
+    gui_data.queue_pause_toggle_button.hovered_sprite = 'rq-play-black'
+    gui_data.queue_pause_toggle_button.clicked_sprite = 'rq-play-black'
+    gui_data.queue_pause_toggle_button.tooltip = {'sonaxaton-research-queue.queue-play-button-tooltip'}
     guilib.build(gui_data.queue_head, {
       {
         type = 'flow',
@@ -112,11 +112,11 @@ local function update_queue(player, new_tech)
     })
     is_head = false
   else
-    gui_data.frame_pause_toggle_button.style = 'rq_frame_action_button_red'
-    gui_data.frame_pause_toggle_button.sprite = 'rq-pause-white'
-    gui_data.frame_pause_toggle_button.hovered_sprite = 'rq-pause-black'
-    gui_data.frame_pause_toggle_button.clicked_sprite = 'rq-pause-black'
-    gui_data.frame_pause_toggle_button.tooltip = {'sonaxaton-research-queue.queue-pause-button-tooltip'}
+    gui_data.queue_pause_toggle_button.style = 'rq_frame_action_button_red'
+    gui_data.queue_pause_toggle_button.sprite = 'rq-pause-white'
+    gui_data.queue_pause_toggle_button.hovered_sprite = 'rq-pause-black'
+    gui_data.queue_pause_toggle_button.clicked_sprite = 'rq-pause-black'
+    gui_data.queue_pause_toggle_button.tooltip = {'sonaxaton-research-queue.queue-pause-button-tooltip'}
   end
   local new_tech_element = nil
   local items_gui_data = {}
@@ -477,7 +477,7 @@ local function create_guis(player)
                   tooltip = {'sonaxaton-research-queue.search-tooltip'},
                 },
                 {
-                  save_as = 'frame_pause_toggle_button',
+                  save_as = 'queue_pause_toggle_button',
                   template = 'frame_action_button',
                   handlers = 'queue_pause_toggle_button',
                   sprite = 'utility/play',
@@ -584,14 +584,14 @@ local function create_guis(player)
                 {
                   save_as = 'researched_techs_checkbox',
                   type = 'checkbox',
-                  handlers = 'filter_researched_checkbox',
+                  handlers = 'researched_techs_checkbox',
                   caption = {'sonaxaton-research-queue.researched-techs-checkbox'},
                   state = false,
                 },
                 {
                   save_as = 'upgrade_techs_checkbox',
                   type = 'checkbox',
-                  handlers = 'filter_upgrade_checkbox',
+                  handlers = 'upgrade_techs_checkbox',
                   caption = {'sonaxaton-research-queue.upgrade-techs-checkbox'},
                   state = false,
                 },
@@ -1200,14 +1200,14 @@ guilib.add_handlers{
       end
     end,
   },
-  filter_researched_checkbox = {
+  researched_techs_checkbox = {
     on_gui_click = function(event)
       local player = game.players[event.player_index]
       toggle_researched_filter(player)
       update_techs(player)
     end
   },
-  filter_upgrade_checkbox = {
+  upgrade_techs_checkbox = {
     on_gui_click = function(event)
       local player = game.players[event.player_index]
       toggle_upgrade_filter(player)

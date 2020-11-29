@@ -1,10 +1,12 @@
 {
   "name": "sonaxaton-research-queue",
-  "version": "0.4.5",
+  "version": "0.4.6",
   "title": "Improved Research Queue",
   "author": "sonaxaton",
   "homepage": "https://mods.factorio.com/mod/sonaxaton-research-queue",
   "description": "A better GUI for managing the research queue.",
-  "factorio_version": "1.0",
-  "dependencies": ["flib >= 0.5.0"]
+  "factorio_version": "1.1",
+  "dependencies": [
+    "flib >= 0.6.0"
+  ]
 }

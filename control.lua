@@ -67,12 +67,12 @@ end
 function init_player(player)
   global.players[player.index] = {}
 
-  gui.create_guis(player)
+  gui.init(player)
 end
 
 function deinit_player(player)
   translationlib.cancel(player.index)
-  gui.destroy_guis(player)
+  gui.deinit(player)
   guilib.remove_player_filters(player.index)
   global.players[player.index] = nil
 end

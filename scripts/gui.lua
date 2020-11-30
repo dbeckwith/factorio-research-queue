@@ -42,6 +42,8 @@ local function update_etcs(player)
   local gui_data = player_data.gui
   local force = player.force
 
+  if not gui_data.window.valid then return end
+
   local speed = player_data.last_research_speed_estimate or 0
   local is_head = true
   local etc = 0
@@ -68,6 +70,8 @@ local function update_progressbars(player)
   local gui_data = player_data.gui
   local force = player.force
 
+  if not gui_data.window.valid then return end
+
   for _, progressbars in ipairs{
     gui_data.tech_list_progressbars,
     gui_data.tech_queue_progressbars,
@@ -85,6 +89,8 @@ local function update_queue(player, new_tech)
   local player_data = global.players[player.index]
   local gui_data = player_data.gui
   local force = player.force
+
+  if not gui_data.window.valid then return end
 
   gui_data.queue_head.clear()
   gui_data.queue.clear()
@@ -173,6 +179,8 @@ local function update_techs(player)
   local filter_data = player_data.filter
   local tech_ingredients = player_data.tech_ingredients
   local force = player.force
+
+  if not gui_data.window.valid then return end
 
   do
     local enabled = filter_data.researched
@@ -336,6 +344,8 @@ local function update_search(player)
   local gui_data = player_data.gui
   local filter_data = player_data.filter
 
+  if not gui_data.window.valid then return end
+
   local search_text = gui_data.search.text
   filter_data.search_terms = util.prepare_search_terms(search_text)
 end
@@ -378,8 +388,6 @@ local function auto_select_tech_ingredients(player)
 end
 
 local function create_guis(player)
-  local force = player.force
-
   local gui_data = guilib.build(player.gui.screen, {
     {
       save_as = 'window',
@@ -579,6 +587,15 @@ local function create_guis(player)
   gui_data.main_titlebar.drag_target = gui_data.window
   gui_data.settings_titlebar.drag_target = gui_data.window
 
+  local player_data = global.players[player.index]
+  player_data.gui = gui_data
+end
+
+local function init(player)
+  create_guis(player)
+
+  local force = player.force
+
   local tech_ingredients = {}
   for _, item in pairs(game.get_filtered_item_prototypes{{filter='tool'}}) do
     local is_tech_ingredient = (function()
@@ -607,7 +624,6 @@ local function create_guis(player)
   }
 
   local player_data = global.players[player.index]
-  player_data.gui = gui_data
   player_data.filter = filter_data
   player_data.tech_ingredients = tech_ingredients
   player_data.translations = {}
@@ -662,15 +678,17 @@ local function create_guis(player)
   update_techs(player)
 end
 
-local function destroy_guis(player)
+local function deinit(player)
   local player_data = global.players[player.index]
   local gui_data = player_data.gui
 
-  if gui_data.window.visible and can_pause_game(player) then
-    game.tick_paused = false
-  end
+  if gui_data.window.valid then
+    if gui_data.window.visible and can_pause_game(player) then
+      game.tick_paused = false
+    end
 
-  gui_data.window.destroy()
+    gui_data.window.destroy()
+  end
 
   player_data.gui = nil
   player_data.filter = nil
@@ -683,6 +701,8 @@ end
 local function focus_search(player)
   local player_data = global.players[player.index]
   local gui_data = player_data.gui
+
+  if not gui_data.window.valid then return end
 
   if gui_data.window.visible then
     if not gui_data.search.visible then
@@ -700,6 +720,8 @@ end
 local function toggle_search(player)
   local player_data = global.players[player.index]
   local gui_data = player_data.gui
+
+  if not gui_data.window.valid then return end
 
   if gui_data.window.visible then
     if not gui_data.search.visible then
@@ -721,6 +743,11 @@ local function open(player)
   local player_data = global.players[player.index]
   local gui_data = player_data.gui
 
+  if not gui_data.window.valid then
+    create_guis(player)
+    gui_data = player_data.gui
+  end
+
   gui_data.window.visible = true
   player.opened = gui_data.window
   player.set_shortcut_toggled('sonaxaton-research-queue', true)
@@ -737,26 +764,30 @@ local function open(player)
   update_techs(player)
 end
 
+-- FIXME: when K2 wiki force-clears my GUI, this doesn't run, game stuck paused
+
 local function close(player)
   local player_data = global.players[player.index]
   local gui_data = player_data.gui
 
-  gui_data.window.visible = false
-  if player.opened == gui_data.window then
-    player.opened = nil
+  if gui_data.window.valid then
+    gui_data.window.visible = false
+    if player.opened == gui_data.window then
+      player.opened = nil
+    end
+    player_data.closed_tick = game.tick
+    if can_pause_game(player) then
+      game.tick_paused = false
+    end
   end
   player.set_shortcut_toggled('sonaxaton-research-queue', false)
-  player_data.closed_tick = game.tick
-  if can_pause_game(player) then
-    game.tick_paused = false
-  end
 end
 
 local function toggle(player)
   local player_data = global.players[player.index]
   local gui_data = player_data.gui
 
-  if gui_data.window.visible then
+  if gui_data.window.valid and gui_data.window.visible then
     close(player)
   else
     open(player)
@@ -767,7 +798,7 @@ local function on_technology_gui_opened(player)
   local player_data = global.players[player.index]
   local gui_data = player_data.gui
 
-  if player_data.closed_tick == game.tick then
+  if gui_data.window.valid and player_data.closed_tick == game.tick then
     -- if the window was closed in the same tick that the tech gui was opened,
     -- keep the window visible in the background
     -- when the tech gui is closed, the window will be officially opened and
@@ -788,7 +819,7 @@ local function on_technology_gui_closed(player)
     update_techs(player)
   end
 
-  if gui_data.window.visible then
+  if gui_data.window.valid and gui_data.window.visible then
     -- after the tech gui is closed, if the window was still visible, make it
     -- the official opened gui of the player
     open(player)
@@ -854,7 +885,7 @@ local function on_research_speed_estimate(force, speed)
 
     player_data.last_research_speed_estimate = speed
 
-    if gui_data.window.visible then
+    if gui_data.window.valid and gui_data.window.visible then
       update_etcs(player)
       update_progressbars(player)
     end
@@ -1371,8 +1402,8 @@ guilib.add_handlers{
 }
 
 return {
-  create_guis = create_guis,
-  destroy_guis = destroy_guis,
+  init = init,
+  deinit = deinit,
   on_research_started = on_research_started,
   on_research_finished = on_research_finished,
   on_string_translated = on_string_translated,

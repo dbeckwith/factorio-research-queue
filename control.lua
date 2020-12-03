@@ -208,7 +208,9 @@ end)
 
 eventlib.on_player_changed_force(function(event)
   local player = game.players[event.player_index]
-  gui.update(player)
+  if game.players[player.index] ~= nil then
+    gui.update(player)
+  end
 end)
 
 eventlib.on_lua_shortcut(function(event)
@@ -234,24 +236,32 @@ end)
 eventlib.register('rq-focus-search', function(event)
   local player = game.players[event.player_index]
   if player ~= nil then
-    gui.focus_search(player)
+    if global.players[player.index] ~= nil then
+      gui.focus_search(player)
+    end
   end
 end)
 
 eventlib.on_research_started(function(event)
   local force = event.research.force
-  gui.on_research_started(force, event.research, event.last_research)
+  if global.forces[force.index] ~= nil then
+    gui.on_research_started(force, event.research, event.last_research)
+  end
 end)
 
 eventlib.on_research_finished(function(event)
   local force = event.research.force
-  gui.on_research_finished(force, event.research)
+  if global.forces[force.index] ~= nil then
+    gui.on_research_finished(force, event.research)
+  end
 end)
 
 eventlib.on_string_translated(function(event)
   local player = game.players[event.player_index]
   if player ~= nil then
-    gui.on_string_translated(player, event)
+    if global.players[player.index] ~= nil then
+      gui.on_string_translated(player, event)
+    end
   end
 end)
 
@@ -259,8 +269,10 @@ eventlib.on_gui_opened(function(event)
   if not guilib.dispatch_handlers(event) then
     local player = game.players[event.player_index]
     if player ~= nil then
-      if event.gui_type == defines.gui_type.research then
-        gui.on_technology_gui_opened(player)
+      if global.players[player.index] ~= nil then
+        if event.gui_type == defines.gui_type.research then
+          gui.on_technology_gui_opened(player)
+        end
       end
     end
   end
@@ -270,8 +282,10 @@ eventlib.on_gui_closed(function(event)
   if not guilib.dispatch_handlers(event) then
     local player = game.players[event.player_index]
     if player ~= nil then
-      if event.gui_type == defines.gui_type.research then
-        gui.on_technology_gui_closed(player)
+      if global.players[player.index] ~= nil then
+        if event.gui_type == defines.gui_type.research then
+          gui.on_technology_gui_closed(player)
+        end
       end
     end
   end

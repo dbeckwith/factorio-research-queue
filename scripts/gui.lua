@@ -845,10 +845,7 @@ local function on_research_finished(force, tech)
     local tech_ingredients = player_data.tech_ingredients
 
     if settings.get_player_settings(player)['rq-notifications'].value then
-      player.print{'',
-        '[color=150,206,130]',
-        {'sonaxaton-research-queue.notification', tech.name},
-        '[/color]'}
+      player.print{'sonaxaton-research-queue.notification', tech.name}
     end
 
     for _, tech_ingredient in ipairs(tech_ingredients) do

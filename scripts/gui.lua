@@ -764,8 +764,6 @@ local function open(player)
   update_techs(player)
 end
 
--- FIXME: when K2 wiki force-clears my GUI, this doesn't run, game stuck paused
-
 local function close(player)
   local player_data = global.players[player.index]
   local gui_data = player_data.gui

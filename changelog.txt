@@ -1,4 +1,11 @@
 ---------------------------------------------------------------------------------------------------
+Version: 0.4.9
+Date: 2020-12-12
+  Features:
+    - Added total number of science packs needed to research a technology in the queue to the ETC tooltip
+  Bugfixes:
+    - Fixed crash on load while saving queue for forces created by other mods
+---------------------------------------------------------------------------------------------------
 Version: 0.4.8
 Date: 2020-12-04
   Bugfixes:

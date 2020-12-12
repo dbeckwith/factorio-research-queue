@@ -26,6 +26,7 @@ local queue_saves = {
     version = '0.3.3',
     save = function(force)
       for _, player in pairs(force.players) do
+        if global.players[player.index] == nil then return end
         local player_data = global.players[player.index]
         local tech_names = {}
         for _, tech in ipairs(player_data.queue) do
@@ -53,6 +54,7 @@ function lookup_queue_save(version)
     end
   end
   return function(force)
+    if global.forces[force.index] == nil then return end
     local tech_names = {}
     for tech in queue.iter(force) do
       if tech.valid then
@@ -129,6 +131,7 @@ eventlib.on_configuration_changed(function(event)
     local queue_save = lookup_queue_save(version)
 
     for _, force in pairs(game.forces) do
+      log('saving queue for '..force.name)
       local saved_queue, paused = queue_save(force)
       log('saved queue for '..force.name..': '..serpent.line({ queue = saved_queue, paused = paused }))
       saved_queues[force.index] = saved_queue

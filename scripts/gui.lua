@@ -46,7 +46,7 @@ local function update_etcs(player)
 
   local speed = player_data.last_research_speed_estimate or 0
   local etc = 0
-  local science_pack_totals = {}
+  local tech_ingredient_totals = {}
   for tech in queue.iter(force) do
     local progress = tech_progress(tech)
 
@@ -64,18 +64,18 @@ local function update_etcs(player)
     gui_data.etc_labels[tech.name].caption = etc_text
 
     for _, ingredient in ipairs(tech.research_unit_ingredients) do
-      science_pack_totals[ingredient.name] =
-        (science_pack_totals[ingredient.name] or 0) +
+      tech_ingredient_totals[ingredient.name] =
+        (tech_ingredient_totals[ingredient.name] or 0) +
         (1-progress) *
         tech.research_unit_count *
         ingredient.amount
     end
 
-    local science_pack_totals_text = '[font=count-font]'
+    local tech_ingredient_totals_text = '[font=count-font]'
     for _, ingredient in ipairs(player_data.tech_ingredients) do
-      amount = science_pack_totals[ingredient.name]
+      amount = tech_ingredient_totals[ingredient.name]
       if amount ~= nil and amount ~= 0 then
-        science_pack_totals_text = science_pack_totals_text ..
+        tech_ingredient_totals_text = tech_ingredient_totals_text ..
           string.format(
             '[img=%s/%s]%d ',
             'item',
@@ -83,12 +83,12 @@ local function update_etcs(player)
             amount)
       end
     end
-    science_pack_totals_text = science_pack_totals_text..'[/font]'
+    tech_ingredient_totals_text = tech_ingredient_totals_text..'[/font]'
     gui_data.etc_labels[tech.name].tooltip = {'',
       {'sonaxaton-research-queue.etc-label-tooltip', etc_text},
       '\n',
-      {'sonaxaton-research-queue.science-pack-totals-tooltip',
-        science_pack_totals_text}}
+      {'sonaxaton-research-queue.tech-ingredient-totals-tooltip',
+        tech_ingredient_totals_text}}
   end
 end
 

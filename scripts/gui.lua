@@ -863,7 +863,7 @@ local function on_research_started(force, tech, last_tech)
 end
 
 local function on_research_finished(force, tech)
-  queue.update(force)
+  queue.update(force, tech)
   for _, player in pairs(force.players) do
     local player_data = global.players[player.index]
     local filter_data = player_data.filter

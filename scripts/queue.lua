@@ -204,10 +204,13 @@ local function iter(force, queue)
   return util.iter_list(queue)
 end
 
-local function update(force, queue, paused)
+local function update(force, queue, paused, just_finished)
   local to_dequeue = {}
   for _, tech in ipairs(queue) do
-    if not is_researchable(force, queue, tech) then
+    if
+      just_finished ~= nil and tech.name == just_finished.name or
+      not is_researchable(force, queue, tech)
+    then
       table.insert(to_dequeue, tech)
     end
   end
@@ -338,10 +341,10 @@ return {
     local queue = force_data.queue
     return iter(force, queue)
   end,
-  update = function(force)
+  update = function(force, just_finished)
     local force_data = global.forces[force.index]
     local queue = force_data.queue
     local paused = force_data.queue_paused
-    return update(force, queue, paused)
+    return update(force, queue, paused, just_finished)
   end
 }

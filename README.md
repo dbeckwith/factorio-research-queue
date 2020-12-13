@@ -12,7 +12,7 @@ This mod adds a new GUI for managing a queue of research that's easier to use an
 * Removing a technology from the queue will remove everything that has it as a prerequisite as well
 * Easily search and filter technologies to research
 * Pause the research queue while you plan, then unpause and watch your queue go
-* See estimated time to completion for technologies in the queue
+* See estimated time to completion and total number of science packs needed for technologies in the queue
 * Receive a chat notification when a research finishes (can turn off in mod settings)
 * Works with any modded technologies and science packs
 * In multiplayer, players on the same team will share the same research queue

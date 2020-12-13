@@ -996,6 +996,7 @@ guilib.add_templates{
 
     local tooltip_lines = {
       {'', '[font=heading-2]', tech.localised_name, '[/font]'},
+      tech.localised_description,
       cost}
     if not researched then
       table.insert(tooltip_lines, {'sonaxaton-research-queue.tech-button-enqueue-last'})

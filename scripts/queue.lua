@@ -204,6 +204,15 @@ local function iter(force, queue)
   return util.iter_list(queue)
 end
 
+local function clear(force, force_data)
+  if force_data.queue_paused then
+    force_data.queue = {}
+  else
+    local head = force_data.queue[1]
+    force_data.queue = {head}
+  end
+end
+
 local function update(force, queue, paused, just_finished)
   local to_dequeue = {}
   for _, tech in ipairs(queue) do
@@ -335,6 +344,10 @@ return {
     local force_data = global.forces[force.index]
     local queue = force_data.queue
     return dequeue(force, queue, tech)
+  end,
+  clear = function(force)
+    local force_data = global.forces[force.index]
+    return clear(force, force_data)
   end,
   iter = function(force)
     local force_data = global.forces[force.index]

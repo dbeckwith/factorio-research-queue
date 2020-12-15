@@ -464,7 +464,16 @@ local function create_guis(player)
                   save_as = 'queue_pause_toggle_button',
                   template = 'frame_action_button',
                   handlers = 'queue_pause_toggle_button',
-                  sprite = 'utility/play',
+                },
+                {
+                  save_as = 'queue_clear_button',
+                  template = 'frame_action_button',
+                  style = 'rq_frame_action_button_red',
+                  handlers = 'queue_clear_button',
+                  sprite = 'utility/trash_white',
+                  hovered_sprite = 'utility/trash',
+                  clicked_sprite = 'utility/trash',
+                  tooltip = {'sonaxaton-research-queue.clear-tooltip'},
                 },
                 {
                   template = 'frame_action_button',
@@ -1412,6 +1421,18 @@ guilib.add_handlers{
       local player = game.players[event.player_index]
       local force = player.force
       queue.toggle_paused(force)
+      queue.update(force)
+      for _, player in pairs(force.players) do
+        update_queue(player)
+        update_techs(player)
+      end
+    end,
+  },
+  queue_clear_button = {
+    on_gui_click = function(event)
+      local player = game.players[event.player_index]
+      local force = player.force
+      queue.clear(force)
       queue.update(force)
       for _, player in pairs(force.players) do
         update_queue(player)

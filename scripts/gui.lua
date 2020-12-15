@@ -239,7 +239,7 @@ local function update_techs(player)
   local techs_list = {}
   local techs_set = {}
   for _, tech in pairs(force.technologies) do
-    local visible = (function()
+    local function is_tech_visible(tech)
       if not tech.enabled then
         return false
       end
@@ -312,8 +312,9 @@ local function update_techs(player)
       end
 
       return true
-    end)()
-    if visible then
+    end
+
+    if is_tech_visible(tech) then
       table.insert(techs_list, tech)
       techs_set[tech.name] = true
     end

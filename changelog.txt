@@ -1,4 +1,14 @@
 ---------------------------------------------------------------------------------------------------
+Version: 0.4.10
+Date: 2020-12-14
+  Features:
+    - Added technology description to tooltip
+    - Added button to clear the queue
+  Changes:
+    - Infinite technologies will now be removed from the queue once researched instead of staying as the current research until you removed it manually. It's currently not possible to queue up more than one level of an infinite research at a time. I'm working on making this possible but it's quite a big change to make to the code so it might take a while.
+  Bugfixes:
+    - Fixed that science packs created by rocket launches wouldn't be auto-selected once researched
+---------------------------------------------------------------------------------------------------
 Version: 0.4.9
 Date: 2020-12-12
   Features:

@@ -41,3 +41,7 @@ You can customize the the keyboard shortcut to open the Research Queue window in
 **Do not use the vanilla research queue with this mod**; this mod will most likely overwrite the vanilla queue. However, starting and cancelling research using the vanilla technology GUI will work fine with this mod. Starting a new research will add it to the start of the queue and unpause the queue. Cancelling the current research will pause the queue.
 
 While using this mod you probably want to turn off the vanilla setting that brings up the technology screen after every research since the mod will auto-select the next research for you if you have a queue set up. Disable the option under `Settings` -> `Interface` -> `Interaction` -> `Technology screen opens when research is completed`.
+
+## Known Issues
+
+* It's currently not possible to queue up more than one level of an infinite research at a time. I'm working on making this possible but it's quite a big change to make to the code so it might take a while.

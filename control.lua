@@ -1,4 +1,4 @@
-__rq_debug = true
+__rq_debug = false
 
 local eventlib = require('__flib__.event')
 local guilib = require('__flib__.gui')

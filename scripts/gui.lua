@@ -1022,6 +1022,8 @@ guilib.add_templates{
       first = false
     end
 
+    local level = string.match(tech.name, '-%d+$') and tech.level or nil
+
     return {
       type = 'flow',
       style = 'rq_tech_button_container_'..list_type,
@@ -1034,7 +1036,7 @@ guilib.add_templates{
           handlers = 'tech_button',
           sprite = 'technology/'..tech.name,
           tooltip = tooltip,
-          number = string.match(tech.name, '-%d+$') and tech.level or nil,
+          number = level,
           mouse_button_filter = {'left', 'right'},
         },
         {

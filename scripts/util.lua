@@ -126,31 +126,15 @@ function util.fuzzy_search(text, terms)
   return true
 end
 
-function is_rocket_silo_available(player)
-  -- find all rocket silo entities
-  for _, entity in pairs(game.get_filtered_entity_prototypes{
-    {filter='type', type='rocket-silo'},
-  }) do
-    -- get all items that create the rocket silo
-    for _, item in pairs(entity.items_to_place_this or {}) do
-      -- check if the item is a product of an enabled recipe
-      for _, recipe in pairs(player.force.recipes) do
-        if recipe.enabled then
-          for _, product in pairs(recipe.products) do
-            if product.type == 'item' and product.name == item.name then
-              return true
-            end
-          end
-        end
-      end
-    end
+function is_item_available_basic(force, item_name, recipe_name)
+  local recipes
+  if recipe_name ~= nil then
+    recipes = {force.recipes[recipe_name]}
+  else
+    recipes = force.recipes
   end
-  return false
-end
-
-function util.is_item_available(player, item_name)
   -- is it a product of any enabled recipe?
-  for _, recipe in pairs(player.force.recipes) do
+  for _, recipe in pairs(recipes) do
     if recipe.enabled then
       for _, product in pairs(recipe.products) do
         if product.type == 'item' and product.name == item_name then
@@ -162,9 +146,9 @@ function util.is_item_available(player, item_name)
 
   -- is it a mineable product of any resource?
   for _, entity in pairs(game.get_filtered_entity_prototypes{
-    {mod='and', filter='type', type='resource'},
-    {mod='and', filter='autoplace'},
-    {mod='and', filter='minable'},
+    {mode='and', filter='type', type='resource'},
+    {mode='and', filter='autoplace'},
+    {mode='and', filter='minable'},
   }) do
     if entity.mineable_properties.products ~= nil then
       for _, product in pairs(entity.mineable_properties.products) do
@@ -175,13 +159,39 @@ function util.is_item_available(player, item_name)
     end
   end
 
-  if is_rocket_silo_available(player) then
-    -- is it a rocket launch product of any item?
-    for _, item in pairs(game.item_prototypes) do
-      for _, product in pairs(item.rocket_launch_products) do
-        if product.type == 'item' and product.name == item_name then
-          -- is that item available?
-          if util.is_item_available(player, item.name) then
+  return false
+end
+
+function is_rocket_silo_available(force)
+  -- find all rocket silo entities
+  for _, entity in pairs(game.get_filtered_entity_prototypes{
+    {filter='type', type='rocket-silo'},
+  }) do
+    -- get all items that create the rocket silo
+    for _, item_stack in pairs(entity.items_to_place_this or {}) do
+      if is_item_available_basic(force, item_stack.name) then
+        return true
+      end
+    end
+  end
+
+  return false
+end
+
+function util.is_item_available(force, item_name, recipe_name)
+  if is_item_available_basic(force, item_name, recipe_name) then
+    return true
+  end
+
+  if is_rocket_silo_available(force) then
+    for _, item in pairs(game.get_filtered_item_prototypes{
+      {filter='has-rocket-launch-products'}
+    }) do
+      -- check if item is available
+      if is_item_available_basic(force, item.name, recipe_name) then
+        -- is it a rocket launch product?
+        for _, product in pairs(item.rocket_launch_products) do
+          if product.type == 'item' and product.name == item_name then
             return true
           end
         end

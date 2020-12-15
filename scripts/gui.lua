@@ -410,7 +410,7 @@ local function auto_select_tech_ingredients(player)
   local tech_ingredients = player_data.tech_ingredients
 
   for _, tech_ingredient in ipairs(tech_ingredients) do
-    filter_data.ingredients[tech_ingredient.name] = util.is_item_available(player, tech_ingredient.name)
+    filter_data.ingredients[tech_ingredient.name] = util.is_item_available(player.force, tech_ingredient.name)
   end
 end
 
@@ -874,24 +874,20 @@ local function on_research_finished(force, tech)
     end
 
     for _, tech_ingredient in ipairs(tech_ingredients) do
-      local newly_available = (function()
-        for _, effect in pairs(tech.effects) do
-          if effect.type == 'unlock-recipe' then
-            local recipe = game.recipe_prototypes[effect.recipe]
-            for _, product in pairs(recipe.products) do
-              if
-                product.type == 'item' and
-                product.name == tech_ingredient.name
-              then
+      if not filter_data.ingredients[tech_ingredient.name] then
+        local newly_available = (function()
+          for _, effect in pairs(tech.effects) do
+            if effect.type == 'unlock-recipe' then
+              if util.is_item_available(force, tech_ingredient.name, effect.recipe) then
                 return true
               end
             end
           end
+          return false
+        end)()
+        if newly_available then
+          filter_data.ingredients[tech_ingredient.name] = true
         end
-        return false
-      end)()
-      if newly_available then
-        filter_data.ingredients[tech_ingredient.name] = true
       end
     end
 

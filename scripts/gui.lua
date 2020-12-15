@@ -490,6 +490,7 @@ local function create_guis(player)
                   sprite = 'utility/close_white',
                   hovered_sprite = 'utility/close_black',
                   clicked_sprite = 'utility/close_black',
+                  tooltip = {'sonaxaton-research-queue.close-tooltip'},
                 },
               },
             },

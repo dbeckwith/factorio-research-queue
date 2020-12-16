@@ -308,17 +308,19 @@ local function update_techs(player)
     end
 
     local function add_tech(tech)
-      if is_tech_visible(tech) then
+      local visible = is_tech_visible(tech)
+      if visible then
         table.insert(techs_list, tech)
         techs_set[tech.id] = true
+      end
 
-        if
-          tech.infinite and
-          tech.level + 1 <= tech.tech.prototype.max_level
-        then
-          local next_level_tech = rqtech.new(tech.tech, tech.level + 1)
-          add_tech(next_level_tech)
-        end
+      if
+        (visible or rqtech.is_researched(tech)) and
+        tech.infinite and
+        tech.level + 1 <= tech.tech.prototype.max_level
+      then
+        local next_level_tech = rqtech.new(tech.tech, tech.level + 1)
+        add_tech(next_level_tech)
       end
     end
 

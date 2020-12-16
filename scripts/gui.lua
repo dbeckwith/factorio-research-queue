@@ -882,7 +882,7 @@ end
 
 local function on_research_finished(force, tech)
   tech = rqtech.new(tech, 'previous')
-  queue.update(force, tech)
+  queue.update(force)
   for _, player in pairs(force.players) do
     local player_data = global.players[player.index]
     local filter_data = player_data.filter

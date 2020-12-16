@@ -40,8 +40,18 @@ local function tech_dependencies(force, queue, tech)
 end
 
 local function tech_dependents(force, queue, tech)
+  local deps
+  if tech.infinite then
+    if tech.level < tech.tech.prototype.max_level then
+      deps = util.iter_once(rqtech.new(tech.tech, tech.level + 1))
+    else
+      deps = util.iter_empty()
+    end
+  else
+    deps = rqtech.iter(force)
+  end
   return util.iter_filter(
-    rqtech.iter(force),
+    deps,
     function(depdendent)
       return is_dependent(force, queue, depdendent, tech)
     end)
@@ -221,13 +231,10 @@ local function clear(force, force_data)
   end
 end
 
-local function update(force, queue, paused, just_finished)
+local function update(force, queue, paused)
   local to_dequeue = {}
   for _, tech in ipairs(queue) do
-    if
-      just_finished ~= nil and tech.id == just_finished.id or
-      not is_researchable(force, queue, tech)
-    then
+    if not is_researchable(force, queue, tech) then
       table.insert(to_dequeue, tech)
     end
   end
@@ -362,10 +369,10 @@ return {
     local queue = force_data.queue
     return iter(force, queue)
   end,
-  update = function(force, just_finished)
+  update = function(force)
     local force_data = global.forces[force.index]
     local queue = force_data.queue
     local paused = force_data.queue_paused
-    return update(force, queue, paused, just_finished)
+    return update(force, queue, paused)
   end
 }

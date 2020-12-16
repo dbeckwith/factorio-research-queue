@@ -42,6 +42,20 @@ function util.iter_map(iter, f)
   end
 end
 
+function util.iter_once(v)
+  return function()
+    local value = v
+    v = nil
+    return value
+  end
+end
+
+function util.iter_empty()
+  return function()
+    return nil
+  end
+end
+
 function util.compare(v1, v2)
   if v1 == nil then
     if v2 == nil then

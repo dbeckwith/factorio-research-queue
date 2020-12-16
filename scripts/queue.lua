@@ -1,3 +1,4 @@
+local rqtech = require('.rqtech')
 local util = require('.util')
 
 local function new(force, paused)
@@ -19,11 +20,11 @@ local function rotate(force, queue, i, j)
 end
 
 local function is_researchable(force, queue, tech)
-  return tech.enabled and not tech.researched
+  return tech.tech.enabled and not tech.tech.researched
 end
 
 local function is_dependency(force, queue, dependency, tech)
-  return is_researchable(force, queue, dependency) and tech.prerequisites[dependency.name] ~= nil
+  return is_researchable(force, queue, dependency) and tech.prerequisites[dependency.tech.name] ~= nil
 end
 
 local function is_dependent(force, queue, dependent, tech)
@@ -40,7 +41,7 @@ end
 
 local function tech_dependents(force, queue, tech)
   return util.iter_filter(
-    util.iter_values(force.technologies),
+    rqtech.iter(force),
     function(depdendent)
       return is_dependent(force, queue, depdendent, tech)
     end)
@@ -48,7 +49,7 @@ end
 
 local function queue_pos(force, queue, tech)
   for idx, queued_tech in ipairs(queue) do
-    if queued_tech.name == tech.name then
+    if queued_tech.id == tech.id then
       return idx
     end
   end
@@ -56,7 +57,7 @@ local function queue_pos(force, queue, tech)
 end
 
 local function is_head(force, queue, tech)
-  return queue[1] ~= nil and queue[1].name == tech.name
+  return queue[1] ~= nil and queue[1].id == tech.id
 end
 
 local function get_head(force, queue)
@@ -65,7 +66,7 @@ end
 
 local function queue_prev(force, queue, tech)
   for idx, queued_tech in ipairs(queue) do
-    if queued_tech.name == tech.name then
+    if queued_tech.id == tech.id then
       return idx
     end
   end
@@ -74,7 +75,7 @@ end
 
 local function in_queue(force, queue, tech)
   for _, queued_tech in ipairs(queue) do
-    if queued_tech.name == tech.name then
+    if queued_tech.id == tech.id then
       return true
     end
   end
@@ -98,7 +99,7 @@ local function dequeue(force, queue, tech)
     end
 
     for idx, queued_tech in ipairs(queue) do
-      if queued_tech.name == tech.name then
+      if queued_tech.id == tech.id then
         table.remove(queue, idx)
         break
       end
@@ -217,7 +218,7 @@ local function update(force, queue, paused, just_finished)
   local to_dequeue = {}
   for _, tech in ipairs(queue) do
     if
-      just_finished ~= nil and tech.name == just_finished.name or
+      just_finished ~= nil and tech.id == just_finished.id or
       not is_researchable(force, queue, tech)
     then
       table.insert(to_dequeue, tech)
@@ -236,7 +237,7 @@ local function update(force, queue, paused, just_finished)
     force.research_queue_enabled = false
   end
   if not paused and next(queue) ~= nil then
-    force.research_queue = {queue[1]}
+    force.research_queue = {queue[1].tech}
   else
     force.research_queue = {}
   end

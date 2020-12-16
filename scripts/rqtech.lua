@@ -15,13 +15,6 @@ function rqtech.deinit_force(force)
 end
 
 function rqtech.new(tech, level)
-  local id = string.format('%s.%s', tech.name, level)
-
-  local cached_rqtech = global.rqtechs[tech.force.index][id]
-  if cached_rqtech ~= nil then
-    return cached_rqtech
-  end
-
   local level_from_name = string.match(tech.name, '-(%d+)$')
   if level_from_name ~= nil then
     level_from_name = tonumber(level_from_name)
@@ -29,13 +22,35 @@ function rqtech.new(tech, level)
   end
   if level == nil then
     level = level_from_name
+  elseif level == 'current' or level == 'previous' then
+    if tech.research_unit_count_formula ~= nil then
+      if level == 'current' then
+        level = tech.level
+      else
+        level = tech.level - 1
+      end
+    else
+      level = level_from_name
+    end
   end
   if level ~= nil then
     assert(level_from_name ~= nil)
     assert(level >= level_from_name)
-    assert(level <= tech.max_level)
+    assert(level <= tech.prototype.max_level)
   else
     assert(level_from_name == nil)
+  end
+
+  local id
+  if level == nil then
+    id = tech.name
+  else
+    id = string.format('%s:%s', tech.name, level)
+  end
+
+  local cached_rqtech = global.rqtechs[tech.force.index][id]
+  if cached_rqtech ~= nil then
+    return cached_rqtech
   end
 
   local upgrade_group
@@ -65,7 +80,7 @@ function rqtech.new(tech, level)
     end
   end
 
-  return {
+  local t = {
     id = id,
     tech = tech,
     level = level,
@@ -74,12 +89,33 @@ function rqtech.new(tech, level)
     research_unit_count = research_unit_count,
     prerequisites = prerequisites,
   }
+  global.rqtechs[tech.force.index][id] = t
+  return t
+end
+
+function rqtech.from_id(force, id)
+  return global.rqtechs[force.index][id]
 end
 
 function rqtech.iter(force)
   return util.iter_map(
     util.iter_values(force.technologies),
     rqtech.new)
+end
+
+function rqtech.progress(tech)
+  local force = tech.tech.force
+  if
+    force.current_research ~= nil and
+    force.current_research.name == tech.tech.name and
+    (tech.level == nil or force.current_research.level == tech.level)
+  then
+    return force.research_progress
+  elseif tech.tech.level == tech.level then
+    return force.get_saved_technology_progress(tech.tech) or 0
+  else
+    return 0
+  end
 end
 
 return rqtech

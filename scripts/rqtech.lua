@@ -111,7 +111,7 @@ function rqtech.progress(tech)
     (tech.level == nil or force.current_research.level == tech.level)
   then
     return force.research_progress
-  elseif tech.tech.level == tech.level then
+  elseif not tech.infinite or tech.tech.level == tech.level then
     return force.get_saved_technology_progress(tech.tech) or 0
   else
     return 0

@@ -849,7 +849,7 @@ end
 
 local function on_research_started(force, tech, last_tech)
   tech = rqtech.new(tech, 'current')
-  if not queue.is_head(force, tech) then
+  if not queue.is_head(force, tech, true) then
     queue.set_paused(force, false)
     queue.enqueue_head(force, tech)
     queue.update(force)

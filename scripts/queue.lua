@@ -56,8 +56,15 @@ local function queue_pos(force, queue, tech)
   return nil
 end
 
-local function is_head(force, queue, tech)
-  return queue[1] ~= nil and queue[1].id == tech.id
+local function is_head(force, queue, tech, ignore_level)
+  if queue[1] == nil then
+    return false
+  end
+  if ignore_level then
+    return queue[1].tech.name == tech.tech.name
+  else
+    return queue[1].id == tech.id
+  end
 end
 
 local function get_head(force, queue)
@@ -268,10 +275,10 @@ return {
     local queue = force_data.queue
     return in_queue(force, queue, tech)
   end,
-  is_head = function(force, tech)
+  is_head = function(force, tech, ignore_level)
     local force_data = global.forces[force.index]
     local queue = force_data.queue
-    return is_head(force, queue, tech)
+    return is_head(force, queue, tech, ignore_level)
   end,
   get_head = function(force)
     local force_data = global.forces[force.index]

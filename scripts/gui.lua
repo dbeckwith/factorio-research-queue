@@ -232,10 +232,7 @@ local function update_techs(player)
         return false
       end
 
-      if
-        not filter_data.upgrades and
-        (tech.tech.upgrade or tech.infinite)
-      then
+      if tech.tech.upgrade or tech.infinite then
         -- only include upgrade techs if they have a "significant" dependency
         local has_significant_dependency = (function()
           for _, dependency in pairs(tech.prerequisites) do
@@ -269,7 +266,19 @@ local function update_techs(player)
           end
           return false
         end)()
-        if not has_significant_dependency then return false end
+        if not has_significant_dependency then
+          -- if upgrades are hidden
+          if not filter_data.upgrades then
+            -- hide
+            return false
+          end
+
+          -- upgrades are not hidden
+          -- if the tech is infinite, still hide
+          if tech.infinite then
+            return false
+          end
+        end
       end
 
       local ingredients_filter = filter_data.ingredients

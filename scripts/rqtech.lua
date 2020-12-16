@@ -118,4 +118,12 @@ function rqtech.progress(tech)
   end
 end
 
+function rqtech.is_researched(tech)
+  if not tech.infinite then
+    return tech.tech.researched
+  else
+    return tech.tech.level > tech.level
+  end
+end
+
 return rqtech

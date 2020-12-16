@@ -228,31 +228,40 @@ local function update_techs(player)
         return false
       end
 
-      if not filter_data.researched and tech.tech.researched then
+      if not filter_data.researched and rqtech.is_researched(tech) then
         return false
       end
 
-      if not filter_data.upgrades and tech.tech.upgrade then
+      if
+        not filter_data.upgrades and
+        (tech.tech.upgrade or tech.infinite)
+      then
         -- only include upgrade techs if they have a "significant" dependency
         local has_significant_dependency = (function()
           for _, dependency in pairs(tech.prerequisites) do
             local is_significant_dependency = (function()
-              -- significant if not an upgrade
-              if not dependency.tech.upgrade then return true end
+              -- significant if not an upgrade or infinite
+              if not (dependency.tech.upgrade or dependency.infinite) then
+                return true
+              end
 
               -- is an upgrade
               -- significant if not in the same group
-              if not tech.upgrade_group ~= dependency.upgrade_group then
+              if tech.upgrade_group ~= dependency.upgrade_group then
                 return true
               end
 
               -- is an upgrade and in the same group
               -- significant if researched
-              if dependency.tech.researched then return true end
+              if rqtech.is_researched(dependency) then
+                return true
+              end
 
               -- is an upgrade, in the same group, and not researched
               -- significant if in the queue
-              if queue.in_queue(force, dependency) then return true end
+              if queue.in_queue(force, dependency) then
+                return true
+              end
 
               return false
             end)()
@@ -298,10 +307,22 @@ local function update_techs(player)
       return true
     end
 
-    if is_tech_visible(tech) then
-      table.insert(techs_list, tech)
-      techs_set[tech.id] = true
+    local function add_tech(tech)
+      if is_tech_visible(tech) then
+        table.insert(techs_list, tech)
+        techs_set[tech.id] = true
+
+        if
+          tech.infinite and
+          tech.level + 1 <= tech.tech.prototype.max_level
+        then
+          local next_level_tech = rqtech.new(tech.tech, tech.level + 1)
+          add_tech(next_level_tech)
+        end
+      end
     end
+
+    add_tech(tech)
   end
   util.sort_by_key(techs_list, function(tech)
     local ingredients = {}
@@ -967,7 +988,7 @@ guilib.add_templates{
     },
   },
   tech_button = function(tech, style)
-    local researched = tech.tech.researched
+    local researched = rqtech.is_researched(tech)
     local progress = rqtech.progress(tech)
     if researched then progress = 0 end
     local list_type =
@@ -1119,10 +1140,10 @@ guilib.add_templates{
     local researchable = queue.is_researchable(force, tech)
     local queued = queue.in_queue(force, tech)
     local queued_head = not queue.is_paused(force) and queue.is_head(force, tech)
-    local researched = tech.tech.researched
+    local researched = rqtech.is_researched(tech)
     local available = (function()
       for _, prereq in pairs(tech.prerequisites) do
-        if not prereq.tech.researched then
+        if not rqtech.is_researched(prereq) then
           return false
         end
       end
@@ -1290,7 +1311,7 @@ guilib.add_handlers{
       local tech = rqtech.from_id(force, tech_id)
       if event.button == defines.mouse_button_type.left then
         if not event.shift and not event.control and not event.alt then
-          if not tech.tech.researched then
+          if not rqtech.is_researched(tech) then
             queue.enqueue_tail(force, tech)
             queue.update(force)
             for _, player in pairs(force.players) do
@@ -1299,7 +1320,7 @@ guilib.add_handlers{
             end
           end
         elseif event.shift and not event.control and not event.alt then
-          if not tech.tech.researched then
+          if not rqtech.is_researched(tech) then
             queue.enqueue_before_head(force, tech)
             queue.update(force)
             for _, player in pairs(force.players) do
@@ -1312,7 +1333,7 @@ guilib.add_handlers{
         end
       elseif event.button == defines.mouse_button_type.right then
         if not event.shift and not event.control and not event.alt then
-          if not tech.tech.researched then
+          if not rqtech.is_researched(tech) then
             queue.dequeue(force, tech)
             queue.update(force)
             for _, player in pairs(force.players) do

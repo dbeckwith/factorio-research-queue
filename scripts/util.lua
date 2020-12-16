@@ -3,18 +3,18 @@ local util = {}
 function util.iter_list(list)
   local f, s, var = ipairs(list)
   return function()
-      local i, v = f(s, var)
-      var = i
-      return v
+    local i, v = f(s, var)
+    var = i
+    return v
   end
 end
 
 function util.iter_values(t)
   local f, s, var = pairs(t)
   return function()
-      local i, v = f(s, var)
-      var = i
-      return v
+    local i, v = f(s, var)
+    var = i
+    return v
   end
 end
 
@@ -23,12 +23,22 @@ function util.iter_filter(iter, f)
     while true do
       local value = iter()
       if value == nil then
-        break
+        return nil
       end
       if f(value) then
         return value
       end
     end
+  end
+end
+
+function util.iter_map(iter, f)
+  return function()
+    local value = iter()
+    if value == nil then
+      return nil
+    end
+    return f(value)
   end
 end
 

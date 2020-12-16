@@ -1,3 +1,4 @@
+local rqtech = require('.rqtech')
 local util = require('.util')
 
 local function new(force, paused)
@@ -19,11 +20,11 @@ local function rotate(force, queue, i, j)
 end
 
 local function is_researchable(force, queue, tech)
-  return tech.enabled and not tech.researched
+  return tech.tech.enabled and not rqtech.is_researched(tech)
 end
 
 local function is_dependency(force, queue, dependency, tech)
-  return is_researchable(force, queue, dependency) and tech.prerequisites[dependency.name] ~= nil
+  return is_researchable(force, queue, dependency) and tech.prerequisites[dependency.tech.name] ~= nil
 end
 
 local function is_dependent(force, queue, dependent, tech)
@@ -39,8 +40,18 @@ local function tech_dependencies(force, queue, tech)
 end
 
 local function tech_dependents(force, queue, tech)
+  local deps
+  if tech.infinite then
+    if tech.level < tech.tech.prototype.max_level then
+      deps = util.iter_once(rqtech.new(tech.tech, tech.level + 1))
+    else
+      deps = util.iter_empty()
+    end
+  else
+    deps = rqtech.iter(force)
+  end
   return util.iter_filter(
-    util.iter_values(force.technologies),
+    deps,
     function(depdendent)
       return is_dependent(force, queue, depdendent, tech)
     end)
@@ -48,15 +59,22 @@ end
 
 local function queue_pos(force, queue, tech)
   for idx, queued_tech in ipairs(queue) do
-    if queued_tech.name == tech.name then
+    if queued_tech.id == tech.id then
       return idx
     end
   end
   return nil
 end
 
-local function is_head(force, queue, tech)
-  return queue[1] ~= nil and queue[1].name == tech.name
+local function is_head(force, queue, tech, ignore_level)
+  if queue[1] == nil then
+    return false
+  end
+  if ignore_level then
+    return queue[1].tech.name == tech.tech.name
+  else
+    return queue[1].id == tech.id
+  end
 end
 
 local function get_head(force, queue)
@@ -65,7 +83,7 @@ end
 
 local function queue_prev(force, queue, tech)
   for idx, queued_tech in ipairs(queue) do
-    if queued_tech.name == tech.name then
+    if queued_tech.id == tech.id then
       return idx
     end
   end
@@ -74,7 +92,7 @@ end
 
 local function in_queue(force, queue, tech)
   for _, queued_tech in ipairs(queue) do
-    if queued_tech.name == tech.name then
+    if queued_tech.id == tech.id then
       return true
     end
   end
@@ -98,7 +116,7 @@ local function dequeue(force, queue, tech)
     end
 
     for idx, queued_tech in ipairs(queue) do
-      if queued_tech.name == tech.name then
+      if queued_tech.id == tech.id then
         table.remove(queue, idx)
         break
       end
@@ -213,13 +231,10 @@ local function clear(force, force_data)
   end
 end
 
-local function update(force, queue, paused, just_finished)
+local function update(force, queue, paused)
   local to_dequeue = {}
   for _, tech in ipairs(queue) do
-    if
-      just_finished ~= nil and tech.name == just_finished.name or
-      not is_researchable(force, queue, tech)
-    then
+    if not is_researchable(force, queue, tech) then
       table.insert(to_dequeue, tech)
     end
   end
@@ -236,7 +251,7 @@ local function update(force, queue, paused, just_finished)
     force.research_queue_enabled = false
   end
   if not paused and next(queue) ~= nil then
-    force.research_queue = {queue[1]}
+    force.research_queue = {queue[1].tech}
   else
     force.research_queue = {}
   end
@@ -267,10 +282,10 @@ return {
     local queue = force_data.queue
     return in_queue(force, queue, tech)
   end,
-  is_head = function(force, tech)
+  is_head = function(force, tech, ignore_level)
     local force_data = global.forces[force.index]
     local queue = force_data.queue
-    return is_head(force, queue, tech)
+    return is_head(force, queue, tech, ignore_level)
   end,
   get_head = function(force)
     local force_data = global.forces[force.index]
@@ -354,10 +369,10 @@ return {
     local queue = force_data.queue
     return iter(force, queue)
   end,
-  update = function(force, just_finished)
+  update = function(force)
     local force_data = global.forces[force.index]
     local queue = force_data.queue
     local paused = force_data.queue_paused
-    return update(force, queue, paused, just_finished)
+    return update(force, queue, paused)
   end
 }

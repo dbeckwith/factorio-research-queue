@@ -7,6 +7,7 @@ local translationlib = require('__flib__.translation')
 
 local gui = require('scripts.gui')
 local queue = require('scripts.queue')
+local rqtech = require('scripts.rqtech')
 
 local CURRENT_VERSION = script.active_mods[script.mod_name]
 
@@ -82,6 +83,8 @@ end
 function init_force(force, saved_queue, queue_paused)
   if global.forces[force.index] ~= nil then return end
 
+  rqtech.init_force(force)
+
   global.forces[force.index] = {}
 
   if saved_queue == nil then saved_queue = {} end
@@ -98,12 +101,15 @@ end
 
 function deinit_force(force)
   global.forces[force.index] = nil
+  rqtech.deinit_force(force)
 end
 
 eventlib.on_init(function()
   translationlib.init()
   guilib.init()
   guilib.build_lookup_tables()
+
+  rqtech.init()
 
   global.forces = {}
   for _, force in pairs(game.forces) do
@@ -155,6 +161,8 @@ eventlib.on_configuration_changed(function(event)
   else
     save_queues()
   end
+
+  rqtech.init()
 
   for _, force in pairs(game.forces) do
     deinit_force(force)

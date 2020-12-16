@@ -5,24 +5,8 @@ local guilib = require('__flib__.gui')
 local translationlib = require('__flib__.translation')
 
 local queue = require('.queue')
+local rqtech = require('.rqtech')
 local util = require('.util')
-
-local function is_same_tech_upgrade_group(tech1, tech2)
-  local group1 = string.match(tech1.name, '^(.+)-%d+$')
-  local group2 = string.match(tech2.name, '^(.+)-%d+$')
-  return group1 == group2
-end
-
-local function tech_progress(tech)
-  if
-    tech.force.current_research ~= nil and
-    tech.force.current_research.name == tech.name
-  then
-    return tech.force.research_progress
-  else
-    return tech.force.get_saved_technology_progress(tech) or 0
-  end
-end
 
 local function can_pause_game(player)
   if not settings.get_player_settings(player)['rq-pause-game'].value then
@@ -48,7 +32,7 @@ local function update_etcs(player)
   local etc = 0
   local tech_ingredient_totals = {}
   for tech in queue.iter(force) do
-    local progress = tech_progress(tech)
+    local progress = rqtech.progress(tech)
 
     local etc_text = ''
     if speed == 0 then
@@ -56,14 +40,14 @@ local function update_etcs(player)
     else
       etc = etc +
         (1-progress) *
-        (tech.research_unit_energy/60) *
+        (tech.tech.research_unit_energy/60) *
         tech.research_unit_count /
         speed
       etc_text = etc_text..util.format_duration(etc)
     end
-    gui_data.etc_labels[tech.name].caption = etc_text
+    gui_data.etc_labels[tech.id].caption = etc_text
 
-    for _, ingredient in ipairs(tech.research_unit_ingredients) do
+    for _, ingredient in ipairs(tech.tech.research_unit_ingredients) do
       tech_ingredient_totals[ingredient.name] =
         (tech_ingredient_totals[ingredient.name] or 0) +
         (1-progress) *
@@ -84,7 +68,7 @@ local function update_etcs(player)
       end
     end
     tech_ingredient_totals_text = tech_ingredient_totals_text..'[/font]'
-    gui_data.etc_labels[tech.name].tooltip = {'',
+    gui_data.etc_labels[tech.id].tooltip = {'',
       {'sonaxaton-research-queue.etc-label-tooltip', etc_text},
       '\n',
       {'sonaxaton-research-queue.tech-ingredient-totals-tooltip',
@@ -103,9 +87,9 @@ local function update_progressbars(player)
     gui_data.tech_list_progressbars,
     gui_data.tech_queue_progressbars,
   } do
-    for tech_name, progressbar in pairs(progressbars) do
-      local tech = force.technologies[tech_name]
-      local progress = tech_progress(tech)
+    for tech_id, progressbar in pairs(progressbars) do
+      local tech = rqtech.from_id(force, tech_id)
+      local progress = rqtech.progress(tech)
       progressbar.value = progress
       progressbar.visible = progress > 0
     end
@@ -161,7 +145,7 @@ local function update_queue(player, new_tech)
       guilib.templates.tech_queue_item(player, tech, is_head),
     })
     items_gui_data = futil.merge{items_gui_data, item_gui_data}
-    if new_tech ~= nil and new_tech.name == tech.name then
+    if new_tech ~= nil and new_tech.id == tech.id then
       if not is_head then
         new_tech_element = gui_data.queue.children[#gui_data.queue.children]
       else
@@ -238,37 +222,43 @@ local function update_techs(player)
 
   local techs_list = {}
   local techs_set = {}
-  for _, tech in pairs(force.technologies) do
-    local visible = (function()
-      if not tech.enabled then
+  for tech in rqtech.iter(force) do
+    local function is_tech_visible(tech)
+      if not tech.tech.enabled then
         return false
       end
 
-      if not filter_data.researched and tech.researched then
+      if not filter_data.researched and rqtech.is_researched(tech) then
         return false
       end
 
-      if not filter_data.upgrades and tech.upgrade then
+      if tech.tech.upgrade or tech.infinite then
         -- only include upgrade techs if they have a "significant" dependency
         local has_significant_dependency = (function()
           for _, dependency in pairs(tech.prerequisites) do
             local is_significant_dependency = (function()
-              -- significant if not an upgrade
-              if not dependency.upgrade then return true end
+              -- significant if not an upgrade or infinite
+              if not (dependency.tech.upgrade or dependency.infinite) then
+                return true
+              end
 
               -- is an upgrade
               -- significant if not in the same group
-              if not is_same_tech_upgrade_group(tech, dependency) then
+              if tech.upgrade_group ~= dependency.upgrade_group then
                 return true
               end
 
               -- is an upgrade and in the same group
               -- significant if researched
-              if dependency.researched then return true end
+              if rqtech.is_researched(dependency) then
+                return true
+              end
 
               -- is an upgrade, in the same group, and not researched
               -- significant if in the queue
-              if queue.in_queue(force, dependency) then return true end
+              if queue.in_queue(force, dependency) then
+                return true
+              end
 
               return false
             end)()
@@ -276,11 +266,23 @@ local function update_techs(player)
           end
           return false
         end)()
-        if not has_significant_dependency then return false end
+        if not has_significant_dependency then
+          -- if upgrades are hidden
+          if not filter_data.upgrades then
+            -- hide
+            return false
+          end
+
+          -- upgrades are not hidden
+          -- if the tech is infinite, still hide
+          if tech.infinite then
+            return false
+          end
+        end
       end
 
       local ingredients_filter = filter_data.ingredients
-      for _, ingredient in pairs(tech.research_unit_ingredients) do
+      for _, ingredient in pairs(tech.tech.research_unit_ingredients) do
         if not ingredients_filter[ingredient.name] then
           return false
         end
@@ -292,7 +294,7 @@ local function update_techs(player)
           return true
         end
 
-        local strings = player_data.translations[tech.name] or {}
+        local strings = player_data.translations[tech.tech.name] or {}
 
         if next(strings) == nil then
           -- nothing translated yet, just call it a match
@@ -312,17 +314,32 @@ local function update_techs(player)
       end
 
       return true
-    end)()
-    if visible then
-      table.insert(techs_list, tech)
-      techs_set[tech.name] = true
     end
+
+    local function add_tech(tech)
+      local visible = is_tech_visible(tech)
+      if visible then
+        table.insert(techs_list, tech)
+        techs_set[tech.id] = true
+      end
+
+      if
+        (visible or rqtech.is_researched(tech)) and
+        tech.infinite and
+        tech.level + 1 <= tech.tech.prototype.max_level
+      then
+        local next_level_tech = rqtech.new(tech.tech, tech.level + 1)
+        add_tech(next_level_tech)
+      end
+    end
+
+    add_tech(tech)
   end
   util.sort_by_key(techs_list, function(tech)
     local ingredients = {}
     for i, tech_ingredient in ipairs(tech_ingredients) do
       local has = false
-      for _, ingredient in ipairs(tech.research_unit_ingredients) do
+      for _, ingredient in ipairs(tech.tech.research_unit_ingredients) do
         if tech_ingredient.name == ingredient.name then
           has = true
           break
@@ -333,21 +350,22 @@ local function update_techs(player)
     return {
       ingredients,
       tech.research_unit_count,
-      tech.order,
-      tech.name,
+      tech.tech.order,
+      tech.tech.name,
+      tech.level,
     }
   end)
   do
     local topo_set = {}
     local topo_list = {}
     local function add(tech)
-      if topo_set[tech.name] then return end
-      if not techs_set[tech.name] then return end
+      if topo_set[tech.id] then return end
+      if not techs_set[tech.id] then return end
       for _, dep in pairs(tech.prerequisites) do
         add(dep)
       end
       table.insert(topo_list, tech)
-      topo_set[tech.name] = true
+      topo_set[tech.id] = true
     end
     for _, tech in ipairs(techs_list) do
       add(tech)
@@ -668,7 +686,7 @@ local function init(player)
   do
     local requests = {}
 
-    for _, tech in pairs(player.force.technologies) do
+    for _, tech in pairs(force.technologies) do
       local function add_request(localised_string)
         local key = get_localised_string_key(player, localised_string)
         local request = {
@@ -862,7 +880,8 @@ local function on_technology_gui_closed(player)
 end
 
 local function on_research_started(force, tech, last_tech)
-  if not queue.is_head(force, tech) then
+  tech = rqtech.new(tech, 'current')
+  if not queue.is_head(force, tech, true) then
     queue.set_paused(force, false)
     queue.enqueue_head(force, tech)
     queue.update(force)
@@ -873,20 +892,21 @@ local function on_research_started(force, tech, last_tech)
 end
 
 local function on_research_finished(force, tech)
-  queue.update(force, tech)
+  tech = rqtech.new(tech, 'previous')
+  queue.update(force)
   for _, player in pairs(force.players) do
     local player_data = global.players[player.index]
     local filter_data = player_data.filter
     local tech_ingredients = player_data.tech_ingredients
 
     if settings.get_player_settings(player)['rq-notifications'].value then
-      player.print{'sonaxaton-research-queue.notification', tech.name}
+      player.print{'sonaxaton-research-queue.notification', tech.tech.name}
     end
 
     for _, tech_ingredient in ipairs(tech_ingredients) do
       if not filter_data.ingredients[tech_ingredient.name] then
         local newly_available = (function()
-          for _, effect in pairs(tech.effects) do
+          for _, effect in pairs(tech.tech.effects) do
             if effect.type == 'unlock-recipe' then
               if util.is_item_available(force, tech_ingredient.name, effect.recipe) then
                 return true
@@ -979,8 +999,8 @@ guilib.add_templates{
     },
   },
   tech_button = function(tech, style)
-    local researched = tech.researched
-    local progress = tech_progress(tech)
+    local researched = rqtech.is_researched(tech)
+    local progress = rqtech.progress(tech)
     if researched then progress = 0 end
     local list_type =
       string.find(style, '^rq_tech_list') and
@@ -988,7 +1008,7 @@ guilib.add_templates{
         'tech_queue'
 
     local cost = '[[font=count-font]'
-    for _, ingredient in ipairs(tech.research_unit_ingredients) do
+    for _, ingredient in ipairs(tech.tech.research_unit_ingredients) do
       cost = cost .. string.format(
         '[img=%s/%s]%d ',
         ingredient.type,
@@ -997,12 +1017,12 @@ guilib.add_templates{
     end
     cost = cost .. string.format(
       '[img=quantity-time]%d[/font]][font=count-font][img=quantity-multiplier]%d[/font]',
-      tech.research_unit_energy / 60,
+      tech.tech.research_unit_energy / 60,
       tech.research_unit_count)
 
     local tooltip_lines = {
-      {'', '[font=heading-2]', tech.localised_name, '[/font]'},
-      tech.localised_description,
+      {'', '[font=heading-2]', tech.tech.localised_name, '[/font]'},
+      tech.tech.localised_description,
       cost}
     if not researched then
       table.insert(tooltip_lines, {'sonaxaton-research-queue.tech-button-enqueue-last'})
@@ -1022,23 +1042,25 @@ guilib.add_templates{
       first = false
     end
 
+    local level = tech.level
+
     return {
       type = 'flow',
       style = 'rq_tech_button_container_'..list_type,
       direction = 'vertical',
       children = {
         {
-          name = 'tech_button.'..tech.name,
+          name = 'tech_button.'..tech.id,
           type = 'sprite-button',
           style = style,
           handlers = 'tech_button',
-          sprite = 'technology/'..tech.name,
+          sprite = 'technology/'..tech.tech.name,
           tooltip = tooltip,
-          number = string.match(tech.name, '-%d+$') and tech.level or nil,
+          number = level,
           mouse_button_filter = {'left', 'right'},
         },
         {
-          save_as = list_type..'_progressbars.'..tech.name,
+          save_as = list_type..'_progressbars.'..tech.id,
           type = 'progressbar',
           style = 'rq_tech_button_progressbar_'..list_type,
           value = progress,
@@ -1066,7 +1088,7 @@ guilib.add_templates{
                 tech,
                 'rq_tech_queue'..(is_head and '_head' or '')..'_item_tech_button'),
               {
-                save_as = 'etc_labels.'..tech.name,
+                save_as = 'etc_labels.'..tech.id,
                 type = 'label',
                 style = 'rq_etc_label',
                 caption = '[img=quantity-time][img=infinity]',
@@ -1080,13 +1102,13 @@ guilib.add_templates{
             direction = 'vertical',
             children = {
               {
-                name = 'shift_up_button.'..tech.name,
+                name = 'shift_up_button.'..tech.id,
                 type = 'button',
                 style = 'rq_tech_queue_item_shift_up_button',
                 handlers = 'shift_up_button',
                 tooltip =
                   shift_up_enabled and
-                    {'sonaxaton-research-queue.shift-up-button-tooltip', tech.localised_name} or
+                    {'sonaxaton-research-queue.shift-up-button-tooltip', tech.tech.localised_name} or
                     nil,
                 enabled = shift_up_enabled,
                 mouse_button_filter = {'left'},
@@ -1096,25 +1118,25 @@ guilib.add_templates{
                 style = 'flib_vertical_pusher',
               },
               {
-                name = 'dequeue_button.'..tech.name,
+                name = 'dequeue_button.'..tech.id,
                 template = 'tool_button',
                 style = 'rq_tech_queue_item_close_button',
                 handlers = 'dequeue_button',
                 sprite = 'utility/close_black',
-                tooltip = {'sonaxaton-research-queue.dequeue-button-tooltip', tech.localised_name},
+                tooltip = {'sonaxaton-research-queue.dequeue-button-tooltip', tech.tech.localised_name},
               },
               {
                 type = 'empty-widget',
                 style = 'flib_vertical_pusher',
               },
               {
-                name = 'shift_down_button.'..tech.name,
+                name = 'shift_down_button.'..tech.id,
                 type = 'button',
                 style = 'rq_tech_queue_item_shift_down_button',
                 handlers = 'shift_down_button',
                 tooltip =
                   shift_down_enabled and
-                    {'sonaxaton-research-queue.shift-down-button-tooltip', tech.localised_name} or
+                    {'sonaxaton-research-queue.shift-down-button-tooltip', tech.tech.localised_name} or
                     nil,
                 enabled = shift_down_enabled,
                 mouse_button_filter = {'left'},
@@ -1129,10 +1151,10 @@ guilib.add_templates{
     local researchable = queue.is_researchable(force, tech)
     local queued = queue.in_queue(force, tech)
     local queued_head = not queue.is_paused(force) and queue.is_head(force, tech)
-    local researched = tech.researched
+    local researched = rqtech.is_researched(tech)
     local available = (function()
       for _, prereq in pairs(tech.prerequisites) do
-        if not prereq.researched then
+        if not rqtech.is_researched(prereq) then
           return false
         end
       end
@@ -1148,7 +1170,7 @@ guilib.add_templates{
     local tech_list_tech_button_size = 64+8*2+8
     local ingredient_width = 16
     local ingredients = {}
-    for _, ingredient in ipairs(tech.research_unit_ingredients) do
+    for _, ingredient in ipairs(tech.tech.research_unit_ingredients) do
       table.insert(ingredients, {
         type = 'sprite',
         style = 'rq_tech_list_item_ingredient',
@@ -1193,30 +1215,30 @@ guilib.add_templates{
             direction = 'horizontal',
             children = {
               {
-                name = 'enqueue_last_button.'..tech.name,
+                name = 'enqueue_last_button.'..tech.id,
                 template = 'tool_button',
                 style = 'rq_tech_list_item_tool_button',
                 handlers = 'enqueue_last_button',
                 sprite = 'rq-enqueue-last-black',
-                tooltip = {'sonaxaton-research-queue.enqueue-last-button-tooltip', tech.localised_name},
+                tooltip = {'sonaxaton-research-queue.enqueue-last-button-tooltip', tech.tech.localised_name},
                 enabled = researchable,
               },
               {
-                name = 'enqueue_second_button.'..tech.name,
+                name = 'enqueue_second_button.'..tech.id,
                 template = 'tool_button',
                 style = 'rq_tech_list_item_tool_button',
                 handlers = 'enqueue_second_button',
                 sprite = 'rq-enqueue-second-black',
-                tooltip = {'sonaxaton-research-queue.enqueue-second-button-tooltip', tech.localised_name},
+                tooltip = {'sonaxaton-research-queue.enqueue-second-button-tooltip', tech.tech.localised_name},
                 enabled = researchable,
               },
               {
-                name = 'enqueue_first_button.'..tech.name,
+                name = 'enqueue_first_button.'..tech.id,
                 template = 'tool_button',
                 style = 'rq_tech_list_item_tool_button',
                 handlers = 'enqueue_first_button',
                 sprite = 'rq-enqueue-first-black',
-                tooltip = {'sonaxaton-research-queue.enqueue-first-button-tooltip', tech.localised_name},
+                tooltip = {'sonaxaton-research-queue.enqueue-first-button-tooltip', tech.tech.localised_name},
                 enabled = researchable,
               },
             },
@@ -1295,12 +1317,12 @@ guilib.add_handlers{
   tech_button = {
     on_gui_click = function(event)
       local player = game.players[event.player_index]
-      local tech_name = string.match(event.element.name, '^tech_button%.(.+)$')
       local force = player.force
-      local tech = force.technologies[tech_name]
+      local tech_id = string.match(event.element.name, '^tech_button%.(.+)$')
+      local tech = rqtech.from_id(force, tech_id)
       if event.button == defines.mouse_button_type.left then
         if not event.shift and not event.control and not event.alt then
-          if not tech.researched then
+          if not rqtech.is_researched(tech) then
             queue.enqueue_tail(force, tech)
             queue.update(force)
             for _, player in pairs(force.players) do
@@ -1309,7 +1331,7 @@ guilib.add_handlers{
             end
           end
         elseif event.shift and not event.control and not event.alt then
-          if not tech.researched then
+          if not rqtech.is_researched(tech) then
             queue.enqueue_before_head(force, tech)
             queue.update(force)
             for _, player in pairs(force.players) do
@@ -1318,11 +1340,11 @@ guilib.add_handlers{
             end
           end
         elseif not event.shift and not event.control and event.alt then
-          player.open_technology_gui(tech.name)
+          player.open_technology_gui(tech.tech.name)
         end
       elseif event.button == defines.mouse_button_type.right then
         if not event.shift and not event.control and not event.alt then
-          if not tech.researched then
+          if not rqtech.is_researched(tech) then
             queue.dequeue(force, tech)
             queue.update(force)
             for _, player in pairs(force.players) do
@@ -1337,9 +1359,9 @@ guilib.add_handlers{
   enqueue_last_button = {
     on_gui_click = function(event)
       local player = game.players[event.player_index]
-      local tech_name = string.match(event.element.name, '^enqueue_last_button%.(.+)$')
       local force = player.force
-      local tech = force.technologies[tech_name]
+      local tech_id = string.match(event.element.name, '^enqueue_last_button%.(.+)$')
+      local tech = rqtech.from_id(force, tech_id)
       queue.enqueue_tail(force, tech)
       queue.update(force)
       for _, player in pairs(force.players) do
@@ -1351,9 +1373,9 @@ guilib.add_handlers{
   enqueue_second_button = {
     on_gui_click = function(event)
       local player = game.players[event.player_index]
-      local tech_name = string.match(event.element.name, '^enqueue_second_button%.(.+)$')
       local force = player.force
-      local tech = force.technologies[tech_name]
+      local tech_id = string.match(event.element.name, '^enqueue_second_button%.(.+)$')
+      local tech = rqtech.from_id(force, tech_id)
       queue.enqueue_before_head(force, tech)
       queue.update(force)
       for _, player in pairs(force.players) do
@@ -1365,9 +1387,9 @@ guilib.add_handlers{
   enqueue_first_button = {
     on_gui_click = function(event)
       local player = game.players[event.player_index]
-      local tech_name = string.match(event.element.name, '^enqueue_first_button%.(.+)$')
       local force = player.force
-      local tech = force.technologies[tech_name]
+      local tech_id = string.match(event.element.name, '^enqueue_first_button%.(.+)$')
+      local tech = rqtech.from_id(force, tech_id)
       queue.enqueue_head(force, tech)
       queue.update(force)
       for _, player in pairs(force.players) do
@@ -1379,9 +1401,9 @@ guilib.add_handlers{
   shift_up_button = {
     on_gui_click = function(event)
       local player = game.players[event.player_index]
-      local tech_name = string.match(event.element.name, '^shift_up_button%.(.+)$')
       local force = player.force
-      local tech = force.technologies[tech_name]
+      local tech_id = string.match(event.element.name, '^shift_up_button%.(.+)$')
+      local tech = rqtech.from_id(force, tech_id)
       queue[event.shift and 'shift_before_earliest' or 'shift_earlier'](force, tech)
       queue.update(force)
       for _, player in pairs(force.players) do
@@ -1392,9 +1414,9 @@ guilib.add_handlers{
   shift_down_button = {
     on_gui_click = function(event)
       local player = game.players[event.player_index]
-      local tech_name = string.match(event.element.name, '^shift_down_button%.(.+)$')
       local force = player.force
-      local tech = force.technologies[tech_name]
+      local tech_id = string.match(event.element.name, '^shift_down_button%.(.+)$')
+      local tech = rqtech.from_id(force, tech_id)
       queue[event.shift and 'shift_latest' or 'shift_later'](force, tech)
       queue.update(force)
       for _, player in pairs(force.players) do
@@ -1405,9 +1427,9 @@ guilib.add_handlers{
   dequeue_button = {
     on_gui_click = function(event)
       local player = game.players[event.player_index]
-      local tech_name = string.match(event.element.name, '^dequeue_button%.(.+)$')
       local force = player.force
-      local tech = force.technologies[tech_name]
+      local tech_id = string.match(event.element.name, '^dequeue_button%.(.+)$')
+      local tech = rqtech.from_id(force, tech_id)
       queue.dequeue(force, tech)
       queue.update(force)
       for _, player in pairs(force.players) do

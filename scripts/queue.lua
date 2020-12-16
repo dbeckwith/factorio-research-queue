@@ -41,12 +41,8 @@ end
 
 local function tech_dependents(force, queue, tech)
   local deps
-  if tech.infinite then
-    if tech.level < tech.tech.prototype.max_level then
-      deps = util.iter_once(rqtech.new(tech.tech, tech.level + 1))
-    else
-      deps = util.iter_empty()
-    end
+  if tech.infinite and tech.level < tech.tech.prototype.max_level then
+    deps = util.iter_once(rqtech.new(tech.tech, tech.level + 1))
   else
     deps = rqtech.iter(force)
   end

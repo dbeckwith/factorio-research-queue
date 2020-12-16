@@ -22,12 +22,14 @@ function rqtech.new(tech, level)
   end
   if level == nil then
     level = level_from_name
-  elseif level == 'current' or level == 'previous' then
+  elseif level == 'current' or level == 'previous' or level == 'max' then
     if tech.research_unit_count_formula ~= nil then
       if level == 'current' then
         level = tech.level
-      else
+      elseif level == 'previous' then
         level = tech.level - 1
+      else
+        level = tech.prototype.max_level
       end
     else
       level = level_from_name
@@ -76,7 +78,7 @@ function rqtech.new(tech, level)
   else
     prerequisites = {}
     for name, prerequisite in pairs(tech.prerequisites) do
-      prerequisites[name] = rqtech.new(prerequisite)
+      prerequisites[name] = rqtech.new(prerequisite, 'max')
     end
   end
 

@@ -18,7 +18,6 @@ function rqtech.new(tech, level)
   local level_from_name = string.match(tech.name, '-(%d+)$')
   if level_from_name ~= nil then
     level_from_name = tonumber(level_from_name)
-    assert(level_from_name >= 1)
   end
   if level == nil then
     level = level_from_name

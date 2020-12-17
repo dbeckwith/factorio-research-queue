@@ -1,4 +1,11 @@
 ---------------------------------------------------------------------------------------------------
+Version: 0.4.11
+Date: 2020-12-16
+  Features:
+    - Better support for multi-level and infinite technologies. If a technology has multiple levels or is infinite, you can now queue up individual levels as separate items in the queue.
+  Bugfixes:
+    - Performance improvements
+---------------------------------------------------------------------------------------------------
 Version: 0.4.10
 Date: 2020-12-14
   Features:

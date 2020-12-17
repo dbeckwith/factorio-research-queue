@@ -15,14 +15,18 @@ function rqtech.deinit_force(force)
 end
 
 function rqtech.new(tech, level)
+  local infinite = tech.research_unit_count_formula ~= nil
+
   local level_from_name = string.match(tech.name, '-(%d+)$')
   if level_from_name ~= nil then
     level_from_name = tonumber(level_from_name)
+  elseif infinite then
+    level_from_name = 1
   end
   if level == nil then
     level = level_from_name
   elseif level == 'current' or level == 'previous' or level == 'max' then
-    if tech.research_unit_count_formula ~= nil then
+    if infinite then
       if level == 'current' then
         level = tech.level
       elseif level == 'previous' then
@@ -73,7 +77,7 @@ function rqtech.new(tech, level)
   end
 
   local research_unit_count
-  if tech.research_unit_count_formula ~= nil then
+  if infinite then
     research_unit_count = game.evaluate_expression(tech.research_unit_count_formula, { L = level, l = level })
   else
     research_unit_count = tech.research_unit_count
@@ -94,7 +98,7 @@ function rqtech.new(tech, level)
     tech = tech,
     level = level,
     upgrade_group = upgrade_group,
-    infinite = tech.research_unit_count_formula ~= nil,
+    infinite = infinite,
     research_unit_count = research_unit_count,
     prerequisites = prerequisites,
   }

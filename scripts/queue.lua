@@ -20,7 +20,10 @@ local function rotate(force, queue, i, j)
 end
 
 local function is_researchable(force, queue, tech)
-  return tech.tech.enabled and not rqtech.is_researched(tech)
+  return
+    not tech.tech.prototype.hidden and
+    tech.tech.enabled and
+    not rqtech.is_researched(tech)
 end
 
 local function is_dependency(force, queue, dependency, tech)

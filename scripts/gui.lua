@@ -224,7 +224,7 @@ local function update_techs(player)
   local techs_set = {}
   for tech in rqtech.iter(force) do
     local function is_tech_visible(tech)
-      if not tech.tech.enabled then
+      if tech.tech.prototype.hidden or not tech.tech.enabled then
         return false
       end
 

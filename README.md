@@ -11,6 +11,7 @@ This mod adds a new GUI for managing a queue of research that's easier to use an
 * Adding an unavailable technology to the queue will add all of its prerequisites as well
 * Removing a technology from the queue will remove everything that has it as a prerequisite as well
 * Easily search and filter technologies to research
+* Queue up individual levels of infinite technologies
 * Pause the research queue while you plan, then unpause and watch your queue go
 * See estimated time to completion and total number of science packs needed for technologies in the queue
 * Receive a chat notification when a research finishes (can turn off in mod settings)
@@ -41,7 +42,3 @@ You can customize the the keyboard shortcut to open the Research Queue window in
 **Do not use the vanilla research queue with this mod**; this mod will most likely overwrite the vanilla queue. However, starting and cancelling research using the vanilla technology GUI will work fine with this mod. Starting a new research will add it to the start of the queue and unpause the queue. Cancelling the current research will pause the queue.
 
 While using this mod you probably want to turn off the vanilla setting that brings up the technology screen after every research since the mod will auto-select the next research for you if you have a queue set up. Disable the option under `Settings` -> `Interface` -> `Interaction` -> `Technology screen opens when research is completed`.
-
-## Known Issues
-
-* It's currently not possible to queue up more than one level of an infinite research at a time. I'm working on making this possible but it's quite a big change to make to the code so it might take a while.

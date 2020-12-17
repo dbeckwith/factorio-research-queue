@@ -26,7 +26,11 @@ function rqtech.new(tech, level)
       if level == 'current' then
         level = tech.level
       elseif level == 'previous' then
-        level = tech.level - 1
+        if tech.researched then
+          level = tech.level
+        else
+          level = tech.level - 1
+        end
       else
         level = tech.prototype.max_level
       end
@@ -35,11 +39,15 @@ function rqtech.new(tech, level)
     end
   end
   if level ~= nil then
-    assert(level_from_name ~= nil)
-    assert(level >= level_from_name)
-    assert(level <= tech.prototype.max_level)
+    if level_from_name == nil then
+      error(string.format('%s: level (%d) given with no level in name', tech.name, level))
+    end
+    assert(level >= level_from_name, string.format('%s: level (%d) < level from name (%d)', tech.name, level, level_from_name))
+    assert(level <= tech.prototype.max_level, string.format('%s: level (%d) > ,max level (%d)', tech.name, level, tech.prototype.max_level))
   else
-    assert(level_from_name == nil)
+    if level_from_name ~= nil then
+      error(string.format('%s: no level given with level in name (%d)', tech.name, level_from_name))
+    end
   end
 
   local id

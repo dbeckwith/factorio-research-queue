@@ -151,20 +151,28 @@ function util.fuzzy_search(text, terms)
 end
 
 function is_item_available_basic(force, item_name, recipe_name)
+  -- is it a product of any enabled recipe?
   local recipes
   if recipe_name ~= nil then
-    recipes = {force.recipes[recipe_name]}
-  else
-    recipes = force.recipes
-  end
-  -- is it a product of any enabled recipe?
-  for _, recipe in pairs(recipes) do
-    if recipe.enabled then
-      for _, product in pairs(recipe.products) do
-        if product.type == 'item' and product.name == item_name then
-          return true
-        end
+    local recipe = game.recipe_prototypes[recipe_name]
+    recipes = {}
+    for _, product in pairs(recipe.products) do
+      if product.type == 'item' and product.name == item_name then
+        recipes[recipe.name] = recipe
+        break
       end
+    end
+  else
+    recipes = game.get_filtered_recipe_prototypes{
+      {filter='has-product-item', elem_filters={
+        {filter='name', name=item_name},
+      }},
+    }
+  end
+  for recipe_name, _ in pairs(recipes) do
+    local recipe = force.recipes[recipe_name]
+    if recipe ~= nil and recipe.enabled then
+      return true
     end
   end
 

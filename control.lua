@@ -29,15 +29,30 @@ local queue_saves = {
       for _, player in pairs(force.players) do
         if global.players[player.index] == nil then return end
         local player_data = global.players[player.index]
-        local tech_names = {}
+        local tech_ids = {}
         for _, tech in ipairs(player_data.queue) do
           if tech.valid then
-            table.insert(tech_names, tech.name)
+            table.insert(tech_ids, tech.name)
           end
         end
         local paused = player_data.queue_paused
-        return tech_names, paused
+        return tech_ids, paused
       end
+    end,
+  },
+  {
+    version = '0.4.10',
+    save = function(force)
+      if global.forces[force.index] == nil then return end
+      local force_data = global.forces[force.index]
+      local tech_ids = {}
+      for _, tech in ipairs(force_data.queue) do
+        if tech.valid then
+          table.insert(tech_ids, tech.name)
+        end
+      end
+      local paused = force_data.queue_paused
+      return tech_ids, paused
     end,
   },
 }
@@ -50,20 +65,21 @@ function lookup_queue_save(version)
       qs.version == version or
       migrationlib.is_newer_version(version, qs.version)
     then
-      log('using queue save fn v'..(qs.version or CURRENT_VERSION))
+      log('using queue save fn v'..qs.version)
       return qs.save
     end
   end
+  log('using current queue save fn')
   return function(force)
     if global.forces[force.index] == nil then return end
-    local tech_names = {}
+    local tech_ids = {}
     for tech in queue.iter(force) do
-      if tech.valid then
-        table.insert(tech_names, tech.name)
+      if tech.tech.valid then
+        table.insert(tech_ids, tech.id)
       end
     end
     local paused = queue.is_paused(force)
-    return tech_names, paused
+    return tech_ids, paused
   end
 end
 
@@ -91,8 +107,8 @@ function init_force(force, saved_queue, queue_paused)
   if queue_paused == nil then queue_paused = true end
 
   queue.new(force, queue_paused)
-  for _, tech_name in ipairs(saved_queue) do
-    local tech = force.technologies[tech_name]
+  for _, tech_id in ipairs(saved_queue) do
+    local tech = rqtech.from_id(force, tech_id)
     if tech ~= nil then
       queue.enqueue(force, tech)
     end

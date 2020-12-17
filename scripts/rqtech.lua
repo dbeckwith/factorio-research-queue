@@ -96,7 +96,20 @@ function rqtech.new(tech, level)
 end
 
 function rqtech.from_id(force, id)
-  return global.rqtechs[force.index][id]
+  local cached_rqtech = global.rqtechs[force.index][id]
+  if cached_rqtech ~= nil then
+    return cached_rqtech
+  end
+  local tech, level = string.match(id, '^(.+):(%d+)$')
+  if tech ~= nil then
+    tech = force.technologies[tech]
+    level = tonumber(level)
+  else
+    tech = force.technologies[id]
+    level = nil
+  end
+  if tech == nil then return nil end
+  return rqtech.new(tech, level)
 end
 
 function rqtech.iter(force)

@@ -1,3 +1,5 @@
+local migrationlib = require('__flib__.migration')
+
 local util = {}
 
 function util.iter_list(list)
@@ -150,7 +152,19 @@ function util.fuzzy_search(text, terms)
   return true
 end
 
-function is_item_available_basic(force, item_name, recipe_name)
+function util.is_at_least_version(v1, v2)
+  -- v1 >= v2
+  -- ~(v1 < v2)
+  -- ~(v2 > v1)
+  -- migrationlib.is_newer_version(v1, v2) is v2 > v1
+  return not migrationlib.is_newer_version(v1, v2)
+end
+
+function util.is_game_at_least_version(v)
+  return util.is_at_least_version(game.active_mods['base'], v)
+end
+
+local function is_item_available_basic(force, item_name, recipe_name)
   -- is it a product of any enabled recipe?
   local recipes
   if recipe_name ~= nil then
@@ -194,7 +208,7 @@ function is_item_available_basic(force, item_name, recipe_name)
   return false
 end
 
-function is_rocket_silo_available(force)
+local function is_rocket_silo_available(force)
   -- find all rocket silo entities
   for _, entity in pairs(game.get_filtered_entity_prototypes{
     {filter='type', type='rocket-silo'},
@@ -217,7 +231,9 @@ function util.is_item_available(force, item_name, recipe_name)
 
   if is_rocket_silo_available(force) then
     for _, item in pairs(game.get_filtered_item_prototypes{
-      {filter='has-rocket-launch-products'}
+      util.is_game_at_least_version('1.1.0')
+        and {filter='has-rocket-launch-products'}
+        or nil,
     }) do
       -- check if item is available
       if is_item_available_basic(force, item.name, recipe_name) then

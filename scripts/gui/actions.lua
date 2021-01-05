@@ -309,42 +309,86 @@ function actions.update_techs(player)
     return true
   end
 
-  -- TODO: handle upgrade techs
-  for tech_id, item_gui_data in pairs(gui_data.main.techs.items) do
-    local tech = rqtech.from_id(force, tech_id)
-
-    local visible = is_tech_visible(tech)
-    if visible then
-      local researchable = queue.is_researchable(force, tech)
-      local queued = queue.in_queue(force, tech)
-      local queued_head = not queue.is_paused(force) and queue.is_head(force, tech)
-      local researched = rqtech.is_researched(tech)
-      local available = (function()
-        for _, prereq in pairs(tech.prerequisites) do
-          if not rqtech.is_researched(prereq) then
-            return false
-          end
+  local function update_item(item_gui_data, tech)
+    local researchable = queue.is_researchable(force, tech)
+    local queued = queue.in_queue(force, tech)
+    local queued_head = not queue.is_paused(force) and queue.is_head(force, tech)
+    local researched = rqtech.is_researched(tech)
+    local available = (function()
+      for _, prereq in pairs(tech.prerequisites) do
+        if not rqtech.is_researched(prereq) then
+          return false
         end
-        return true
-      end)()
-      local style_prefix =
-        'rq_tech_list_item' ..
-          (queued_head and '_queued_head' or
-          queued and '_queued' or
-          researched and '_researched' or
-          available and '_available' or
-          '_unavailable')
+      end
+      return true
+    end)()
+    local style_prefix =
+      'rq_tech_list_item' ..
+        (queued_head and '_queued_head' or
+        queued and '_queued' or
+        researched and '_researched' or
+        available and '_available' or
+        '_unavailable')
 
-      item_gui_data.item.visible = true
-      item_gui_data.ingredients_bar.style = style_prefix..'_ingredients_bar'
-      item_gui_data.tool_bar.style = style_prefix..'_tool_bar'
-      actions.update_tech_button(
-        player,
-        item_gui_data.tech_button,
-        tech,
-        style_prefix..'_tech_button')
-    else
-      item_gui_data.item.visible = false
+    item_gui_data.ingredients_bar.style = style_prefix..'_ingredients_bar'
+    item_gui_data.tool_bar.style = style_prefix..'_tool_bar'
+    actions.update_tech_button(
+      player,
+      item_gui_data.tech_button,
+      tech,
+      style_prefix..'_tech_button')
+  end
+
+  local items_gui_data = gui_data.main.techs.items
+  local upgrade_items_gui_data = gui_data.main.techs.upgrade_items or {}
+
+  for tech_id, item_gui_data in pairs(upgrade_items_gui_data) do
+    item_gui_data.item.destroy()
+    items_gui_data[tech_id] = nil
+  end
+  upgrade_items_gui_data = {}
+  gui_data.main.techs.upgrade_items = upgrade_items_gui_data
+
+  for tech in rqtech.iter(force) do
+    if not tech.tech.prototype.hidden then
+      local item_gui_data = items_gui_data[tech.id]
+
+      local visible = is_tech_visible(tech)
+      if visible then
+        update_item(item_gui_data, tech)
+        item_gui_data.item.visible = true
+      else
+        item_gui_data.item.visible = false
+      end
+
+      local index = item_gui_data.item.get_index_in_parent() + 1
+
+      while true do
+        if
+          not (visible or rqtech.is_researched(tech)) or
+          not tech.infinite or
+          tech.level + 1 > tech.tech.prototype.max_level
+        then
+          break
+        end
+        local next_level_tech = rqtech.new(tech.tech, tech.level + 1)
+        tech = next_level_tech
+        visible = is_tech_visible(tech)
+        if visible then
+          local item_gui_data = main_gui.build_tech_item(
+            player,
+            gui_data.main.techs.table,
+            tech,
+            index)
+
+          update_item(item_gui_data, tech)
+
+          index = item_gui_data.item.get_index_in_parent() + 1
+
+          items_gui_data[tech.id] = item_gui_data
+          upgrade_items_gui_data[tech.id] = item_gui_data
+        end
+      end
     end
   end
 end

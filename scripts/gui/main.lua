@@ -6,6 +6,98 @@ local util = require('__sonaxaton-research-queue__.scripts.util')
 local tech_button = require('.tech_button')
 local templates = require('.templates')
 
+local function build_tech_item(player, container, tech, index)
+  local tech_button_size = 64+8*2+8
+  local ingredient_width = 16
+  local ingredients = {}
+  for _, ingredient in ipairs(tech.tech.research_unit_ingredients) do
+    table.insert(ingredients, {
+      type = 'sprite',
+      style = 'rq_tech_list_item_ingredient',
+      sprite = string.format('%s/%s', ingredient.type, ingredient.name),
+    })
+  end
+  local ingredients_spacing = nil
+  if #ingredients >= 2 then
+    ingredients_spacing =
+      (tech_button_size - 8 - #ingredients*ingredient_width) /
+        (#ingredients - 1)
+    if ingredients_spacing > 0 then
+      ingredients_spacing = 0
+    end
+  end
+  local gui_data = guilib.build(container, {
+    {
+      ref = {'item'},
+      type = 'flow',
+      style = 'rq_tech_list_item',
+      direction = 'vertical',
+      index = index,
+      children = {
+        {
+          ref = {'tech_button_container'},
+          type = 'flow',
+          direction = 'vertical',
+        },
+        {
+          ref = {'ingredients_bar'},
+          type = 'frame',
+          direction = 'horizontal',
+          children = {
+            {
+              type = 'flow',
+              style = 'horizontal_flow',
+              style_mods = {
+                horizontal_spacing = ingredients_spacing,
+              },
+              direction = 'horizontal',
+              children = ingredients,
+            },
+          },
+        },
+        {
+          ref = {'tool_bar'},
+          type = 'frame',
+          direction = 'horizontal',
+          children = {
+            templates.tool_button{
+              style = 'rq_tech_list_item_tool_button',
+              actions = {
+                on_click = { type = 'enqueue', pos = 'last', tech = tech.id },
+              },
+              sprite = 'rq-enqueue-last-black',
+              tooltip = {'sonaxaton-research-queue.enqueue-last-button-tooltip', tech.tech.localised_name},
+            },
+            templates.tool_button{
+              style = 'rq_tech_list_item_tool_button',
+              actions = {
+                on_click = { type = 'enqueue', pos = 'second', tech = tech.id },
+              },
+              sprite = 'rq-enqueue-second-black',
+              tooltip = {'sonaxaton-research-queue.enqueue-second-button-tooltip', tech.tech.localised_name},
+            },
+            templates.tool_button{
+              style = 'rq_tech_list_item_tool_button',
+              actions = {
+                on_click = { type = 'enqueue', pos = 'first', tech = tech.id },
+              },
+              sprite = 'rq-enqueue-first-black',
+              tooltip = {'sonaxaton-research-queue.enqueue-first-button-tooltip', tech.tech.localised_name},
+            },
+          },
+        },
+      },
+    },
+  })
+  local tech_button_gui_data = tech_button.build(
+    player,
+    gui_data.tech_button_container,
+    tech,
+    'tech_list')
+  gui_data.tech_button = tech_button_gui_data
+  return gui_data
+end
+
 local function build(player, window)
   local force = player.force
   local player_data = global.players[player.index]
@@ -232,74 +324,7 @@ local function build(player, window)
         ingredients_spacing = 0
       end
     end
-    local item_gui_data = guilib.build(gui_data.techs.table, {
-      {
-        ref = {'item'},
-        type = 'flow',
-        style = 'rq_tech_list_item',
-        direction = 'vertical',
-        children = {
-          {
-            ref = {'tech_button_container'},
-            type = 'flow',
-            direction = 'vertical',
-          },
-          {
-            ref = {'ingredients_bar'},
-            type = 'frame',
-            direction = 'horizontal',
-            children = {
-              {
-                type = 'flow',
-                style = 'horizontal_flow',
-                style_mods = {
-                  horizontal_spacing = ingredients_spacing,
-                },
-                direction = 'horizontal',
-                children = ingredients,
-              },
-            },
-          },
-          {
-            ref = {'tool_bar'},
-            type = 'frame',
-            direction = 'horizontal',
-            children = {
-              templates.tool_button{
-                style = 'rq_tech_list_item_tool_button',
-                actions = {
-                  on_click = { type = 'enqueue', pos = 'last', tech = tech.id },
-                },
-                sprite = 'rq-enqueue-last-black',
-                tooltip = {'sonaxaton-research-queue.enqueue-last-button-tooltip', tech.tech.localised_name},
-              },
-              templates.tool_button{
-                style = 'rq_tech_list_item_tool_button',
-                actions = {
-                  on_click = { type = 'enqueue', pos = 'second', tech = tech.id },
-                },
-                sprite = 'rq-enqueue-second-black',
-                tooltip = {'sonaxaton-research-queue.enqueue-second-button-tooltip', tech.tech.localised_name},
-              },
-              templates.tool_button{
-                style = 'rq_tech_list_item_tool_button',
-                actions = {
-                  on_click = { type = 'enqueue', pos = 'first', tech = tech.id },
-                },
-                sprite = 'rq-enqueue-first-black',
-                tooltip = {'sonaxaton-research-queue.enqueue-first-button-tooltip', tech.tech.localised_name},
-              },
-            },
-          },
-        },
-      },
-    })
-    local tech_button_gui_data = tech_button.build(
-      player,
-      item_gui_data.tech_button_container,
-      tech,
-      'tech_list')
-    item_gui_data.tech_button = tech_button_gui_data
+    local item_gui_data = build_tech_item(player, gui_data.techs.table, tech)
     items_gui_data[tech.id] = item_gui_data
   end
   gui_data.techs.items = items_gui_data
@@ -309,4 +334,5 @@ end
 
 return {
   build = build,
+  build_tech_item = build_tech_item,
 }

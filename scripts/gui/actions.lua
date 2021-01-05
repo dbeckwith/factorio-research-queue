@@ -332,6 +332,9 @@ function actions.update_techs(player)
 
     item_gui_data.ingredients_bar.style = style_prefix..'_ingredients_bar'
     item_gui_data.tool_bar.style = style_prefix..'_tool_bar'
+    for _, button in pairs(item_gui_data.tool_bar.children) do
+      button.enabled = researchable
+    end
     actions.update_tech_button(
       player,
       item_gui_data.tech_button,

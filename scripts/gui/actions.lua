@@ -772,10 +772,6 @@ function actions.on_technology_gui_closed(player)
 
   queue.set_paused(force, force.current_research == nil)
   queue.update(force)
-  for _, player in pairs(force.players) do
-    actions.update_queue(player)
-    actions.update_techs(player)
-  end
 
   if gui_data.window.valid and gui_data.window.visible then
     -- after the tech gui is closed, if the window was still visible, make it
@@ -791,7 +787,11 @@ function actions.on_research_started(force, tech, last_tech)
     queue.enqueue_head(force, tech)
     queue.update(force)
     for _, player in pairs(force.players) do
-      actions.update_queue(player, tech)
+      local player_data = global.players[player.index]
+      local gui_data = player_data.gui
+      if gui_data.window.valid and gui_data.window.visible then
+        actions.update_queue(player, tech)
+      end
     end
   end
 end
@@ -801,6 +801,7 @@ function actions.on_research_finished(force, tech)
   queue.update(force)
   for _, player in pairs(force.players) do
     local player_data = global.players[player.index]
+    local gui_data = player_data.gui
     local filter_data = player_data.filter
     local tech_ingredients = player_data.tech_ingredients
 
@@ -826,8 +827,10 @@ function actions.on_research_finished(force, tech)
       end
     end
 
-    actions.update_queue(player)
-    actions.update_techs(player)
+    if gui_data.window.valid and gui_data.window.visible then
+      actions.update_queue(player)
+      actions.update_techs(player)
+    end
   end
 end
 
@@ -847,6 +850,7 @@ end
 
 function actions.on_string_translated(player, event)
   local player_data = global.players[player.index]
+  local gui_data = player_data.gui
   local translation_data = player_data.translations
 
   local sort_data, finished = translationlib.process_result(event)
@@ -868,7 +872,9 @@ function actions.on_string_translated(player, event)
     end
 
     if finished then
-      actions.update_techs(player)
+      if gui_data.window.valid and gui_data.window.visible then
+        actions.update_techs(player)
+      end
     end
   end
 end

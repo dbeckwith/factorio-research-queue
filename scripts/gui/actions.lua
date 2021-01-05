@@ -311,7 +311,6 @@ function actions.update_techs(player)
 
   local function update_item(item_gui_data, tech)
     local researchable = queue.is_researchable(force, tech)
-    -- TODO(perf): make queue.in_queue O(1)
     local queued = queue.in_queue(force, tech)
     local queued_head = not queue.is_paused(force) and queue.is_head(force, tech)
     local researched = rqtech.is_researched(tech)

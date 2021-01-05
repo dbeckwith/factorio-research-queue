@@ -1,11 +1,11 @@
 __rq_debug = false
 
 local eventlib = require('__flib__.event')
-local guilib = require('__flib__.gui')
+local guilib = require('__flib__.gui-beta')
 local migrationlib = require('__flib__.migration')
 local translationlib = require('__flib__.translation')
 
-local gui = require('scripts.gui')
+local gui = require('scripts.gui.index')
 local queue = require('scripts.queue')
 local rqtech = require('scripts.rqtech')
 
@@ -86,13 +86,12 @@ end
 function init_player(player)
   global.players[player.index] = {}
 
-  gui.init(player)
+  gui.actions.init(player)
 end
 
 function deinit_player(player)
   translationlib.cancel(player.index)
-  gui.deinit(player)
-  guilib.remove_player_filters(player.index)
+  gui.actions.deinit(player)
   global.players[player.index] = nil
 end
 
@@ -116,14 +115,12 @@ function init_force(force, saved_queue, queue_paused)
 end
 
 function deinit_force(force)
-  global.forces[force.index] = nil
   rqtech.deinit_force(force)
+  global.forces[force.index] = nil
 end
 
 eventlib.on_init(function()
   translationlib.init()
-  guilib.init()
-  guilib.build_lookup_tables()
 
   rqtech.init()
 
@@ -136,10 +133,6 @@ eventlib.on_init(function()
   for _, player in pairs(game.players) do
     init_player(player)
   end
-end)
-
-eventlib.on_load(function()
-  guilib.build_lookup_tables()
 end)
 
 eventlib.on_configuration_changed(function(event)
@@ -196,13 +189,7 @@ eventlib.on_configuration_changed(function(event)
     deinit_player(player)
     init_player(player)
   end
-
-  if init then
-    guilib.check_filter_validity()
-  end
 end)
-
-guilib.register_handlers()
 
 eventlib.on_force_created(function(event)
   local force = event.force
@@ -219,7 +206,7 @@ eventlib.on_force_reset(function(event)
   deinit_force(force)
   init_force(force)
   for _, player in pairs(force.players) do
-    gui.update(player)
+    gui.actions.update_all(player)
   end
 end)
 
@@ -236,84 +223,72 @@ end)
 eventlib.on_player_changed_force(function(event)
   local player = game.players[event.player_index]
   if game.players[player.index] ~= nil then
-    gui.update(player)
+    gui.actions.update_all(player)
   end
 end)
 
 eventlib.on_lua_shortcut(function(event)
   if event.prototype_name == 'sonaxaton-research-queue' then
     local player = game.players[event.player_index]
-    if player ~= nil then
-      if player.is_shortcut_toggled('sonaxaton-research-queue') then
-        gui.close(player)
-      else
-        gui.open(player)
-      end
+    if player.is_shortcut_toggled('sonaxaton-research-queue') then
+      gui.actions.close_window(player)
+    else
+      gui.actions.open_window(player)
     end
   end
 end)
 
 eventlib.register('rq-toggle-main-window', function(event)
   local player = game.players[event.player_index]
-  if player ~= nil then
-    gui.toggle(player)
+  if global.players[player.index] ~= nil then
+    gui.actions.toggle_window(player)
   end
 end)
 
 eventlib.register('rq-focus-search', function(event)
   local player = game.players[event.player_index]
-  if player ~= nil then
-    if global.players[player.index] ~= nil then
-      gui.focus_search(player)
-    end
+  if global.players[player.index] ~= nil then
+    gui.actions.focus_search(player)
   end
 end)
 
 eventlib.on_research_started(function(event)
   local force = event.research.force
   if global.forces[force.index] ~= nil then
-    gui.on_research_started(force, event.research, event.last_research)
+    gui.actions.on_research_started(force, event.research, event.last_research)
   end
 end)
 
 eventlib.on_research_finished(function(event)
   local force = event.research.force
   if global.forces[force.index] ~= nil then
-    gui.on_research_finished(force, event.research)
+    gui.actions.on_research_finished(force, event.research)
   end
 end)
 
 eventlib.on_string_translated(function(event)
   local player = game.players[event.player_index]
-  if player ~= nil then
-    if global.players[player.index] ~= nil then
-      gui.on_string_translated(player, event)
-    end
+  if global.players[player.index] ~= nil then
+    gui.actions.on_string_translated(player, event)
   end
 end)
 
-eventlib.on_gui_opened(function(event)
-  if not guilib.dispatch_handlers(event) then
-    local player = game.players[event.player_index]
-    if player ~= nil then
-      if global.players[player.index] ~= nil then
-        if event.gui_type == defines.gui_type.research then
-          gui.on_technology_gui_opened(player)
-        end
-      end
-    end
-  end
-end)
-
-eventlib.on_gui_closed(function(event)
-  if not guilib.dispatch_handlers(event) then
-    local player = game.players[event.player_index]
-    if player ~= nil then
-      if global.players[player.index] ~= nil then
-        if event.gui_type == defines.gui_type.research then
-          gui.on_technology_gui_closed(player)
-        end
-      end
+guilib.hook_events(function(event)
+  local player = game.players[event.player_index]
+  if global.players[player.index] ~= nil then
+    local action = guilib.read_action(event)
+    if action then
+      gui.handle_event(player, action, event)
+    elseif
+      event.name == defines.events.on_gui_opened and
+      event.gui_type == defines.gui_type.research
+    then
+      gui.actions.on_technology_gui_opened(player)
+    elseif
+      event.name == defines.events.on_gui_closed and
+      event.gui_type == defines.gui_type.research
+    then
+      gui.actions.on_technology_gui_closed(player)
     end
   end
 end)
@@ -359,6 +334,6 @@ eventlib.on_nth_tick(research_speed_period, function(event)
         end
       end
     end
-    gui.on_research_speed_estimate(force, speed_estimate)
+    gui.actions.on_research_speed_estimate(force, speed_estimate)
   end
 end)

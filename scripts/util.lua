@@ -250,4 +250,17 @@ function util.is_item_available(force, item_name, recipe_name)
   return false
 end
 
+function util.can_pause_game(player)
+  if game.is_multiplayer() then
+    return false
+  end
+  if player.controller_type == defines.controllers.editor then
+    return false
+  end
+  if not settings.get_player_settings(player)['rq-pause-game'].value then
+    return false
+  end
+  return true
+end
+
 return util

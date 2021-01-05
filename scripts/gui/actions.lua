@@ -635,13 +635,8 @@ function actions.update_progressbars(player)
   end
 end
 
--- TODO(perf): hot
 function actions.update_tech_button(player, gui_data, tech, style)
-  local researched = rqtech.is_researched(tech)
-  local tooltip = tech_button.create_tooltip(tech, researched)
-
   gui_data.button.style = style
-  gui_data.button.tooltip = tooltip
   actions.update_tech_button_progressbar(player, gui_data, tech)
 end
 

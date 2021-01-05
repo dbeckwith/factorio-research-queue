@@ -2,11 +2,7 @@ local guilib = require('__flib__.gui-beta')
 
 local rqtech = require('__sonaxaton-research-queue__.scripts.rqtech')
 
-local function create_tooltip(tech, researched)
-  local lines = {
-    {'', '[font=heading-2]', tech.tech.localised_name, '[/font]'},
-    tech.tech.localised_description}
-
+local function build(player, parent, tech, list_type)
   local cost = '[[font=count-font]'
   for _, ingredient in ipairs(tech.tech.research_unit_ingredients) do
     cost = cost .. string.format(
@@ -19,30 +15,16 @@ local function create_tooltip(tech, researched)
     '[img=quantity-time]%d[/font]][font=count-font][img=quantity-multiplier]%d[/font]',
     tech.tech.research_unit_energy / 60,
     tech.research_unit_count)
-  table.insert(lines, cost)
 
-  if not researched then
-    table.insert(lines, {'sonaxaton-research-queue.tech-button-enqueue-last'})
-    table.insert(lines, {'sonaxaton-research-queue.tech-button-enqueue-second'})
-    table.insert(lines, {'sonaxaton-research-queue.tech-button-dequeue'})
-  end
-  table.insert(lines, {'sonaxaton-research-queue.tech-button-open'})
-  local tooltip = {}
-  local first = true
-  for _, line in ipairs(lines) do
-    if first then
-      table.insert(tooltip, '')
-    else
-      table.insert(tooltip, '\n')
-    end
-    table.insert(tooltip, line)
-    first = false
-  end
-  return tooltip
-end
+  local tooltip = {'',
+    '[font=heading-2]', tech.tech.localised_name, '[/font]', '\n',
+    tech.tech.localised_description, '\n',
+    cost, '\n',
+    {'sonaxaton-research-queue.tech-button-enqueue-last'}, '\n',
+    {'sonaxaton-research-queue.tech-button-enqueue-second'}, '\n',
+    {'sonaxaton-research-queue.tech-button-dequeue'}, '\n',
+    {'sonaxaton-research-queue.tech-button-open'}}
 
-local function build(player, parent, tech, list_type)
-  local tooltip = create_tooltip(tech, false)
   return guilib.build(parent, {
     {
       type = 'flow',
@@ -72,5 +54,4 @@ end
 
 return {
   build = build,
-  create_tooltip = create_tooltip,
 }

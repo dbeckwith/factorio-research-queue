@@ -1,6 +1,6 @@
 local guilib = require('__flib__.gui-beta')
 
-local rqtech = require('__sonaxaton-research-queue__.scripts.rqtech')
+local rqtech = require('scripts.rqtech')
 
 local function build(player, parent, tech, list_type)
   local cost = '[[font=count-font]'

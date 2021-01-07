@@ -1,7 +1,7 @@
 local guilib = require('__flib__.gui-beta')
 
-local rqtech = require('__sonaxaton-research-queue__.scripts.rqtech')
-local util = require('__sonaxaton-research-queue__.scripts.util')
+local rqtech = require('scripts.rqtech')
+local util = require('scripts.util')
 
 local tech_button = require('.tech_button')
 local templates = require('.templates')

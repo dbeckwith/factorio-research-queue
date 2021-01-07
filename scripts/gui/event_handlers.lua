@@ -1,5 +1,5 @@
-local queue = require('__sonaxaton-research-queue__.scripts.queue')
-local rqtech = require('__sonaxaton-research-queue__.scripts.rqtech')
+local queue = require('scripts.queue')
+local rqtech = require('scripts.rqtech')
 
 local actions = require('.actions')
 

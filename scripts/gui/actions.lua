@@ -2,9 +2,9 @@ local guilib = require('__flib__.gui-beta')
 local translationlib = require('__flib__.translation')
 local eventlib = require('__flib__.event')
 
-local rqtech = require('__sonaxaton-research-queue__.scripts.rqtech')
-local queue = require('__sonaxaton-research-queue__.scripts.queue')
-local util = require('__sonaxaton-research-queue__.scripts.util')
+local rqtech = require('scripts.rqtech')
+local queue = require('scripts.queue')
+local util = require('scripts.util')
 
 local main_gui = require('.main')
 local settings_gui = require('.settings')

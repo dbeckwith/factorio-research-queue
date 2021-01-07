@@ -1,4 +1,4 @@
-local futil = require('__core__/lualib/util')
+local futil = require('__core__.lualib.util')
 
 local templates = {}
 

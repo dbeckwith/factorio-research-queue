@@ -20,6 +20,11 @@ local migrations = {
       global.players[player.index].queue_paused = nil
     end
   end,
+  ['0.4.17'] = function()
+    if global.__flib ~= nil then
+      global.__flib.gui = nil
+    end
+  end,
 }
 
 local queue_saves = {

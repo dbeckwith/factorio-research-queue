@@ -1,4 +1,21 @@
 ---------------------------------------------------------------------------------------------------
+Version: 0.4.18
+Date: 2021-01-15
+  Bugfixes:
+    - Fix desync related to translation handler.
+---------------------------------------------------------------------------------------------------
+Version: 0.4.17
+Date: 2021-01-15
+  Bugfixes:
+    - Fix desync related to translation handler.
+  Minor Changes:
+    - Clean up legacy flib data
+---------------------------------------------------------------------------------------------------
+Version: 0.4.16
+Date: 2021-01-05
+  Minor Changes:
+    - Significant performance improvements when using large mods
+---------------------------------------------------------------------------------------------------
 Version: 0.4.15
 Date: 2020-12-26
   Bugfixes:

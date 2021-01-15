@@ -140,6 +140,7 @@ end)
 
 eventlib.on_load(function()
   guilib.build_lookup_tables()
+  gui.register_translation_handler()
 end)
 
 eventlib.on_configuration_changed(function(event)

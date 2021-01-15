@@ -91,15 +91,7 @@ function actions.init(player)
     end
 
     translationlib.add_requests(player.index, requests)
-    if translationlib.translating_players_count() > 0 then
-      eventlib.on_tick(function(event)
-        if translationlib.translating_players_count() > 0 then
-          translationlib.iterate_batch(event)
-        else
-          eventlib.on_tick(nil)
-        end
-      end)
-    end
+    actions.register_translation_handler()
   end
 
   local gui_data = guilib.build(player.gui.screen, {
@@ -838,6 +830,20 @@ function actions.on_research_speed_estimate(force, speed)
       actions.update_etcs(player)
       actions.update_progressbars(player)
     end
+  end
+end
+
+function on_tick_translation_handler(event)
+  if translationlib.translating_players_count() > 0 then
+    translationlib.iterate_batch(event)
+  else
+    eventlib.on_tick(nil)
+  end
+end
+
+function actions.register_translation_handler()
+  if translationlib.translating_players_count() > 0 then
+    eventlib.on_tick(on_tick_translation_handler)
   end
 end
 

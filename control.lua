@@ -140,6 +140,10 @@ eventlib.on_init(function()
   end
 end)
 
+eventlib.on_load(function()
+  gui.actions.register_translation_handler()
+end)
+
 eventlib.on_configuration_changed(function(event)
   local saved_queues = {}
   local saved_queue_paused = {}

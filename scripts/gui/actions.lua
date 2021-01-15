@@ -833,7 +833,7 @@ function actions.on_research_speed_estimate(force, speed)
   end
 end
 
-function on_tick_translation_handler(event)
+local function on_tick_translation_handler(event)
   if translationlib.translating_players_count() > 0 then
     translationlib.iterate_batch(event)
   else

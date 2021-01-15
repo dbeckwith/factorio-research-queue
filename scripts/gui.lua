@@ -172,6 +172,20 @@ local function get_localised_string_key(player, localised_string)
   return translationlib.serialise_localised_string(localised_string)
 end
 
+local function on_tick_translation_handler(event)
+  if translationlib.translating_players_count() > 0 then
+    translationlib.iterate_batch(event)
+  else
+    eventlib.on_tick(nil)
+  end
+end
+
+local function register_translation_handler()
+  if translationlib.translating_players_count() > 0 then
+    eventlib.on_tick(on_tick_translation_handler)
+  end
+end
+
 local function update_techs(player)
   local player_data = global.players[player.index]
   local gui_data = player_data.gui
@@ -925,20 +939,6 @@ local function on_research_speed_estimate(force, speed)
       update_etcs(player)
       update_progressbars(player)
     end
-  end
-end
-
-local function on_tick_translation_handler(event)
-  if translationlib.translating_players_count() > 0 then
-    translationlib.iterate_batch(event)
-  else
-    eventlib.on_tick(nil)
-  end
-end
-
-local function register_translation_handler()
-  if translationlib.translating_players_count() > 0 then
-    eventlib.on_tick(on_tick_translation_handler)
   end
 end
 

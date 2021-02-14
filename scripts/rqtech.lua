@@ -35,8 +35,10 @@ function rqtech.new(tech, level)
         else
           level = tech.level - 1
         end
-      else
+      elseif level == 'max' then
         level = tech.prototype.max_level
+      else
+        error(string.format('unknown infinite level spec %s', level))
       end
     else
       level = level_from_name
@@ -89,7 +91,17 @@ function rqtech.new(tech, level)
   else
     prerequisites = {}
     for name, prerequisite in pairs(tech.prerequisites) do
-      prerequisites[name] = rqtech.new(prerequisite, 'max')
+      if
+        prerequisite.research_unit_count_formula ~= nil and
+        prerequisite.prototype.max_level == 4294967295
+      then
+        -- prerequisite is an infinite tech with "infinite" max level
+        -- this tech is unresearchable
+        -- but just ignore the prerequisite for IRQ
+        log(string.format('WARNING: %s is unresearchable! It has %s as a prerequisite, which is infinite with no max level. The prerequisite will be ignored in Improved Research Queue.', tech.name, prerequisite.name))
+      else
+        prerequisites[name] = rqtech.new(prerequisite, 'max')
+      end
     end
   end
 

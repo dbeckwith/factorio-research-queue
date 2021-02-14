@@ -6,9 +6,9 @@ local util = require('scripts.util')
 local tech_button = require('.tech_button')
 local templates = require('.templates')
 
-local function build_tech_item(player, container, tech, index)
-  local tech_button_size = 64+8*2+8
-  local ingredient_width = 16
+local function build_tech_item_ingredients_flow(player, container, tech)
+  local ingredients_flow_size = (64+8*2+8-8) * player.display_scale
+  local ingredient_width = 16 * player.display_scale
   local ingredients = {}
   for _, ingredient in ipairs(tech.tech.research_unit_ingredients) do
     table.insert(ingredients, {
@@ -20,12 +20,27 @@ local function build_tech_item(player, container, tech, index)
   local ingredients_spacing = nil
   if #ingredients >= 2 then
     ingredients_spacing =
-      (tech_button_size - 8 - #ingredients*ingredient_width) /
-        (#ingredients - 1)
+      math.floor((ingredients_flow_size - #ingredients*ingredient_width) /
+        (#ingredients - 1)) /
+        player.display_scale
     if ingredients_spacing > 0 then
       ingredients_spacing = 0
     end
   end
+  local gui_data = guilib.build(container, {
+    {
+      type = 'flow',
+      style = 'horizontal_flow',
+      style_mods = {
+        horizontal_spacing = ingredients_spacing,
+      },
+      direction = 'horizontal',
+      children = ingredients,
+    },
+  })
+end
+
+local function build_tech_item(player, container, tech, index)
   local gui_data = guilib.build(container, {
     {
       ref = {'item'},
@@ -43,17 +58,6 @@ local function build_tech_item(player, container, tech, index)
           ref = {'ingredients_bar'},
           type = 'frame',
           direction = 'horizontal',
-          children = {
-            {
-              type = 'flow',
-              style = 'horizontal_flow',
-              style_mods = {
-                horizontal_spacing = ingredients_spacing,
-              },
-              direction = 'horizontal',
-              children = ingredients,
-            },
-          },
         },
         {
           ref = {'tool_bar'},
@@ -89,12 +93,15 @@ local function build_tech_item(player, container, tech, index)
       },
     },
   })
-  local tech_button_gui_data = tech_button.build(
+  gui_data.tech_button = tech_button.build(
     player,
     gui_data.tech_button_container,
     tech,
     'tech_list')
-  gui_data.tech_button = tech_button_gui_data
+  gui_data.ingredients_bar_flow = build_tech_item_ingredients_flow(
+    player,
+    gui_data.ingredients_bar,
+    tech)
   return gui_data
 end
 
@@ -305,25 +312,6 @@ local function build(player, window)
   end
   local items_gui_data = {}
   for _, tech in ipairs(techs_list) do
-    local tech_list_tech_button_size = 64+8*2+8
-    local ingredient_width = 16
-    local ingredients = {}
-    for _, ingredient in ipairs(tech.tech.research_unit_ingredients) do
-      table.insert(ingredients, {
-        type = 'sprite',
-        style = 'rq_tech_list_item_ingredient',
-        sprite = string.format('%s/%s', ingredient.type, ingredient.name),
-      })
-    end
-    local ingredients_spacing = nil
-    if #ingredients >= 2 then
-      ingredients_spacing =
-        (tech_list_tech_button_size - 8 - #ingredients*ingredient_width) /
-          (#ingredients - 1)
-      if ingredients_spacing > 0 then
-        ingredients_spacing = 0
-      end
-    end
     local item_gui_data = build_tech_item(player, gui_data.techs.table, tech)
     items_gui_data[tech.id] = item_gui_data
   end
@@ -335,4 +323,5 @@ end
 return {
   build = build,
   build_tech_item = build_tech_item,
+  build_tech_item_ingredients_flow = build_tech_item_ingredients_flow,
 }

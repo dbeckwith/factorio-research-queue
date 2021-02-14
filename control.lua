@@ -231,9 +231,14 @@ end)
 
 eventlib.on_player_changed_force(function(event)
   local player = game.players[event.player_index]
-  if game.players[player.index] ~= nil then
+  if player ~= nil then
     gui.actions.update_all(player)
   end
+end)
+
+eventlib.on_player_display_scale_changed(function (event)
+  local player = game.players[event.player_index]
+  gui.actions.update_tech_list_ingredients(player)
 end)
 
 eventlib.on_lua_shortcut(function(event)

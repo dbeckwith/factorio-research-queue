@@ -388,6 +388,21 @@ function actions.update_techs(player)
   end
 end
 
+function actions.update_tech_list_ingredients(player)
+  local force = player.force
+  local player_data = global.players[player.index]
+  local gui_data = player_data.gui
+  local items_gui_data = gui_data.main.techs.items
+  for tech_id, item_gui_data in pairs(items_gui_data) do
+    local tech = rqtech.from_id(force, tech_id)
+    item_gui_data.ingredients_bar.clear()
+    item_gui_data.ingredients_bar_flow = main_gui.build_tech_item_ingredients_flow(
+      player,
+      item_gui_data.ingredients_bar,
+      tech)
+  end
+end
+
 function actions.update_queue(player, new_tech)
   local force = player.force
   local player_data = global.players[player.index]

@@ -788,9 +788,11 @@ function actions.on_research_started(force, tech, last_tech)
     queue.update(force)
     for _, player in pairs(force.players) do
       local player_data = global.players[player.index]
-      local gui_data = player_data.gui
-      if gui_data.window.valid and gui_data.window.visible then
-        actions.update_queue(player, tech)
+      if player_data ~= nil then
+        local gui_data = player_data.gui
+        if gui_data.window.valid and gui_data.window.visible then
+          actions.update_queue(player, tech)
+        end
       end
     end
   end
@@ -801,35 +803,37 @@ function actions.on_research_finished(force, tech)
   queue.update(force)
   for _, player in pairs(force.players) do
     local player_data = global.players[player.index]
-    local gui_data = player_data.gui
-    local filter_data = player_data.filter
-    local tech_ingredients = player_data.tech_ingredients
+    if player_data ~= nil then
+      local gui_data = player_data.gui
+      local filter_data = player_data.filter
+      local tech_ingredients = player_data.tech_ingredients
 
-    if settings.get_player_settings(player)['rq-notifications'].value then
-      player.print{'sonaxaton-research-queue.notification', tech.tech.name}
-    end
+      if settings.get_player_settings(player)['rq-notifications'].value then
+        player.print{'sonaxaton-research-queue.notification', tech.tech.name}
+      end
 
-    for _, tech_ingredient in ipairs(tech_ingredients) do
-      if not filter_data.ingredients[tech_ingredient.name] then
-        local newly_available = (function()
-          for _, effect in pairs(tech.tech.effects) do
-            if effect.type == 'unlock-recipe' then
-              if util.is_item_available(force, tech_ingredient.name, effect.recipe) then
-                return true
+      for _, tech_ingredient in ipairs(tech_ingredients) do
+        if not filter_data.ingredients[tech_ingredient.name] then
+          local newly_available = (function()
+            for _, effect in pairs(tech.tech.effects) do
+              if effect.type == 'unlock-recipe' then
+                if util.is_item_available(force, tech_ingredient.name, effect.recipe) then
+                  return true
+                end
               end
             end
+            return false
+          end)()
+          if newly_available then
+            filter_data.ingredients[tech_ingredient.name] = true
           end
-          return false
-        end)()
-        if newly_available then
-          filter_data.ingredients[tech_ingredient.name] = true
         end
       end
-    end
 
-    if gui_data.window.valid and gui_data.window.visible then
-      actions.update_queue(player)
-      actions.update_techs(player)
+      if gui_data.window.valid and gui_data.window.visible then
+        actions.update_queue(player)
+        actions.update_techs(player)
+      end
     end
   end
 end
@@ -837,13 +841,15 @@ end
 function actions.on_research_speed_estimate(force, speed)
   for _, player in pairs(force.players) do
     local player_data = global.players[player.index]
-    local gui_data = player_data.gui
+    if player_data ~= nil then
+      local gui_data = player_data.gui
 
-    player_data.last_research_speed_estimate = speed
+      player_data.last_research_speed_estimate = speed
 
-    if gui_data.window.valid and gui_data.window.visible then
-      actions.update_etcs(player)
-      actions.update_progressbars(player)
+      if gui_data.window.valid and gui_data.window.visible then
+        actions.update_etcs(player)
+        actions.update_progressbars(player)
+      end
     end
   end
 end

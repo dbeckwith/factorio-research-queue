@@ -215,7 +215,9 @@ eventlib.on_force_reset(function(event)
   deinit_force(force)
   init_force(force)
   for _, player in pairs(force.players) do
-    gui.actions.update_all(player)
+    if global.players[player.index] ~= nil then
+      gui.actions.update_all(player)
+    end
   end
 end)
 

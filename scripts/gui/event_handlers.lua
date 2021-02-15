@@ -21,8 +21,10 @@ function event_handlers.enqueue(player, action, event)
   })[pos]](force, tech)
   queue.update(force)
   for _, player in pairs(force.players) do
-    actions.update_queue(player, tech)
-    actions.update_techs(player)
+    if global.players[player.index] ~= nil then
+      actions.update_queue(player, tech)
+      actions.update_techs(player)
+    end
   end
 end
 
@@ -33,8 +35,10 @@ function event_handlers.dequeue(player, action, event)
   queue.dequeue(force, tech)
   queue.update(force)
   for _, player in pairs(force.players) do
-    actions.update_queue(player)
-    actions.update_techs(player)
+    if global.players[player.index] ~= nil then
+      actions.update_queue(player)
+      actions.update_techs(player)
+    end
   end
 end
 
@@ -55,7 +59,9 @@ function event_handlers.queue_shift(player, action, event)
   })[dir][event.shift]](force, tech)
   queue.update(force)
   for _, player in pairs(force.players) do
-    actions.update_queue(player)
+    if global.players[player.index] ~= nil then
+      actions.update_queue(player)
+    end
   end
 end
 
@@ -64,8 +70,10 @@ function event_handlers.clear_queue(player, event)
   queue.clear(force)
   queue.update(force)
   for _, player in pairs(force.players) do
-    actions.update_queue(player)
-    actions.update_techs(player)
+    if global.players[player.index] ~= nil then
+      actions.update_queue(player)
+      actions.update_techs(player)
+    end
   end
 end
 
@@ -74,8 +82,10 @@ function event_handlers.toggle_queue_pause(player, event)
   queue.toggle_paused(force)
   queue.update(force)
   for _, player in pairs(force.players) do
-    actions.update_queue(player)
-    actions.update_techs(player)
+    if global.players[player.index] ~= nil then
+      actions.update_queue(player)
+      actions.update_techs(player)
+    end
   end
 end
 
@@ -115,8 +125,10 @@ function event_handlers.on_click_tech_button(player, action, event)
         queue.enqueue_tail(force, tech)
         queue.update(force)
         for _, player in pairs(force.players) do
-          actions.update_queue(player, tech)
-          actions.update_techs(player)
+          if global.players[player.index] ~= nil then
+            actions.update_queue(player, tech)
+            actions.update_techs(player)
+          end
         end
       end
     elseif event.shift and not event.control and not event.alt then
@@ -124,8 +136,10 @@ function event_handlers.on_click_tech_button(player, action, event)
         queue.enqueue_before_head(force, tech)
         queue.update(force)
         for _, player in pairs(force.players) do
-          actions.update_queue(player, tech)
-          actions.update_techs(player)
+          if global.players[player.index] ~= nil then
+            actions.update_queue(player, tech)
+            actions.update_techs(player)
+          end
         end
       end
     elseif not event.shift and not event.control and event.alt then
@@ -137,8 +151,10 @@ function event_handlers.on_click_tech_button(player, action, event)
         queue.dequeue(force, tech)
         queue.update(force)
         for _, player in pairs(force.players) do
-          actions.update_queue(player)
-          actions.update_techs(player)
+          if global.players[player.index] ~= nil then
+            actions.update_queue(player)
+            actions.update_techs(player)
+          end
         end
       end
     end

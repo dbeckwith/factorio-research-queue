@@ -1,9 +1,19 @@
 ---------------------------------------------------------------------------------------------------
-Version: 0.4.18
+Version: 0.4.20
+Date: 2021-02-15
+  Bugfixes:
+    - Fix crash in some scenarios when research events are triggered before a player is initialized.
+---------------------------------------------------------------------------------------------------
+Version: 0.4.19
 Date: 2021-02-14
   Bugfixes:
     - Fix crash when a technology has an infinite technology with no max level as a prerequisite. A technology like this would be impossible to research anyway, but at least now Improved Research Queue will just log a warning instead of crashing.
     - Fix layout issue in technology list at UI scales other than 100%.
+---------------------------------------------------------------------------------------------------
+Version: 0.4.18
+Date: 2021-01-15
+  Bugfixes:
+    - Fix desync related to translation handler.
 ---------------------------------------------------------------------------------------------------
 Version: 0.4.17
 Date: 2021-01-15

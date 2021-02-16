@@ -187,7 +187,7 @@ function actions.update_all(player)
   actions.update_progressbars(player)
 end
 
-function actions.update_techs(player)
+function actions.update_techs(player, translations_changed)
   local force = player.force
   local player_data = global.players[player.index]
   local gui_data = player_data.gui
@@ -331,7 +331,8 @@ function actions.update_techs(player)
       player,
       item_gui_data.tech_button,
       tech,
-      style_prefix..'_tech_button')
+      style_prefix..'_tech_button',
+      translations_changed)
   end
 
   local items_gui_data = gui_data.main.techs.items
@@ -634,7 +635,6 @@ function actions.update_progressbars(player)
 
   for tech_id, item_gui_data in pairs(gui_data.main.queue.items or {}) do
     local tech = rqtech.from_id(force, tech_id)
-
     actions.update_tech_button_progressbar(
       player,
       item_gui_data.tech_button,
@@ -642,8 +642,17 @@ function actions.update_progressbars(player)
   end
 end
 
-function actions.update_tech_button(player, gui_data, tech, style)
+function actions.update_tech_button(
+  player,
+  gui_data,
+  tech,
+  style,
+  translations_changed
+)
   gui_data.button.style = style
+  if translations_changed then
+    tech_button.update_tech_button_tooltip(player, gui_data, tech)
+  end
   actions.update_tech_button_progressbar(player, gui_data, tech)
 end
 
@@ -876,9 +885,6 @@ function actions.on_string_translated(player, event)
   local sort_data, finished = translationlib.process_result(event)
 
   if sort_data then
-    local player_data = global.players[player.index]
-    local translation_data = player_data.translations
-
     if event.translated then
       for tech_name, keys in pairs(sort_data) do
         for _, key in ipairs(keys) do
@@ -893,7 +899,7 @@ function actions.on_string_translated(player, event)
 
     if finished then
       if gui_data.window.valid and gui_data.window.visible then
-        actions.update_techs(player)
+        actions.update_techs(player, true)
       end
     end
   end

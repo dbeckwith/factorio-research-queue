@@ -1,4 +1,9 @@
 ---------------------------------------------------------------------------------------------------
+Version: 0.4.21
+Date: 2021-02-16
+  Minor Changes:
+    - Hide description in tooltip for technologies without a description translation.
+---------------------------------------------------------------------------------------------------
 Version: 0.4.20
 Date: 2021-02-15
   Bugfixes:

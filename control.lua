@@ -4,6 +4,7 @@ local eventlib = require('__flib__.event')
 local guilib = require('__flib__.gui-beta')
 local migrationlib = require('__flib__.migration')
 local translationlib = require('__flib__.translation')
+local remote_interface = require "scripts.remote-interface"
 
 local gui = require('scripts.gui.index')
 local queue = require('scripts.queue')

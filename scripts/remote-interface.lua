@@ -6,6 +6,7 @@ remote.add_interface(
     "sonaxaton-research-queue", {
         get_queued_names = function(force)
             local result = {}
+            if not global or not global.forces then return result end
             for technology in queue.iter(force) do --
                 table.insert(result, technology.tech.name)
             end
